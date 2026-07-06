@@ -1,0 +1,15 @@
+unset(DDS_IDL_FILES CACHE)
+unset(DDS_IDL_DIR CACHE)
+
+set(DDS_IDL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/idl")
+
+file(GLOB DDS_IDL_FILES "${DDS_IDL_DIR}/*.idl")
+
+if(NOT DDS_IDL_FILES)
+    message(FATAL_ERROR "No IDL files found")
+endif()
+
+set(DDS_IDL_FILES "${DDS_IDL_FILES}" CACHE INTERNAL "" FORCE)
+set(DDS_IDL_DIR "${DDS_IDL_DIR}" CACHE INTERNAL "" FORCE)
+
+message(STATUS "DDS IDLs registered: ${DDS_IDL_FILES}")
