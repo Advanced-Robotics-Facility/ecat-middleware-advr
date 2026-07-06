@@ -1,0 +1,18 @@
+[submodule "plugins/cyclone-dds/lib/cyclonedds"]
+	path = plugins/cyclone-dds/lib/cyclonedds
+	url = https://github.com/eclipse-cyclonedds/cyclonedds.git
+[submodule "plugins/cyclone-dds/lib/cyclonedds-cxx"]
+	path = plugins/cyclone-dds/lib/cyclonedds-cxx
+	url = https://github.com/eclipse-cyclonedds/cyclonedds-cxx.git
+[submodule "plugins/fast-dds/lib/foonathan_memory_vendor"]
+	path = plugins/fast-dds/lib/foonathan_memory_vendor
+	url = https://github.com/eProsima/foonathan_memory_vendor.git
+[submodule "plugins/fast-dds/lib/Fast-CDR"]
+	path = plugins/fast-dds/lib/Fast-CDR
+	url = https://github.com/eProsima/Fast-CDR.git
+[submodule "plugins/fast-dds/lib/Fast-DDS"]
+	path = plugins/fast-dds/lib/Fast-DDS
+	url = https://github.com/eProsima/Fast-DDS.git
+[submodule "plugins/fast-dds/lib/Fast-DDS-Gen"]
+	path = plugins/fast-dds/lib/Fast-DDS-Gen
+	url = https://github.com/eProsima/Fast-DDS-Gen.git
