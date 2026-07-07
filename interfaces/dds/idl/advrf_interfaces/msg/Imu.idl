@@ -1,8 +1,8 @@
-#include "Quaternion.idl"
-#include "Vector3.idl"
-#include "Header.idl"
+#include "../../geometry_msgs/msg/Quaternion.idl"
+#include "../../geometry_msgs/msg/Vector3.idl"
+#include "../../std_msgs/msg/Header.idl"
 
-module advrf_msgs {
+module advrf_interfaces {
   module msg {
     module dds_ {
       struct Imu_ {

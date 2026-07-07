@@ -1,6 +1,6 @@
-#include "Header.idl"
+#include "../../std_msgs/msg/Header.idl"
 
-module advrf_msgs {
+module advrf_interfaces {
     module msg {
         module dds_ {
             struct Pump_ {

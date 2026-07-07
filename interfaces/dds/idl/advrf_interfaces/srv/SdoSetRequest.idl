@@ -1,0 +1,19 @@
+#include "../../rcl_interfaces/msg/Parameter.idl"
+
+module std_srvs {
+  module srv {
+    module dds_ {
+
+      @final
+      struct SdoSet_Request_ {
+        sequence<rcl_interfaces::msg::dds_::Parameter_> parameters;
+      };
+
+      @final
+      struct SdoSet_Response_ {
+        boolean success;
+      };
+
+    };
+  };
+};

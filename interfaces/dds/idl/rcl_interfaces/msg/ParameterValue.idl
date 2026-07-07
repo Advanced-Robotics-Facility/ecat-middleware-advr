@@ -1,0 +1,26 @@
+#include "ParameterType.idl"
+
+module rcl_interfaces {
+  module msg {
+    module dds_ {
+
+      @final
+      struct ParameterValue_
+      {
+        uint8 type;
+
+        boolean bool_value;
+        int64 integer_value;
+        double double_value;
+        string string_value;
+        
+        sequence<octet> byte_array_value;
+        sequence<boolean> bool_array_value;
+        sequence<int64> integer_array_value;
+        sequence<double> double_array_value;
+        sequence<string> string_array_value;
+      };
+
+    };
+  };
+};

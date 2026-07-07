@@ -1,0 +1,25 @@
+#include "../../rcl_interfaces/msg/Parameter.idl"
+
+module std_srvs {
+  module srv {
+    module dds_ {
+
+      const uint8 SUB_REQUEST_ALL   = 0;
+      const uint8 SUB_REQUEST_GAINS = 1;
+
+      @final
+      struct SdoGet_Request_
+      {
+        uint8 sub_request;
+      };
+
+      @final
+      struct SdoGet_Response_
+      {
+        boolean success;
+        sequence<rcl_interfaces::msg::dds_::Parameter_> parameters;
+      };
+
+    };
+  };
+};

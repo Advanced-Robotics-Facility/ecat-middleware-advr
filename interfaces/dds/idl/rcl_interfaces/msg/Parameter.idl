@@ -1,0 +1,16 @@
+#include "ParameterValue.idl"
+
+module rcl_interfaces {
+  module msg {
+    module dds_ {
+
+      @final
+      struct Parameter_
+      {
+        string name;
+        ParameterValue_ value;
+      };
+
+    };
+  };
+};

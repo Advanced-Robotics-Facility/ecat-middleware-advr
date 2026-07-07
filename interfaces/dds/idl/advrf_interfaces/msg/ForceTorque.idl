@@ -1,7 +1,7 @@
-#include "Wrench.idl"
-#include "Header.idl"
+#include "../../geometry_msgs/msg/Wrench.idl"
+#include "../../std_msgs/msg/Header.idl"
 
-module advrf_msgs {
+module advrf_interfaces {
     module msg {
         module dds_ {
             struct ForceTorque_ {

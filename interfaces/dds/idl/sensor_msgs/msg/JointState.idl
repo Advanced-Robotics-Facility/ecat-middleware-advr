@@ -1,4 +1,4 @@
-#include "Header.idl"
+#include "../../std_msgs/msg/Header.idl"
 
 module sensor_msgs {
   module msg {
@@ -8,11 +8,8 @@ module sensor_msgs {
             std_msgs::msg::dds_::Header_ header;
 
             sequence<string> name;
-
             sequence<double> position;
-
             sequence<double> velocity;
-
             sequence<double> effort;
         };
     };
