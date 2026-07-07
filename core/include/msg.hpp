@@ -130,6 +130,29 @@ namespace power_board {
 }
 
 ///////////////////////////
+//          Pump         //
+///////////////////////////
+
+namespace pump {
+    struct rt_pump_msg
+    {
+        header::rt_header header;
+        
+        float motor_current         = 0.0f;
+        float motor_speed           = 0.0f;
+        float pressure1             = 0.0f;
+        float pressure2             = 0.0f;
+        uint32_t temperature        = 0;
+        uint32_t mosfet_temperature = 0;
+        int32_t motor_temperature   = 0;
+        uint32_t fault              = 0;
+        uint32_t rtt                = 0;
+        uint32_t op_idx_ack         = 0;
+        float aux                   = 0.0f;
+    };
+}
+
+///////////////////////////
 //         Motor         //
 ///////////////////////////
 
@@ -267,61 +290,5 @@ namespace valve {
         uint32_t  rtt              = 0;
         uint32_t  op_idx_ack       = 0;
         float     aux              = 0.0f;
-    };
-}
-
-///////////////////////////
-//          Pump         //
-///////////////////////////
-
-namespace pump {
-    struct rt_pump_msg
-    {
-        header::rt_header header;
-        std::vector<std::string> name;
-
-        std::vector<float>    motor_current;
-        std::vector<float>    motor_speed;
-        std::vector<float>    pressure1;
-        std::vector<float>    pressure2;
-
-        std::vector<uint32_t> temperature;
-        std::vector<uint32_t> mosfet_temperature;
-        std::vector<int32_t>  motor_temperature;
-
-        std::vector<uint32_t> fault;
-        std::vector<uint32_t> rtt;
-        std::vector<uint32_t> op_idx_ack;
-        std::vector<float>    aux;
-
-        explicit rt_pump_msg(size_t n = 0)
-            : motor_current       (n, 0.0f)
-            , motor_speed         (n, 0.0f)
-            , pressure1           (n, 0.0f)
-            , pressure2           (n, 0.0f)
-            , temperature         (n, 0)
-            , mosfet_temperature  (n, 0)
-            , motor_temperature   (n, 0)
-            , fault               (n, 0)
-            , rtt                 (n, 0)
-            , op_idx_ack          (n, 0)
-            , aux                 (n, 0.0f)
-        {}
-    };  
-
-    struct rt_pump 
-    {
-        header::rt_header header;
-        float motor_current         = 0.0f;
-        float motor_speed           = 0.0f;
-        float pressure1             = 0.0f;
-        float pressure2             = 0.0f;
-        uint32_t temperature        = 0;
-        uint32_t mosfet_temperature = 0;
-        int32_t motor_temperature   = 0;
-        uint32_t fault              = 0;
-        uint32_t rtt                = 0;
-        uint32_t op_idx_ack         = 0;
-        float aux                   = 0.0f;
     };
 }

@@ -16,7 +16,7 @@ module advrf_interfaces {
         uint32 fault;
         uint32 rtt;
         uint32 op_idx_ack;
-        float aux;
+        float  aux;
       };
     };
   };

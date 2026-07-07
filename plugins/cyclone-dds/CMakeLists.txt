@@ -18,14 +18,15 @@ target_include_directories(ecat_plugin_cyclonedds
 
 target_link_libraries(ecat_plugin_cyclonedds
     PUBLIC
+        mw_core
         advrf_interfaces_dds
         rcl_interfaces_dds
         geometry_msgs_dds
         sensor_msgs_dds
         std_msgs_dds
         builtin_interfaces_dds
-
         CycloneDDS-CXX::ddscxx
+        
 )
 
 enable_testing()

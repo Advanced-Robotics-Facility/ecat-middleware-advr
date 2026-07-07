@@ -6,18 +6,18 @@ module advrf_interfaces {
             struct Pump_ {
                 std_msgs::msg::dds_::Header_ header;
                 
-                sequence<string>  name;
-                sequence<float>   motor_current;
-                sequence<float>   motor_speed;
-                sequence<float>   pressure1;
-                sequence<float>   pressure2;
-                sequence<uint32>  temperature;
-                sequence<uint32>  mosfet_temperature;
-                sequence<int32>   motor_temperature;
-                sequence<uint32>  fault;
-                sequence<uint32>  rtt;
-                sequence<uint32>  op_idx_ack;
-                sequence<float>   aux;
+                string name;
+                float  motor_current;
+                float  motor_speed;
+                float  pressure1;
+                float  pressure2;
+                uint32 temperature;
+                uint32 mosfet_temperature;
+                int32  motor_temperature;
+                uint32 fault;
+                uint32 rtt;
+                uint32 op_idx_ack;
+                float  aux;
             };
         };
     };

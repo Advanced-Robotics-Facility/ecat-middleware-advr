@@ -5,32 +5,29 @@
 #include <vector>
 #include <cstdint>
 #include "msg.hpp"
+#include "mw_adapter.hpp"
+#include "robot_config.hpp"
 
 /* Include the C++ DDS API. */
 #include "dds/dds.hpp"
 
 /* Include data type and specific traits to be used with the C++ DDS API. */
-#include "JointState.hpp"
-#include "Imu.hpp"
-#include "ForceTorque.hpp"
-#include "Motor.hpp"
-#include "PowerBoard.hpp"
-#include "Pump.hpp"
-#include "Valve.hpp"
-
-#include "mw_adapter.hpp"
+#include "sensor_msgs/msg/JointState.hpp"
+#include "advrf_interfaces/msg/Imu.hpp"
+#include "advrf_interfaces/msg/ForceTorque.hpp"
+#include "advrf_interfaces/msg/Motor.hpp"
+#include "advrf_interfaces/msg/PowerBoard.hpp"
+#include "advrf_interfaces/msg/Pump.hpp"
+#include "advrf_interfaces/msg/Valve.hpp"
 
 using TimeMsg        = ::builtin_interfaces::msg::dds_::Time_;
 using JointStateMsg  = ::sensor_msgs::msg::dds_::JointState_;
-using ImuMsg         = ::advrf_msgs::msg::dds_::Imu_;
-using ForceTorqueMsg = ::advrf_msgs::msg::dds_::ForceTorque_;
-using MotorMsg       = ::advrf_msgs::msg::dds_::Motor_;
-using PowerBoardMsg  = ::advrf_msgs::msg::dds_::PowerBoard_;
-using PumpMsg        = ::advrf_msgs::msg::dds_::Pump_;
-using ValveMsg       = ::advrf_msgs::msg::dds_::Valve_;
-
-// TODO: put it in config.yaml
-static constexpr uint32_t DOMAIN_ID = 0;
+using ImuMsg         = ::advrf_interfaces::msg::dds_::Imu_;
+using ForceTorqueMsg = ::advrf_interfaces::msg::dds_::ForceTorque_;
+using MotorMsg       = ::advrf_interfaces::msg::dds_::Motor_;
+using PowerBoardMsg  = ::advrf_interfaces::msg::dds_::PowerBoard_;
+using PumpMsg        = ::advrf_interfaces::msg::dds_::Pump_;
+using ValveMsg       = ::advrf_interfaces::msg::dds_::Valve_;
 
 ////////////////////////////
 //  Base Class Publisher  //
@@ -435,27 +432,17 @@ public:
     PumpPublisher() : Base() {}
     ~PumpPublisher() = default;
 
-    bool init(const std::vector<std::string>& pump_names,
-              const std::string& robot_name,
-              dds::domain::DomainParticipant& participant)
+    bool init(const std::string& robot_name,
+              dds::domain::DomainParticipant& participant,
+              const std::string& topic_override = "")
     {
-        const std::string topic_name = "rt/advrf/" + robot_name + "/pump";
+        const std::string topic_name = topic_override.empty()
+            ? "rt/advrf/" + robot_name + "/pump"
+            : topic_override;
+
         if (!Base::init_dds(topic_name, participant))
             return false;
 
-        const size_t n = pump_names.size();
-        pump_.name() = pump_names;
-        pump_.motor_current().assign(n, 0.0f);
-        pump_.motor_speed().assign(n, 0.0f);
-        pump_.pressure1().assign(n, 0.0f);
-        pump_.pressure2().assign(n, 0.0f);
-        pump_.temperature().assign(n, 0);
-        pump_.mosfet_temperature().assign(n, 0);
-        pump_.motor_temperature().assign(n, 0);
-        pump_.fault().assign(n, 0);
-        pump_.rtt().assign(n, 0);
-        pump_.op_idx_ack().assign(n, 0);
-        pump_.aux().assign(n, 0.0f);
         pump_.header().frame_id() = "";
 
         return true;
@@ -572,34 +559,56 @@ class DdsAdapter : public MiddlewareAdapter {
 public:
     DdsAdapter() = default;
     ~DdsAdapter() override = default;
-
-    bool init(const std::string& robot_name) override {
-        RobotConfig cfg;
-        cfg.robot_name = robot_name;
-        return init(cfg);
-    }
     
-    bool init(const RobotConfig& config) {
+    bool init(const RobotConfig& cfg) {
         try {
-            dp_ = dds::domain::DomainParticipant(DOMAIN_ID);
+            dp_ = dds::domain::DomainParticipant(cfg.domain_id);
 
-            if (!config.has_joints.empty()) {
-                js_pub_ = std::make_unique<JointStatePublisher>();
-                if (!js_pub_.init(robot_name, dp_)) {
-                    std::cerr << "[DDS] Failed to init JointStatePublisher\n";
+            joint_state_pub_ = std::make_unique<JointStatePublisher>();
+            if (!joint_state_pub_->init(cfg.joint_names(), cfg.robot_name, dp_)) {
+                std::cerr << "[DDS] Failed to init JointStatePublisher\n";
+                return false;
+            }
+ 
+            imu_pub_ = std::make_unique<ImuPublisher>();
+            if (!imu_pub_->init(cfg.robot_name, dp_)) {
+                std::cerr << "[DDS] Failed to init ImuPublisher\n";
+                return false;
+            }
+ 
+            force_torque_pub_ = std::make_unique<ForceTorquePublisher>();
+            if (!force_torque_pub_->init(cfg.robot_name, dp_)) {
+                std::cerr << "[DDS] Failed to init ForceTorquePublisher\n";
+                return false;
+            }
+ 
+            power_board_pub_ = std::make_unique<PowerBoardPublisher>();
+            if (!power_board_pub_->init(cfg.robot_name, dp_)) {
+                std::cerr << "[DDS] Failed to init PowerBoardPublisher\n";
+                return false;
+            }
+ 
+            pump_pub_ = std::make_unique<PumpPublisher>();
+            if (!pump_pub_->init(cfg.robot_name, dp_)) {
+                std::cerr << "[DDS] Failed to init PumpPublisher\n";
+                return false;
+            }
+ 
+            if (!cfg.valves.empty()) {
+                valve_pub_ = std::make_unique<ValvePublisher>();
+                if (!valve_pub_->init(cfg.valve_names(), cfg.robot_name, dp_)) {
+                    std::cerr << "[DDS] Failed to init ValvePublisher\n";
                     return false;
                 }
             }
-            
-            if (!config.has_imu.empty()) {
-                imu_pub_ = std::make_unique<ImuPublisher>();
-                if (!imu_pub_.init(robot_name, dp_)) {
-                    std::cerr << "[DDS] Failed to init ImuPublisher\n";
+ 
+            if (!cfg.motors.empty()) {
+                motor_pub_ = std::make_unique<MotorPublisher>();
+                if (!motor_pub_->init(cfg.motor_names(), cfg.robot_name, dp_)) {
+                    std::cerr << "[DDS] Failed to init MotorPublisher\n";
                     return false;
                 }
             }
-            
-            // ...
 
             return true;
 
@@ -611,21 +620,43 @@ public:
         return true;
     }
 
-    
+    void publish(const joint_state::rt_joint_state_msg& msg) override {
+        if (joint_state_pub_) joint_state_pub_->publish(msg);
+    }
+ 
+    void publish(const imu::rt_imu_msg& msg) override {
+        if (imu_pub_) imu_pub_->publish(msg);
+    }
+ 
+    void publish(const force_torque::rt_force_torque_msg& msg) override {
+        if (force_torque_pub_) force_torque_pub_->publish(msg);
+    }
+ 
+    void publish(const motor::rt_motor_msg& msg) override {
+        if (motor_pub_) motor_pub_->publish(msg);
+    }
+ 
+    void publish(const power_board::rt_power_board_msg& msg) override {
+        if (power_board_pub_) power_board_pub_->publish(msg);
+    }
+ 
+    void publish(const pump::rt_pump_msg& msg) override {
+        if (pump_pub_) pump_pub_->publish(msg);
+    }
+ 
+    void publish(const valve::rt_valve_msg& msg) override {
+        if (valve_pub_) valve_pub_->publish(msg);
+    }
 
-    void publish(const iit::advrf::MotorState& msg) override {
-        js_pub_.publish(msg);
-    }
-   
-    void publish(const iit::advrf::Imu& msg) override {
-        imu_pub_.publish(msg);
-    }
 
 private:
     dds::domain::DomainParticipant dp_{dds::core::null};
 
-    std::unique_ptr<JointStatePublisher> js_pub_{nullptr};
+    std::unique_ptr<JointStatePublisher> joint_state_pub_{nullptr};
     std::unique_ptr<ImuPublisher> imu_pub_{nullptr};
-    std::unique_ptr<PowerBoardPublisher> pb_pub_{nullptr};
-    // ...
+    std::unique_ptr<PowerBoardPublisher> power_board_pub_{nullptr};
+    std::unique_ptr<ForceTorquePublisher> force_torque_pub_{nullptr};
+    std::unique_ptr<MotorPublisher> motor_pub_{nullptr};
+    std::unique_ptr<PumpPublisher> pump_pub_{nullptr};
+    std::unique_ptr<ValvePublisher> valve_pub_{nullptr};
 };
