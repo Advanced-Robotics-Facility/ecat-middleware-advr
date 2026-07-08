@@ -10,8 +10,16 @@ include(CMakePackageConfigHelpers)
 find_package(Protobuf REQUIRED)
 
 set(PROTO_FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/motor.proto
-    ${CMAKE_CURRENT_SOURCE_DIR}/imu.proto
+    ${CMAKE_CURRENT_SOURCE_DIR}/time.proto
+    ${CMAKE_CURRENT_SOURCE_DIR}/msg_header.proto
+    ${CMAKE_CURRENT_SOURCE_DIR}/motor_pdo.proto
+    ${CMAKE_CURRENT_SOURCE_DIR}/imu_pdo.proto
+    ${CMAKE_CURRENT_SOURCE_DIR}/ecat_pdo.proto
+    ${CMAKE_CURRENT_SOURCE_DIR}/ft6_pdo.proto
+    ${CMAKE_CURRENT_SOURCE_DIR}/power_pack_pdo.proto
+    ${CMAKE_CURRENT_SOURCE_DIR}/cia402.proto
+    ${CMAKE_CURRENT_SOURCE_DIR}/hyq.proto
+    ${CMAKE_CURRENT_SOURCE_DIR}/generic.proto
 )
 
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILES})
@@ -20,6 +28,8 @@ add_library(protobuf_msgs STATIC
     ${PROTO_SRCS}
     ${PROTO_HDRS}
 )
+
+set_target_properties(protobuf_msgs PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 add_library(protobuf_msgs::protobuf_msgs ALIAS protobuf_msgs)
 

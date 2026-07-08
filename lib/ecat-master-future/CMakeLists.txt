@@ -17,13 +17,36 @@ add_library(ecat-master-future SHARED
     src/shm_shared_types.cpp
 )
 
+add_dependencies(ecat-master-future protobuf_msgs)
+
 add_library(ecat-master-future::ecat-master-future ALIAS ecat-master-future)
 
 target_include_directories(ecat-master-future
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/protobuf>
 )
+
+target_link_libraries(ecat-master-future PRIVATE protobuf_msgs)
+
+## TEST EXE
+add_executable(ecat_master_future_producer
+    src/producer.cpp
+)
+
+target_link_libraries(ecat_master_future_producer
+    PRIVATE
+        ecat-master-future
+        protobuf_msgs
+)
+
+install(TARGETS ecat_master_future_producer
+    RUNTIME DESTINATION bin
+)
+## TEST EXE
+
 
 set_target_properties(ecat-master-future PROPERTIES
     VERSION ${PROJECT_VERSION}

@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package iit.advrf;
+
+message PowF28M36_tx_pdo {
+    uint32 master_command  = 1;
+    uint32 fault_ack       = 2;
+    uint32 op_idx_aux      = 3;
+    float  aux             = 4;
+
+}
+
+message PowF28M36_rx_pdo {
+    float v_batt           = 1;
+    float v_load           = 2;
+    float i_load           = 3;
+    float temp_pcb         = 4;
+    float temp_heatsink    = 5;
+    float temp_batt        = 6;
+    uint32 status          = 7;
+    uint32 fault           = 8;
+    float rtt              = 9;
+    uint32 op_idx_ack      = 10;
+    float  aux             = 11;
+}

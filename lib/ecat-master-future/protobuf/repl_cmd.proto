@@ -1,0 +1,329 @@
+// [START declaration]
+syntax = "proto3";
+package iit.advrf;
+
+import "msg_header.proto";
+import "time.proto";
+// [END declaration]
+
+// [START messages]
+message Vector2d {
+    double x = 1;
+    double y = 2;
+}
+
+message Gains
+{
+    enum Type { 
+        POSITION    = 0x3B;
+        VELOCITY    = 0x71;
+        IMPEDANCE   = 0xD4;
+        TORQUE      = 0xCC;
+        CURRENT     = 0xDD;
+    }
+    // Identifies which field is filled in.
+    Type   type   = 1;  
+    double pos_kp = 2;
+    double pos_kd = 3;
+    double tor_kp = 4;
+    double tor_ki = 5;
+    double tor_kd = 6;    
+}
+
+message AuxPDO {
+    enum Op { 
+        NOP = 1;
+        GET = 2;
+        SET = 3;
+    }
+    Op     op          = 1;
+    int32  idx         = 2;
+    float  value       = 3;
+}
+
+message Slave_objd
+{
+    int32  index       = 1;
+    int32  subindex    = 2;
+    int32  datatype    = 3;
+    int32  bitlength   = 4;
+    int32  access      = 5;
+    string name        = 6;
+    //string data        = 7;
+}
+
+message KeyValStr
+{
+    string name = 1;
+    string value = 2;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+message Trajectory_cmd
+{
+    enum Type { 
+        HOMING          = 1;
+        SINE            = 2;
+        SMOOTHER        = 3;
+        SMOOTHER_VEL    = 4;
+    }
+    message Homing_par
+    {
+        repeated double     x = 1;
+    }
+    message Period_par
+    {
+        double freq = 1;
+        double ampl = 2;
+        double teta = 3;
+        double secs = 4;
+    } 
+    message Smooth_par
+    {
+        repeated double     x = 1;
+        repeated double     y = 2;
+    }
+    message SmoothVel_par
+    {
+        double     dt = 1;
+        double     p0 = 2;
+        double     v0 = 3;
+        double     pt = 4;
+        double     vt = 5;
+        double     ds = 6;
+        double     magic = 7;
+    }
+    Type       type                = 1;
+    string     name                = 2;
+    int32      board_id            = 3;
+    Smooth_par smooth_par          = 4;
+    Period_par period_par          = 5;
+    Homing_par homing_par          = 6;
+    SmoothVel_par smooth_vel_par   = 7;
+}
+
+message Trj_queue_cmd
+{
+    enum Type { 
+        PUSH_QUE    = 1;
+        EMPTY_QUE   = 2;
+    }
+    Type       type        = 1;
+    repeated string     trj_names   = 2;
+}
+
+message Repl_hdr {
+
+}
+
+message Slave_registry_write {
+
+    enum Type {
+        DRILL_ON = 1;
+        DRILL_OFF = 2;
+    }
+    Type type = 1;
+    int32 board_id = 2;
+
+}
+
+message Ctrl_cmd
+{
+    enum Type {
+        CTRL_TEST_DONE          = 1;
+        CTRL_TEST_ERROR         = 2;
+        CTRL_DAC_TUNE           = 3;
+        CTRL_REMOVE_TORQUE_OFFS = 4;
+        CTRL_SET_ZERO_POSITION  = 5;
+        CTRL_FAN                = 6;
+        CTRL_LED                = 7;
+        CTRL_SANDBOX            = 8;
+        CTRL_REF_FILTER         = 9;
+        CTRL_POWER_MOD          = 10;
+        CTRL_CMD_START          = 11;
+        CTRL_CMD_STOP           = 12;
+        CTRL_SET_HOME           = 13;
+        CTRL_SET_MIN_POSITION   = 14;
+        CTRL_SET_MAX_POSITION   = 15;        
+        CTRL_RUN_TORQUE_CALIB   = 16;        
+        CTRL_SET_GAINS          = 17;
+        CTRL_SET_POSITION       = 18;
+        CTRL_SET_VELOCITY       = 19;
+        CTRL_SET_TORQUE         = 20;
+        CTRL_SET_CURRENT        = 21;
+        CTRL_GET_ADC            = 22;
+        CTRL_SET_DAC            = 23;
+        CTRL_BRAKE              = 24;
+        CTRL_SET_DAC_FLASH      = 25;        
+    }
+    // Identifies which field is filled in.
+    Type   type        = 1;
+    int32  board_id    = 2;
+    float  value       = 3;
+    // CTRL_CMD_START could set pdo gains
+    Gains  gains       = 4;
+}
+
+message Flash_cmd
+{
+    enum Type { 
+        SAVE_PARAMS_TO_FLASH    = 1;
+        LOAD_PARAMS_FROM_FLASH  = 2;
+        LOAD_DEFAULT_PARAMS     = 3;        
+    }
+    // Identifies which field is filled in.
+    Type   type        = 1;
+    int32  board_id    = 2;
+}
+
+message Slave_SDO_cmd
+{
+    // Identifies which field is filled in.
+    int32     board_id    = 1;
+    repeated string    rd_sdo      = 2;
+    repeated KeyValStr wr_sdo      = 3;    
+}
+
+message Slave_SDO_info
+{
+    enum Type { 
+        SDO_NAME    = 1;
+        SDO_OBJD    = 2;
+    }
+    Type   type        = 1;
+    int32  board_id    = 2;
+}
+
+message Ecat_Master_cmd
+{
+    enum Type { 
+        START_MASTER        = 1;
+        STOP_MASTER         = 2;
+        GET_SLAVES_DESCR    = 3;        
+    }
+    // Identifies which field is filled in.
+    Type      type    = 1;
+    repeated KeyValStr args    = 2;
+}
+
+message FOE_Master
+{
+    string filename    = 1;
+    uint32 password    = 2; 
+    string mcu_type    = 3;
+    int32  slave_pos   = 4;
+    int32  board_id    = 5;
+}
+
+message Motors_PDO_cmd {
+    message Moto_PDO_cmd {
+        int32  motor_id    = 1;
+        float  pos_ref     = 2;
+        float  vel_ref     = 3;
+        float  tor_ref     = 4;
+        Gains  gains       = 5;
+        AuxPDO aux_pdo     = 6;
+    }
+    repeated Moto_PDO_cmd motors_pdo  = 1;
+}
+
+message PDOs_aux_cmd {
+    message Aux_cmd { 
+        enum Type { 
+            BRAKE_RELEASE       = 1;
+            BRAKE_ENGAGE        = 2;
+            LED_ON              = 3;
+            LED_OFF             = 4;
+        }
+        // Identifies which command
+        Type   type        = 1;
+        int32  board_id    = 2;
+    }
+    repeated Aux_cmd aux_cmds  = 1;
+}
+///////////////////////////////////////////////////////////////////////////////
+//
+///////////////////////////////////////////////////////////////////////////////
+
+enum CmdType { 
+    TRJ_CMD         = 1;
+    CTRL_CMD        = 2;
+    FLASH_CMD       = 3;
+    ECAT_MASTER_CMD = 4;    
+    FOE_MASTER      = 5;
+    TRJ_QUEUE_CMD   = 6;
+    SLAVE_SDO_CMD   = 7;
+    SLAVE_SDO_INFO  = 8;
+    MOTOR_PDO_CMD   = 9;
+    SLAVE_REGISTRY_WRITE = 10;
+    // quick and dirty
+    PDO_AUX_CMD     = 99;
+
+}
+
+message Repl_cmd {
+
+    // Identifies which field is filled in.
+    CmdType            type = 1;
+    Header             header = 2;
+    // One of the following will be filled in.
+    Trajectory_cmd     trajectory_cmd  =  3;
+    Ctrl_cmd           ctrl_cmd        =  4;
+    Flash_cmd          flash_cmd       =  5;
+    Ecat_Master_cmd    ecat_master_cmd =  6;
+    FOE_Master         foe_master      =  7;
+    Trj_queue_cmd      trj_queue_cmd   =  8;
+    Slave_SDO_cmd      slave_sdo_cmd   =  9;
+    Slave_SDO_info     slave_sdo_info  = 10;
+    Motors_PDO_cmd     motors_pdo_cmd  = 11;
+    Slave_registry_write slave_registry_write = 12;
+    // quick and dirty
+    PDOs_aux_cmd       pdos_aux_cmd     = 99;
+        
+}
+
+message Cmd_reply {
+
+   enum Type { 
+        ACK  = 1;
+        NACK = 2;
+    }
+    // Identifies which field is filled in.
+    Type               type        = 1;
+    CmdType            cmd_type    = 2;
+    string             msg         = 3;
+    
+    Header             header      = 4;
+    string             pdo         = 5;
+    
+}
+
+message Trj_Status {
+
+    uint32     queue_size  = 1;
+    string     running_trj = 2; 
+}
+
+message TM_Stats {
+    
+    int64      recv_dc_time = 1; ///< reception timestamp from 1-1-2000 (in [ns])
+    int64      offset       = 2; ///< sleep time of the master until next "DC tick"
+    uint64     loop_time    = 3; ///< actual measure of the DC period
+    int32      ecat_rx_wkc  = 4;
+    int64      delta        = 5;
+    uint64     ec_cycle_ns  = 6;   
+    Time       ts           = 7;
+}
+
+message Repl_info {
+
+    Header             header      = 1;
+    string             msg         = 2;
+    Trj_Status         trj_status  = 3;
+    TM_Stats           tm_stats    = 4;
+
+    
+}
+
+// [END messages]

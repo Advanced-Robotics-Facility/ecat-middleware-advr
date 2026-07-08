@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package iit.advrf;
+
+message Time
+{
+    int32 sec = 1;
+    int32 nsec = 2;
+}
+

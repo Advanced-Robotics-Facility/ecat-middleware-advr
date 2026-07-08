@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package iit.advrf;
+
+import "time.proto";
+
+message Header
+{
+  string str_id = 1;
+  Time   stamp  = 2;
+  int32  index  = 3;
+} 
