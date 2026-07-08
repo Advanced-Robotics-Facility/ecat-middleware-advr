@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "parameter.hpp"
+#include "parameter/parameter_make_get.hpp"
 
 template<typename T>
 void test_parameter(const T& value)

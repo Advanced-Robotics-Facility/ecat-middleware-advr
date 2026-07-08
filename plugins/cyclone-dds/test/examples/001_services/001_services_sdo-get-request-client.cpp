@@ -3,7 +3,7 @@
 
 #include <dds/dds.hpp>
 
-#include "parameter.hpp"
+#include "parameter/parameter_make_get.hpp"
 #include "service.hpp"
 
 #include <advrf_interfaces/srv/SdoGetRequest.hpp>

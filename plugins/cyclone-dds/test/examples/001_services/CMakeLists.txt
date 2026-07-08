@@ -1,17 +1,17 @@
-add_executable(sdo_get_request_server
-    sdo_get_request_server.cpp
+add_executable(001_services_sdo-get-request-server
+    001_services_sdo-get-request-server.cpp
 )
 
-target_link_libraries(sdo_get_request_server
+target_link_libraries(001_services_sdo-get-request-server
     PRIVATE
         ecat_plugin_cyclonedds
 )
 
-add_executable(sdo_get_request_client
-    sdo_get_request_client.cpp
+add_executable(001_services_sdo-get-request-client
+    001_services_sdo-get-request-client.cpp
 )
 
-target_link_libraries(sdo_get_request_client
+target_link_libraries(001_services_sdo-get-request-client
     PRIVATE
         ecat_plugin_cyclonedds
 )

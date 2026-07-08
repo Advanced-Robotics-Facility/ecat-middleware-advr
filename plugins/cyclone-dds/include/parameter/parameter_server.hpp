@@ -1,0 +1,55 @@
+#pragma once
+
+#include <chrono>
+#include <thread>
+
+#include <dds/dds.hpp>
+
+#include <advrf_interfaces/srv/GetParameters.hpp>
+#include <advrf_interfaces/srv/ListParameters.hpp>
+#include <advrf_interfaces/srv/SetParameters.hpp>
+
+#include "parameter/parameter_registry.hpp"
+#include "service.hpp"
+
+class ParameterServer
+{
+public:
+
+    explicit ParameterServer(
+        dds::domain::DomainParticipant& participant);
+
+    ParameterRegistry&
+    registry()
+    {
+        return registry_;
+    }
+
+    const ParameterRegistry&
+    registry() const
+    {
+        return registry_;
+    }
+
+    void spin_once();
+
+    void spin(
+        std::chrono::milliseconds period =
+            std::chrono::milliseconds(1));
+
+private:
+
+    ParameterRegistry registry_;
+
+    ServiceServer<
+        advrf_interfaces::srv::dds_::GetParameters_Request_,
+        advrf_interfaces::srv::dds_::GetParameters_Response_> get_server_;
+
+    ServiceServer<
+        advrf_interfaces::srv::dds_::SetParameters_Request_,
+        advrf_interfaces::srv::dds_::SetParameters_Response_> set_server_;
+
+    ServiceServer<
+        advrf_interfaces::srv::dds_::ListParameters_Request_,
+        advrf_interfaces::srv::dds_::ListParameters_Response_> list_server_;
+};

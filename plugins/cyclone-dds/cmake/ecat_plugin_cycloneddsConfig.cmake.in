@@ -1,0 +1,8 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(CycloneDDS REQUIRED)
+find_dependency(CycloneDDS-CXX REQUIRED)
+
+include("${CMAKE_CURRENT_LIST_DIR}/ecat_plugin_cycloneddsTargets.cmake")
