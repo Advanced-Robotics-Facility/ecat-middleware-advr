@@ -1,0 +1,15 @@
+module advrf_interfaces {
+  module msg {
+    module dds_ {
+      module enums_ {
+        enum ParameterResult_ {
+          Success,
+          AlreadyDeclared,
+          NotFound,
+          ReadOnly,
+          ValidationFailed
+        };
+      };
+    };
+  };
+};

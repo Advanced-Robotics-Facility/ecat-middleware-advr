@@ -5,6 +5,9 @@
 
 #include <rcl_interfaces/msg/Parameter.hpp>
 
+/**
+ * @brief Entry for a parameter.
+ */
 struct ParameterEntry
 {
     rcl_interfaces::msg::dds_::Parameter_ parameter;

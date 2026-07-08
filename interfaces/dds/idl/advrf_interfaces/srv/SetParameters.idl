@@ -4,6 +4,8 @@ module advrf_interfaces {
   module srv {
     module dds_ {
 
+     
+
       @final
       struct SetParameters_Request_
       {
@@ -14,7 +16,6 @@ module advrf_interfaces {
       struct SetParameters_Response_
       {
         boolean success;
-
         sequence<uint8> results;
       };
 

@@ -21,7 +21,7 @@ target_include_directories(ecat_plugin_cyclonedds
 
 target_link_libraries(ecat_plugin_cyclonedds
     PUBLIC
-        mw_core
+        # mw_core
         advrf_interfaces_dds
         rcl_interfaces_dds
         geometry_msgs_dds

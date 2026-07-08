@@ -13,23 +13,27 @@
 #include "parameter/parameter_result.hpp"
 #include "service.hpp"
 
+/**
+ * @brief Client for interacting with parameters.
+ */
 class ParameterClient
 {
 public:
 
-    explicit ParameterClient(
-        dds::domain::DomainParticipant& participant);
+    /**
+     * @brief Construct a new Parameter Client object.
+     *
+     * @param participant The DDS domain participant.
+     */
+    explicit ParameterClient(dds::domain::DomainParticipant& participant);
 
     template<class T>
-    T get(
-        const std::string& name);
+    T get(const std::string& name);
+    
+    std::vector<rcl_interfaces::msg::dds_::Parameter_> get();
 
     std::vector<rcl_interfaces::msg::dds_::Parameter_>
-    get();
-
-    std::vector<rcl_interfaces::msg::dds_::Parameter_>
-    get(
-        const std::vector<std::string>& names);
+    get(const std::vector<std::string>& names);
 
     template<class T>
     ParameterResult set(

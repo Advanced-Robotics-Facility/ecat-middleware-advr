@@ -5,6 +5,9 @@
 
 #include <rcl_interfaces/msg/Parameter.hpp>
 
+/**
+ * @brief Options for a parameter.
+ */
 struct ParameterOptions
 {
     std::string description;

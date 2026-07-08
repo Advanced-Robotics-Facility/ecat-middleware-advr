@@ -7,11 +7,19 @@
 #include "parameter/parameter_make_get.hpp"
 #include "parameter/parameter_entry.hpp"
 #include "parameter/parameter_options.hpp"
-#include "parameter/parameter_result.hpp"
 
+#include <advrf_interfaces/msg/Enums.hpp>
+
+// #include "parameter/parameter_result.hpp"
+
+/**
+ * @brief Registry for managing parameters.
+ */
 class ParameterRegistry
 {
 public:
+
+    using ParameterResult = advrf_interfaces::msg::dds_::enums_::ParameterResult_;
 
     ParameterRegistry() = default;
 
@@ -237,7 +245,6 @@ public:
     {
         return parameters_;
     }
-
 
     std::vector<std::string> list() const
     {
