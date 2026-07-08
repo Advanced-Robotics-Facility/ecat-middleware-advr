@@ -1,21 +1,22 @@
 #include "parameter/parameter_server.hpp"
+#include "config/config_topics.hpp"
 
 using namespace advrf_interfaces::srv::dds_;
 
-ParameterServer::ParameterServer(
+ParameterServer::ParameterServer(const config::ConfigTopics& config_topics,
     dds::domain::DomainParticipant& participant)
     : get_server_(
       participant,
-      "rq/parameters/getRequest",
-      "rr/parameters/getReply")
+      config_topics.parameters.getRequest(),
+      config_topics.parameters.getReply())
 , set_server_(
       participant,
-      "rq/parameters/setRequest",
-      "rr/parameters/setReply")
+      config_topics.parameters.setRequest(),
+      config_topics.parameters.setReply())
 , list_server_(
       participant,
-      "rq/parameters/listRequest",
-      "rr/parameters/listReply")
+      config_topics.parameters.listRequest(),
+      config_topics.parameters.listReply())
 {
     //
     // GetParameters
@@ -26,9 +27,7 @@ ParameterServer::ParameterServer(
         {
             GetParameters_Response_ response;
             response.request_id(request.request_id());
-
             response.success(true);
-
             if (request.names().empty())
             {
                 response.parameters(registry_.get());
@@ -38,7 +37,6 @@ ParameterServer::ParameterServer(
                 response.parameters(
                     registry_.get(request.names()));
             }
-
             return response;
         });
 
@@ -65,7 +63,6 @@ ParameterServer::ParameterServer(
             }
 
             response.results(dds_results);
-
             return response;
         });
 
@@ -78,9 +75,7 @@ ParameterServer::ParameterServer(
         {
             ListParameters_Response_ response;
             response.request_id(request.request_id());
-
             response.success(true);
-
             if (request.prefix().empty())
             {
                 response.names(registry_.list());
@@ -90,7 +85,6 @@ ParameterServer::ParameterServer(
                 response.names(
                     registry_.list(request.prefix()));
             }
-
             return response;
         });
 }
@@ -108,7 +102,6 @@ void ParameterServer::spin(
     while (true)
     {
         spin_once();
-
         std::this_thread::sleep_for(period);
     }
 }

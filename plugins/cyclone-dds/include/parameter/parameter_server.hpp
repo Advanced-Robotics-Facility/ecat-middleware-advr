@@ -2,7 +2,6 @@
 
 #include <chrono>
 #include <thread>
-
 #include <dds/dds.hpp>
 
 #include <advrf_interfaces/srv/GetParameters.hpp>
@@ -10,14 +9,16 @@
 #include <advrf_interfaces/srv/SetParameters.hpp>
 #include <rcl_interfaces/msg/RequestHeader.hpp>
 
+#include "config/config_topics.hpp"
 #include "parameter/parameter_registry.hpp"
+#include "config/config_topics.hpp"
 #include "service.hpp"
 
 class ParameterServer
 {
 public:
 
-    explicit ParameterServer(
+    explicit ParameterServer(const config::ConfigTopics& config_topics,
         dds::domain::DomainParticipant& participant);
 
     ParameterRegistry&

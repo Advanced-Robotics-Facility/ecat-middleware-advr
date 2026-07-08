@@ -1,5 +1,7 @@
 #include <iostream>
 #include <dds/dds.hpp>
+
+
 #include "parameter/parameter_client.hpp"
 
 constexpr int DOMAIN_ID = 42;
@@ -7,7 +9,9 @@ constexpr int DOMAIN_ID = 42;
 int main()
 {
     dds::domain::DomainParticipant participant(DOMAIN_ID);
-    ParameterClient client(participant);
+    
+    config::ConfigTopics config_topics({"advrf", "robot"});
+    ParameterClient client(config_topics, participant);
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
     //

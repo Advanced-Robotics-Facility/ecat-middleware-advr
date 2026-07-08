@@ -5,20 +5,20 @@
 using namespace advrf_interfaces::srv::dds_;
 using namespace rcl_interfaces::msg::dds_;
 
-ParameterClient::ParameterClient(
+ParameterClient::ParameterClient(const config::ConfigTopics& config_topics,
     dds::domain::DomainParticipant& participant)
     : get_client_(
         participant,
-        "rq/parameters/getRequest",
-        "rr/parameters/getReply")
+        config_topics.parameters.getRequest(),
+        config_topics.parameters.getReply())
     , set_client_(
         participant,
-        "rq/parameters/setRequest",
-        "rr/parameters/setReply")
+        config_topics.parameters.setRequest(),
+        config_topics.parameters.setReply())
     , list_client_(
         participant,
-        "rq/parameters/listRequest",
-        "rr/parameters/listReply")
+        config_topics.parameters.listRequest(),
+        config_topics.parameters.listReply())
 {
 }
 

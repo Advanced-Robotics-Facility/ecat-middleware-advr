@@ -10,6 +10,7 @@
 #include <advrf_interfaces/srv/SetParameters.hpp>
 #include <advrf_interfaces/msg/Enums.hpp>
 
+#include "config/config_topics.hpp"
 #include "parameter/parameter_make_get.hpp"
 #include "service.hpp"
 
@@ -29,7 +30,7 @@ public:
      *
      * @param participant The DDS domain participant.
      */
-    explicit ParameterClient(dds::domain::DomainParticipant& participant);
+    explicit ParameterClient(const config::ConfigTopics& config_topics, dds::domain::DomainParticipant& participant);
 
     template<class T>
     T get(const std::string& name);
