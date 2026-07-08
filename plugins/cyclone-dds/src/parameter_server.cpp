@@ -5,17 +5,17 @@ using namespace advrf_interfaces::srv::dds_;
 ParameterServer::ParameterServer(
     dds::domain::DomainParticipant& participant)
     : get_server_(
-          participant,
-          "rq/parameters/get",
-          "rr/parameters/get")
-    , set_server_(
-          participant,
-          "rq/parameters/set",
-          "rr/parameters/set")
-    , list_server_(
-          participant,
-          "rq/parameters/list",
-          "rr/parameters/list")
+      participant,
+      "rq/parameters/getRequest",
+      "rr/parameters/getReply")
+, set_server_(
+      participant,
+      "rq/parameters/setRequest",
+      "rr/parameters/setReply")
+, list_server_(
+      participant,
+      "rq/parameters/listRequest",
+      "rr/parameters/listReply")
 {
     //
     // GetParameters

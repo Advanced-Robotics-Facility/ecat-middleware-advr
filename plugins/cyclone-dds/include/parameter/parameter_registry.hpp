@@ -6,7 +6,6 @@
 
 #include "parameter/parameter_make_get.hpp"
 #include "parameter/parameter_entry.hpp"
-#include "parameter/parameter_options.hpp"
 
 #include <advrf_interfaces/msg/Enums.hpp>
 
@@ -20,7 +19,6 @@ class ParameterRegistry
 public:
 
     using ParameterResult = advrf_interfaces::msg::dds_::enums_::ParameterResult_;
-
     ParameterRegistry() = default;
 
     //
@@ -31,7 +29,7 @@ public:
     ParameterResult declare(
         const std::string& name,
         const T& value,
-        const ParameterOptions& options = {})
+        const ParameterOptions<T>& options = {})
     {
         if (has(name))
             return ParameterResult::AlreadyDeclared;
@@ -42,10 +40,15 @@ public:
         entry.description = options.description;
         entry.read_only   = options.read_only;
         entry.dynamic     = options.dynamic;
-        entry.validator   = options.validator;
+        entry.validator   = [options](const rcl_interfaces::msg::dds_::Parameter_& parameter)
+        {
+             if (!options.validator) {
+                return true;
+            }
+            return options.validator(get_parameter<T>(parameter));
+        };
 
         parameters_.emplace(name, std::move(entry));
-
         return ParameterResult::Success;
     }
 

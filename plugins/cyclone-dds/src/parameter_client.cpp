@@ -8,17 +8,17 @@ using namespace rcl_interfaces::msg::dds_;
 ParameterClient::ParameterClient(
     dds::domain::DomainParticipant& participant)
     : get_client_(
-          participant,
-          "rq/parameters/get",
-          "rr/parameters/get")
+        participant,
+        "rq/parameters/getRequest",
+        "rr/parameters/getReply")
     , set_client_(
-          participant,
-          "rq/parameters/set",
-          "rr/parameters/set")
+        participant,
+        "rq/parameters/setRequest",
+        "rr/parameters/setReply")
     , list_client_(
-          participant,
-          "rq/parameters/list",
-          "rr/parameters/list")
+        participant,
+        "rq/parameters/listRequest",
+        "rr/parameters/listReply")
 {
 }
 

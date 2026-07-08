@@ -8,10 +8,14 @@
 #include <advrf_interfaces/srv/GetParameters.hpp>
 #include <advrf_interfaces/srv/ListParameters.hpp>
 #include <advrf_interfaces/srv/SetParameters.hpp>
+#include <advrf_interfaces/msg/Enums.hpp>
 
 #include "parameter/parameter_make_get.hpp"
-#include "parameter/parameter_result.hpp"
 #include "service.hpp"
+
+
+using ParameterResult = advrf_interfaces::msg::dds_::enums_::ParameterResult_;
+
 
 /**
  * @brief Client for interacting with parameters.
@@ -29,7 +33,7 @@ public:
 
     template<class T>
     T get(const std::string& name);
-    
+
     std::vector<rcl_interfaces::msg::dds_::Parameter_> get();
 
     std::vector<rcl_interfaces::msg::dds_::Parameter_>
