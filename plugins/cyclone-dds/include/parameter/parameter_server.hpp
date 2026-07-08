@@ -8,6 +8,7 @@
 #include <advrf_interfaces/srv/GetParameters.hpp>
 #include <advrf_interfaces/srv/ListParameters.hpp>
 #include <advrf_interfaces/srv/SetParameters.hpp>
+#include <rcl_interfaces/msg/RequestHeader.hpp>
 
 #include "parameter/parameter_registry.hpp"
 #include "service.hpp"

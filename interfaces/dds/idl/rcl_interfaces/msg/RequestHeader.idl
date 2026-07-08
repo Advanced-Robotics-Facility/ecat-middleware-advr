@@ -1,0 +1,11 @@
+module rcl_interfaces {
+  module msg {
+    module dds_ {
+        @final
+        struct RequestHeader_ {
+            unsigned long long guid;
+            long long seq;
+        };
+    };
+  };
+};

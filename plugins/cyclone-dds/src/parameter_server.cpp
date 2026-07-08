@@ -25,6 +25,7 @@ ParameterServer::ParameterServer(
         [this](const GetParameters_Request_& request)
         {
             GetParameters_Response_ response;
+            response.request_id(request.request_id());
 
             response.success(true);
 
@@ -49,9 +50,9 @@ ParameterServer::ParameterServer(
         [this](const SetParameters_Request_& request)
         {
             SetParameters_Response_ response;
+            response.request_id(request.request_id());
 
             auto results = registry_.set(request.parameters());
-
             response.success(true);
 
             std::vector<uint8_t> dds_results;
@@ -76,6 +77,7 @@ ParameterServer::ParameterServer(
         [this](const ListParameters_Request_& request)
         {
             ListParameters_Response_ response;
+            response.request_id(request.request_id());
 
             response.success(true);
 

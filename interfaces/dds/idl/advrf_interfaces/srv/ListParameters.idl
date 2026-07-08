@@ -1,3 +1,5 @@
+#include "../../rcl_interfaces/msg/RequestHeader.idl"
+
 module advrf_interfaces {
   module srv {
     module dds_ {
@@ -5,12 +7,14 @@ module advrf_interfaces {
       @final
       struct ListParameters_Request_
       {
+        rcl_interfaces::msg::dds_::RequestHeader_ request_id;
         string prefix;
       };
 
       @final
       struct ListParameters_Response_
       {
+        rcl_interfaces::msg::dds_::RequestHeader_ request_id;
         boolean success;
         sequence<string> names;
       };

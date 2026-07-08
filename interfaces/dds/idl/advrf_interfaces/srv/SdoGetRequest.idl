@@ -1,4 +1,5 @@
 #include "../../rcl_interfaces/msg/Parameter.idl"
+#include "../../rcl_interfaces/msg/RequestHeader.idl"
 
 module std_srvs {
   module srv {
@@ -10,12 +11,14 @@ module std_srvs {
       @final
       struct SdoGet_Request_
       {
+        rcl_interfaces::msg::dds_::RequestHeader_ request_id;
         uint8 sub_request;
       };
 
       @final
       struct SdoGet_Response_
       {
+        rcl_interfaces::msg::dds_::RequestHeader_ request_id;
         boolean success;
         sequence<rcl_interfaces::msg::dds_::Parameter_> parameters;
       };

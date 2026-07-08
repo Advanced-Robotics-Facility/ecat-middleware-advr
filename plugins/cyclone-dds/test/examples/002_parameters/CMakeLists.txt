@@ -15,3 +15,14 @@ target_link_libraries(002_parameters_parameter-server
     PRIVATE
         ecat_plugin_cyclonedds
 )
+
+
+add_executable(tmp-test
+    tmp-test.cpp
+)
+
+target_link_libraries(tmp-test
+    PRIVATE
+        ecat_plugin_cyclonedds
+        advrf_interfaces_dds
+)
