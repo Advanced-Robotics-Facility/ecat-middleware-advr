@@ -1,10 +1,11 @@
 #include "shm_shared_types.hpp"
 #include "shm_utils.hpp"
-#include "motor.pb.h"
+#include "ecat_pdo.pb.h"
 
 #include <chrono>
 #include <iostream>
 #include <thread>
+#include <new>
 
 int main()
 {
@@ -23,7 +24,7 @@ int main()
     }
 
     ShmProtoHelper proto;
-    iit::advrf::MotorCmd cmd;
+    iit::advrf::Ec_slave_pdo cmd;
 
     while (true) {
 
@@ -31,23 +32,9 @@ int main()
 
         std::cout << "\033[2J\033[H"; // Clear terminal (optional)
 
-        std::cout << "Timestamp : "
-                  << cmd.sec() << "."
-                  << cmd.nanosec() << "\n\n";
-
-        std::cout << "Number of motors: "
-                  << cmd.motors_size() << "\n\n";
-
-        for (int i = 0; i < cmd.motors_size(); ++i) {
-
-            const auto& motor = cmd.motors(i);
-
-            std::cout
-                << "Motor[" << i << "]  "
-                << "pos_ref=" << motor.pos_ref()
-                << "  vel_ref=" << motor.vel_ref()
-                << "  torque_ffwd=" << motor.torque_ffwd()
-                << '\n';
+        if (cmd.has_cia402_tx_pdo()) {
+            const auto& tx = cmd.cia402_tx_pdo();
+            std::cout << "target_pos: " << tx.target_pos() << '\n';
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));

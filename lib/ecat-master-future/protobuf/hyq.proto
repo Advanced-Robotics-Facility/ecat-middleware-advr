@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package iit.advrf;
+
+message HyqKnee_rx_pdo {
+    float  encoder_position    = 1;       
+    float  force               = 2;         
+    float  pressure_1          = 3;           
+    float  pressure_2          = 4;    
+    float  current             = 5;          
+    float  temperature         = 6;   
+    uint32 fault               = 7;
+    uint32 rtt                 = 8;
+    uint32 op_idx_ack          = 9;
+    float  aux                 = 10;
+    float current_ref_fb       = 11;
+    float position_ref_fb      = 12;
+    float force_ref_fb         = 13; 
+}
+
+message HyqKnee_tx_pdo {
+    float current_ref      = 1;
+    float position_ref     = 2;
+    float force_ref        = 3;
+    float gain_0           = 4;
+    float gain_1           = 5;
+    float gain_2           = 6;
+    float gain_3           = 7;
+    float gain_4           = 8;
+    uint32 fault_ack       = 9;
+    uint32 ts              = 10;
+    uint32 op_idx_aux      = 11;
+    float  aux             = 12;
+}
+
+message HyqHpu_rx_pdo {
+    float Motor_Current        =1;
+    float Motor_Speed          =2;
+    float Pressure1            =3;
+    float Pressure2            =4;
+    uint32 temperature         =5;
+    uint32 MOSFET_temperature  =6;
+    int32 motor_temperature    =7;
+    uint32 fault               =8;
+    uint32 rtt                 =9;
+    uint32 op_idx_ack          =10;
+    float aux                  =11;
+}
+
+message HyqHpu_tx_pdo {
+    float Pump_Target          = 1;
+    float pressure_P_gain      = 2;
+    float pressure_I_gain      = 3;
+    float pressure_D_gain      = 4;
+    float pressure_I_limit     = 5;
+    uint32 fault_ack           = 6;
+    uint32 SolenoidOut         = 7;
+    uint32 ts                  = 8;
+    uint32 op_idx_aux          = 9;
+    float aux                  = 10;
+}

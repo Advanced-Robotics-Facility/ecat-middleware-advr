@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package iit.advrf;
+
+message ImuVN_rx_pdo {
+    float      x_rate = 1;       
+    float      y_rate = 2;       
+    float      z_rate = 3;       
+    float      x_acc = 4;       
+    float      y_acc = 5;       
+    float      z_acc = 6;       
+    float      x_quat = 7;       
+    float      y_quat = 8;       
+    float      z_quat = 9;       
+    float      w_quat = 10;       
+    uint32     imu_ts = 11;          
+    uint32     temperature = 12;          
+    uint32     digital_in = 13;          
+    uint32     fault = 14;
+    uint32     rtt = 15;  // us
+}

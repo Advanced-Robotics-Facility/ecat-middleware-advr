@@ -3,8 +3,6 @@ cmake_minimum_required(VERSION 3.16)
 find_package(CycloneDDS REQUIRED)
 find_package(CycloneDDS-CXX REQUIRED)
 
-# find_package(mw_core REQUIRED)
-
 add_library(ecat_plugin_cyclonedds
     src/main.cpp
     src/parameter_make_get.cpp
@@ -21,7 +19,6 @@ target_include_directories(ecat_plugin_cyclonedds
 
 target_link_libraries(ecat_plugin_cyclonedds
     PUBLIC
-        # mw_core
         advrf_interfaces_dds
         rcl_interfaces_dds
         geometry_msgs_dds
@@ -73,3 +70,27 @@ install(
 
 enable_testing()
 add_subdirectory(test)
+
+
+## TEST PUB EXE
+
+add_executable(publisher src/publisher.cpp)
+
+target_include_directories(publisher PRIVATE
+    ${CMAKE_BINARY_DIR}/include
+)
+
+target_link_libraries(publisher PRIVATE
+    ecat-master-future     
+    protobuf_msgs 
+    mw_core
+    CycloneDDS-CXX::ddscxx    
+    advrf_interfaces_dds
+    rcl_interfaces_dds
+    geometry_msgs_dds
+    sensor_msgs_dds
+    std_msgs_dds
+    builtin_interfaces_dds
+)
+
+## TEST PUB EXE

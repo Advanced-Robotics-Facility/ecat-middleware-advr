@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package iit.advrf;
+
+message Cia402_rx_pdo {
+    uint32 statusword = 1;
+    int32 modes_of_op = 2;
+    float motor_pos = 3;
+    float motor_vel = 4;
+    float link_pos = 5;
+    float link_vel = 6;
+    float current = 7;
+    float torque = 8;
+    float demanded_pos = 9;
+    float demanded_vel = 10;
+    float demanded_current = 11;
+    float demanded_torque = 12;
+    float control_effort = 13;
+    float motor_temp = 14; 
+    int32 drive_temp = 15; 
+    uint32 error_code = 16;
+    string error_report = 17;
+}
+
+message Cia402_tx_pdo {
+    float target_torque = 1;
+    float target_pos = 2;
+    float target_vel = 3;
+    float target_current = 4;
+    float  gain_0      = 5;
+    float  gain_1      = 6;
+    float  gain_2      = 7;
+    float  gain_3      = 8;
+    float  gain_4      = 9;  
+}

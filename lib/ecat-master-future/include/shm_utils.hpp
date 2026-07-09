@@ -52,7 +52,7 @@ class SharedMemoryOwner : public SharedMemory {
             ptr_ = mmap(nullptr, size_, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
             close(fd);
             if (ptr_ == MAP_FAILED) 
-                return;
+                ptr_ = nullptr;
         }
 
         ~SharedMemoryOwner() override {
@@ -79,7 +79,7 @@ class SharedMemoryClient : public SharedMemory {
             ptr_ = mmap(nullptr, size_, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
             close(fd);
             if (ptr_ == MAP_FAILED) 
-                return;
+                ptr_ = nullptr;
         }
 
         ~SharedMemoryClient() override {

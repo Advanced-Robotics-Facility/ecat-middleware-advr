@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package iit.advrf;
+
+message FT_ati_rx {
+    float  aforce_x     = 1;
+    float  aforce_y     = 2;
+    float  aforce_z     = 3;
+    float  atorque_x    = 4;
+    float  atorque_y    = 5;
+    float  atorque_z    = 6;
+
+}
+
+message FT6_tx_pdo {
+    uint32 ts          = 1;
+    uint32 op_idx_aux  = 2;
+    float  aux         = 3;
+
+}
+
+message FT6_rx_pdo {
+    float  force_x     = 1;
+    float  force_y     = 2;
+    float  force_z     = 3;
+    float  torque_x    = 4;
+    float  torque_y    = 5;
+    float  torque_z    = 6;
+    uint32 fault       = 7;
+    uint32 rtt         = 8;
+    uint32 op_idx_ack  = 9;
+    float  aux         = 10;
+    FT_ati_rx ft_ati_rx = 11;
+}

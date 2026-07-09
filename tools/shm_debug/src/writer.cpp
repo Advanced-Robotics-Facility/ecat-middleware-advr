@@ -1,10 +1,11 @@
 #include "shm_shared_types.hpp"
 #include "shm_utils.hpp"
-#include "motor.pb.h"
+#include "ecat_pdo.pb.h"
 
 #include <chrono>
 #include <iostream>
 #include <thread>
+#include <new>
 
 int main()
 {
@@ -39,20 +40,15 @@ int main()
                 increasing = true;
         }
 
-        iit::advrf::MotorCmd cmd;
+        iit::advrf::Ec_slave_pdo cmd;
 
-        cmd.mutable_motors()->Reserve(12);
+        cmd.set_type(iit::advrf::Ec_slave_pdo::TX_CIA402);
 
-        for (int i = 0; i < 12; ++i) {
-            auto* motor = cmd.add_motors();
-
-            motor->set_pos_ref(pos);
-            motor->set_vel_ref(0.0f);
-            motor->set_torque_ffwd(0.0f);
-        }
-
-        cmd.set_sec(0);
-        cmd.set_nanosec(0);
+        auto* tx = cmd.mutable_cia402_tx_pdo();
+        tx->set_target_pos(pos);
+        tx->set_target_vel(1.0f);
+        tx->set_target_torque(0.0f);
+        tx->set_target_current(0.0f);
 
         proto.push(bridge->cmd, cmd);
 

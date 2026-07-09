@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package iit.advrf;
+
+message Motor_tx_pdo {
+    float  pos_ref     = 1;
+    uint32 fault_ack   = 2;
+    int32  gainP       = 3;
+    int32  gainD       = 4;
+    uint32 ts          = 5;
+}
+
+message Motor_rx_pdo {
+    float  link_pos    = 1;
+    float  motor_pos   = 2;
+    float  pos_ref_fb  = 3;
+    uint32 temperature = 4;
+    int32  torque      = 5;
+    uint32 fault       = 6;
+    uint32 rtt         = 7;
+}
+
+message Motor_xt_tx_pdo {
+    float  pos_ref     = 1;
+    float  vel_ref     = 2;
+    float  tor_ref     = 3;
+    float  gain_0      = 4;
+    float  gain_1      = 5;
+    float  gain_2      = 6;
+    float  gain_3      = 7;
+    float  gain_4      = 8;
+    uint32 fault_ack   = 9;
+    uint32 ts          = 10;
+    uint32 op_idx_aux  = 11;
+    float  aux         = 12;
+}
+
+message Motor_xt_rx_pdo {
+    float  link_pos    = 1;
+    float  motor_pos   = 2;
+    float  link_vel    = 3;
+    float  motor_vel   = 4;
+    float  torque      = 5;
+    uint32 temperature = 6;
+    uint32 fault       = 7;
+    uint32 rtt         = 8;
+    uint32 op_idx_ack  = 9;
+    float aux          = 10;
+    float motor_temp   = 11;
+    float board_temp   = 12;
+    float  pos_ref     = 13;
+    float  vel_ref     = 14;
+    float  tor_ref     = 15;
+    uint32 cmd_aux_sts = 16;
+}
