@@ -6,6 +6,7 @@
 
 #include <advrf_interfaces/srv/GetParameters.hpp>
 #include <advrf_interfaces/srv/ListParameters.hpp>
+#include <advrf_interfaces/srv/ListGetParameters.hpp>
 #include <advrf_interfaces/srv/SetParameters.hpp>
 #include <rcl_interfaces/msg/RequestHeader.hpp>
 
@@ -54,4 +55,8 @@ private:
     ServiceServer<
         advrf_interfaces::srv::dds_::ListParameters_Request_,
         advrf_interfaces::srv::dds_::ListParameters_Response_> list_server_;
+
+    ServiceServer<
+        advrf_interfaces::srv::dds_::ListGetParameters_Request_,
+        advrf_interfaces::srv::dds_::ListGetParameters_Response_> listget_server_;
 };

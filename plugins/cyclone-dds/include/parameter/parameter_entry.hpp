@@ -14,7 +14,7 @@ struct ParameterOptions
     std::string description;
     bool read_only = false;
     bool dynamic = true;
-    std::function<bool(const T&)> validator;
+    std::function<bool(const T&&)> validator;
 };
 
 /**

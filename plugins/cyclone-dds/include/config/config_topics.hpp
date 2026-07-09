@@ -79,6 +79,9 @@ struct TopicsParameters : public TopicNamespace
 
     std::string listRequest() const { return rq("parameters/listRequest"); }
     std::string listReply()   const { return rr("parameters/listReply"); }
+
+    std::string listGetRequest() const { return rq("parameters/listGetRequest"); }
+    std::string listGetReply()   const { return rr("parameters/listGetReply"); }
 };
 
 } // namespace topics

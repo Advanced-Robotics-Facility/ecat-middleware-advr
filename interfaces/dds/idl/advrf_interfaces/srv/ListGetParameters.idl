@@ -1,0 +1,25 @@
+#include "../../rcl_interfaces/msg/RequestHeader.idl"
+#include "../../rcl_interfaces/msg/Parameter.idl"
+
+module advrf_interfaces {
+  module srv {
+    module dds_ {
+
+      @final
+      struct ListGetParameters_Request_
+      {
+        rcl_interfaces::msg::dds_::RequestHeader_ request_id;
+        string prefix;
+      };
+
+      @final
+      struct ListGetParameters_Response_
+      {
+        rcl_interfaces::msg::dds_::RequestHeader_ request_id;
+        boolean success;
+        sequence<rcl_interfaces::msg::dds_::Parameter_> parameters;
+      };
+
+    };
+  };
+};

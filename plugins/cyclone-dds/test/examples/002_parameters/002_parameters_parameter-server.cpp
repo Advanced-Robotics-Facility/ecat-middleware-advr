@@ -7,7 +7,6 @@ constexpr int DOMAIN_ID = 42;
 int main()
 {
     dds::domain::DomainParticipant participant(DOMAIN_ID);
-    
     config::ConfigTopics config_topics({"advrf", "robot"});
     ParameterServer server(config_topics, participant);
     

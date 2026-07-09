@@ -18,7 +18,11 @@ ParameterClient::ParameterClient(const config::ConfigTopics& config_topics,
     , list_client_(
         participant,
         config_topics.parameters.listRequest(),
-        config_topics.parameters.listReply())
+        config_topics.parameters.listReply()),
+    listget_client_(
+        participant,
+        config_topics.parameters.listGetRequest(),
+        config_topics.parameters.listGetReply())
 {
 }
 
@@ -43,11 +47,8 @@ ParameterClient::get(
     const std::vector<std::string>& names)
 {
     GetParameters_Request_ request;
-
     request.names(names);
-
     auto response = get_client_.call(request);
-
     if (!response)
         throw std::runtime_error("GetParameters service timeout.");
 
@@ -108,4 +109,20 @@ ParameterClient::list(
         throw std::runtime_error("ListParameters service failed.");
 
     return response->names();
+}
+
+
+std::vector<Parameter_>ParameterClient::listGet(const std::string& prefix)
+{
+    ListGetParameters_Request_ request;
+    request.prefix(prefix);
+
+    auto response = listget_client_.call(request);
+    if (!response)
+        throw std::runtime_error("GetParameters service timeout.");
+
+    if (!response->success())
+        throw std::runtime_error("GetParameters service failed.");
+
+    return response->parameters();
 }

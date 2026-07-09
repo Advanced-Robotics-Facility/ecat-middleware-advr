@@ -45,7 +45,7 @@ public:
              if (!options.validator) {
                 return true;
             }
-            return options.validator(get_parameter<T>(parameter));
+            return options.validator(std::move(get_parameter<T>(parameter)));
         };
 
         parameters_.emplace(name, std::move(entry));

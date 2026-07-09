@@ -8,6 +8,7 @@
 #include <advrf_interfaces/srv/GetParameters.hpp>
 #include <advrf_interfaces/srv/ListParameters.hpp>
 #include <advrf_interfaces/srv/SetParameters.hpp>
+#include <advrf_interfaces/srv/ListGetParameters.hpp>
 #include <advrf_interfaces/msg/Enums.hpp>
 
 #include "config/config_topics.hpp"
@@ -45,13 +46,10 @@ public:
         const std::string& name,
         const T& value);
 
-    std::vector<ParameterResult> set(
-        const std::vector<rcl_interfaces::msg::dds_::Parameter_>& parameters);
-
+    std::vector<ParameterResult> set(const std::vector<rcl_interfaces::msg::dds_::Parameter_>& parameters);
     std::vector<std::string> list();
-
-    std::vector<std::string> list(
-        const std::string& prefix);
+    std::vector<std::string> list(const std::string& prefix);
+    std::vector<Parameter_> listGet(const std::string& prefix);
 
 private:
 
@@ -66,6 +64,10 @@ private:
     ServiceClient<
         advrf_interfaces::srv::dds_::ListParameters_Request_,
         advrf_interfaces::srv::dds_::ListParameters_Response_> list_client_;
+
+    ServiceClient<
+        advrf_interfaces::srv::dds_::ListGetParameters_Request_,
+        advrf_interfaces::srv::dds_::ListGetParameters_Response_> listget_client_;
 };
 
 

@@ -1,4 +1,5 @@
 #include "parameter/parameter_server.hpp"
+#include "advrf_interfaces/srv/ListGetParameters.hpp"
 #include "config/config_topics.hpp"
 
 using namespace advrf_interfaces::srv::dds_;
@@ -17,6 +18,10 @@ ParameterServer::ParameterServer(const config::ConfigTopics& config_topics,
       participant,
       config_topics.parameters.listRequest(),
       config_topics.parameters.listReply())
+, listget_server_(
+      participant,
+      config_topics.parameters.listGetRequest(),
+      config_topics.parameters.listGetReply())
 {
     //
     // GetParameters
@@ -87,6 +92,25 @@ ParameterServer::ParameterServer(const config::ConfigTopics& config_topics,
             }
             return response;
         });
+
+
+    listget_server_.set_callback(
+        [this](const ListGetParameters_Request_& request)
+        {
+            ListGetParameters_Response_ response;
+            response.request_id(request.request_id());
+            response.success(true);
+            if (request.prefix().empty())
+            {
+                response.parameters(registry_.get(registry_.list()));
+            }
+            else
+            {
+               response.parameters(registry_.get(registry_.list(request.prefix())));
+            }
+
+            return response;
+        });
 }
 
 void ParameterServer::spin_once()
@@ -94,6 +118,7 @@ void ParameterServer::spin_once()
     get_server_.spin_once();
     set_server_.spin_once();
     list_server_.spin_once();
+    listget_server_.spin_once();
 }
 
 void ParameterServer::spin(
