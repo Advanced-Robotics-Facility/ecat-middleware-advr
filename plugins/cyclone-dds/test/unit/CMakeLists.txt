@@ -6,6 +6,7 @@ function(plugin_test TEST_NAME TEST_SOURCE)
     target_link_libraries(${TEST_NAME}
         PRIVATE
             ecat_plugin_cyclonedds
+            protobuf_msgs::protobuf_msgs
     )
 
     add_test(

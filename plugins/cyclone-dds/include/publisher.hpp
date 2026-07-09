@@ -12,13 +12,13 @@
 #include "dds/dds.hpp"
 
 /* Include data type and specific traits to be used with the C++ DDS API. */
-#include "sensor_msgs/msg/JointState.hpp"
-#include "advrf_interfaces/msg/Imu.hpp"
-#include "advrf_interfaces/msg/ForceTorque.hpp"
-#include "advrf_interfaces/msg/Motor.hpp"
-#include "advrf_interfaces/msg/PowerBoard.hpp"
-#include "advrf_interfaces/msg/Pump.hpp"
-#include "advrf_interfaces/msg/Valve.hpp"
+#include "advrf_interfaces_dds/sensor_msgs/msg/JointState.hpp"
+#include "advrf_interfaces_dds/advrf_interfaces/msg/Imu.hpp"
+#include "advrf_interfaces_dds/advrf_interfaces/msg/ForceTorque.hpp"
+#include "advrf_interfaces_dds/advrf_interfaces/msg/Motor.hpp"
+#include "advrf_interfaces_dds/advrf_interfaces/msg/PowerBoard.hpp"
+#include "advrf_interfaces_dds/advrf_interfaces/msg/Pump.hpp"
+#include "advrf_interfaces_dds/advrf_interfaces/msg/Valve.hpp"
 
 using TimeMsg        = ::builtin_interfaces::msg::dds_::Time_;
 using JointStateMsg  = ::sensor_msgs::msg::dds_::JointState_;

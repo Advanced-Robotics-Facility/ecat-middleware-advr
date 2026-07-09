@@ -2,7 +2,12 @@
 
 include(CMakeFindDependencyMacro)
 
-find_dependency(CycloneDDS REQUIRED)
-find_dependency(CycloneDDS-CXX REQUIRED)
+find_dependency(advrf_cyclonedds_lib)
+find_dependency(advrf_interfaces_dds)
+find_dependency(advrf_middleware_core)
+find_dependency(protobuf_msgs)
+find_dependency(ecat-master-future)
 
 include("${CMAKE_CURRENT_LIST_DIR}/ecat_plugin_cycloneddsTargets.cmake")
+
+check_required_components(ecat_plugin_cyclonedds)

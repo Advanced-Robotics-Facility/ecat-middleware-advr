@@ -9,8 +9,8 @@
 
 #include "shm_utils.hpp" 
 #include "shm_shared_types.hpp" 
-#include "ecat_pdo.pb.h"
-#include "pdo_utils.hpp"
+#include <ecat-master-future/ecat_pdo.pb.h>
+#include <ecat-master-future/pdo_utils.hpp>
 
 #include "publisher.hpp"
 

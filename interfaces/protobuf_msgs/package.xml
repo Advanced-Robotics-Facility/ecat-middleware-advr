@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>protobuf_msgs</name>
+  <version>1.0.0</version>
+  <description>Generated protobuf message library.</description>
+
+  <maintainer email="hugo.pousseur@iit.it">Hugo POUSSEUR</maintainer>
+  <maintainer email="manuel.deluchi@iit.it">Manuel DELUCHI</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>cmake</buildtool_depend>
+
+  <depend>protobuf</depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>

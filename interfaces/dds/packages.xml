@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>advrf_interfaces_dds</name>
+  <version>0.1.0</version>
+  <description>DDS interfaces generated from IDL using CycloneDDS-CXX.</description>
+
+  <maintainer email="hugo.pousseur@iit.it">Hugo POUSSEUR</maintainer>
+  <maintainer email="manuel.deluchi@iit.it">Manuel DELUCHI</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>cmake</buildtool_depend>
+
+  <depend>CycloneDDS</depend>
+  <depend>CycloneDDS-CXX</depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>

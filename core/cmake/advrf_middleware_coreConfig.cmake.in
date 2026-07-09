@@ -1,0 +1,9 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(protobuf_msgs)
+
+include("${CMAKE_CURRENT_LIST_DIR}/advrf_middleware_coreTargets.cmake")
+
+check_required_components(advrf_middleware_core)
