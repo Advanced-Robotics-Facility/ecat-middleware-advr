@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <cstring>
 
-static constexpr const char* SHM_NAME = "/rt_bridge";
+static constexpr const char* SHM_NAME = "/ecat_master";
 
 template<typename T, size_t N>
 struct SPSCQueue {
@@ -51,6 +51,12 @@ struct SPSCQueue {
         
         return true;
     }
+
+    size_t size() const {
+        size_t h = head.load(std::memory_order_relaxed);
+        size_t t = tail.load(std::memory_order_relaxed);
+        return (h - t) & MASK;
+    }
 };
 
 static constexpr size_t PROTO_MAX_BYTES = 512;
@@ -62,10 +68,16 @@ struct ProtoSlot {
 };
 
 struct SharedBridge {
-    SPSCQueue<ProtoSlot, 64> cmd;   
-    SPSCQueue<ProtoSlot, 64> joint_state;  
+    // todo: add check, if device exists then create the queue?
+    // Pub --> from EcatMaster to DDS
     SPSCQueue<ProtoSlot, 64> imu;
+    SPSCQueue<ProtoSlot, 64> motor;
+    SPSCQueue<ProtoSlot, 64> force_torque;
+    SPSCQueue<ProtoSlot, 64> power_board;
+    SPSCQueue<ProtoSlot, 64> pump;
+    SPSCQueue<ProtoSlot, 64> valve;
 
+    alignas(64) std::atomic<uint32_t> motor_count{0};
     alignas(64) std::atomic<bool> mw_ready{false};
     alignas(64) std::atomic<bool> rt_ready{false};
 };

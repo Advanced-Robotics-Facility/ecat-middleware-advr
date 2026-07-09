@@ -8,6 +8,7 @@ project(ecat-master-future
 add_subdirectory(protobuf)
 
 include(CMakePackageConfigHelpers)
+find_package(yaml-cpp REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -36,10 +37,20 @@ add_executable(ecat_master_future_producer
     src/producer.cpp
 )
 
+target_include_directories(ecat_master_future_producer
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../core/include
+)
+
+target_compile_definitions(ecat_master_future_producer PRIVATE
+    ROBOT_CONFIG_DIR="${CMAKE_CURRENT_SOURCE_DIR}/config/robot.yaml"
+)
+
 target_link_libraries(ecat_master_future_producer
     PRIVATE
         ecat-master-future
         protobuf_msgs
+        yaml-cpp::yaml-cpp
 )
 
 install(TARGETS ecat_master_future_producer
@@ -67,6 +78,10 @@ install(TARGETS ecat-master-future
 
 install(DIRECTORY include/
     DESTINATION include
+)
+
+install(DIRECTORY config/
+    DESTINATION share/ecat-master-future/config
 )
 
 #

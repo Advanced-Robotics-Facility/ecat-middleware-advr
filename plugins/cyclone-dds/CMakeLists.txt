@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 find_package(CycloneDDS REQUIRED)
 find_package(CycloneDDS-CXX REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 add_library(ecat_plugin_cyclonedds
     src/main.cpp
@@ -80,6 +81,10 @@ target_include_directories(publisher PRIVATE
     ${CMAKE_BINARY_DIR}/include
 )
 
+target_compile_definitions(publisher PRIVATE
+    ROBOT_CONFIG_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../../lib/ecat-master-future/config/robot.yaml"
+)
+
 target_link_libraries(publisher PRIVATE
     ecat-master-future     
     protobuf_msgs 
@@ -91,6 +96,7 @@ target_link_libraries(publisher PRIVATE
     sensor_msgs_dds
     std_msgs_dds
     builtin_interfaces_dds
+    yaml-cpp::yaml-cpp
 )
 
 ## TEST PUB EXE

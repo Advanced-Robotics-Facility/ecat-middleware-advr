@@ -4,10 +4,11 @@
 #include <cmath>
 #include <csignal>
 #include <new>
+#include <string>
 
-#include "shm_utils.hpp" 
-#include "shm_shared_types.hpp" 
-
+#include "shm_utils.hpp"
+#include "shm_shared_types.hpp"
+#include "robot_config.hpp"
 #include "ecat_pdo.pb.h"
 
 namespace {
@@ -25,10 +26,22 @@ uint64_t monotonic_now_ns()
         std::chrono::duration_cast<std::chrono::nanoseconds>(now).count());
 }
 
-iit::advrf::Ec_slave_pdo make_imu_pdo(double t, uint64_t sample_index)
+void populate_pdo_header(iit::advrf::Ec_slave_pdo& pdo, const std::string& id, uint64_t sample_index) {
+    auto* header = pdo.mutable_header();
+    header->set_str_id(id);
+    header->set_index(static_cast<int32_t>(sample_index));
+
+    const auto now_ns = static_cast<uint64_t>(std::chrono::steady_clock::now().time_since_epoch().count());
+    auto* stamp = header->mutable_stamp();
+    stamp->set_sec(static_cast<int32_t>(now_ns / 1'000'000'000ULL));
+    stamp->set_nsec(static_cast<int32_t>(now_ns % 1'000'000'000ULL));
+}
+
+iit::advrf::Ec_slave_pdo make_imu_pdo(double t, uint64_t sample_index) // , int imu_id)
 {
     iit::advrf::Ec_slave_pdo pdo;
     pdo.set_type(iit::advrf::Ec_slave_pdo::RX_IMU_VN);
+    populate_pdo_header(pdo, "imu", sample_index);
 
     const uint64_t mono_ns = monotonic_now_ns();
     auto* header = pdo.mutable_header();
@@ -63,14 +76,50 @@ iit::advrf::Ec_slave_pdo make_imu_pdo(double t, uint64_t sample_index)
 
     return pdo;
 }
-} 
 
-int main()
+iit::advrf::Ec_slave_pdo make_motor_pdo(double t, uint64_t sample_index, int motor_id) {
+
+    iit::advrf::Ec_slave_pdo pdo;
+    pdo.set_type(iit::advrf::Ec_slave_pdo::RX_CIA402);
+    populate_pdo_header(pdo, "motor", sample_index);
+
+    const double phase = t + 0.2 * motor_id;
+
+    auto* motor_payload = pdo.mutable_cia402_rx_pdo();
+
+    motor_payload->set_statusword(0x1234);
+    motor_payload->set_modes_of_op(8);
+
+    motor_payload->set_motor_pos(static_cast<float>(std::sin(phase)));
+    motor_payload->set_motor_vel(static_cast<float>(std::cos(phase)));
+    motor_payload->set_link_pos(static_cast<float>(std::sin(phase)));
+    motor_payload->set_link_vel(static_cast<float>(std::cos(phase)));
+    motor_payload->set_current(static_cast<float>(0.0));
+    motor_payload->set_torque(static_cast<float>(0.0));
+    motor_payload->set_demanded_pos(static_cast<float>(0.0));
+    motor_payload->set_demanded_vel(static_cast<float>(0.0));
+    motor_payload->set_demanded_current(static_cast<float>(0.0));
+    motor_payload->set_demanded_torque(static_cast<float>(0.0));
+    motor_payload->set_control_effort(static_cast<float>(0.0));
+    motor_payload->set_motor_temp(static_cast<float>(0.0));
+    motor_payload->set_drive_temp(35.5);
+    motor_payload->set_error_code(0);
+    motor_payload->set_error_report("");
+
+    return pdo;
+}
+}
+
+int main(int argc, char** argv)
 {
     std::signal(SIGINT, on_signal);
     std::signal(SIGTERM, on_signal);
 
-    std::cout << "[IMU Producer] Initializing shared memory segment: " << SHM_NAME << std::endl;
+    auto cfg = load_robot_config(ROBOT_CONFIG_DIR);
+    if (!cfg) return 1;
+
+    const size_t motor_count = cfg->motors.size();
+    std::cout << "[Producer] Initializing shared memory segment: " << SHM_NAME << std::endl;
 
     SharedMemoryOwner shm(SHM_NAME, sizeof(SharedBridge));
     if (!shm.is_valid()) {
@@ -81,30 +130,33 @@ int main()
     auto* bridge = shm.get<SharedBridge>();
     new (bridge) SharedBridge{};
 
-    std::cout << "[IMU Producer] Created a fresh shared memory segment." << std::endl;
+    bridge->motor_count.store(static_cast<uint32_t>(motor_count));
     bridge->mw_ready.store(true);
     bridge->rt_ready.store(false);
 
     ShmProtoHelper proto_helper;
-
     double t = 0.0;
     uint64_t sample_count = 0;
     bool bridge_seen = false;
 
-    std::cout << "[IMU Producer] Starting transmission loop at 1kHz..." << std::endl;
+    std::cout << "[Producer] Starting transmission loop at 1kHz with " << motor_count << " motors\n";
 
     auto next_tick = std::chrono::steady_clock::now();
     while (keep_running) {
-        const auto pdo = make_imu_pdo(t, sample_count);
+        const auto imu_pdo = make_imu_pdo(t, sample_count);
+        proto_helper.push(bridge->imu, imu_pdo);
 
-        proto_helper.push(bridge->imu, pdo);
+        for (size_t motor_id = 1; motor_id <= motor_count; ++motor_id) {
+            const auto motor_pdo = make_motor_pdo(t, sample_count, static_cast<int>(motor_id));
+            proto_helper.push(bridge->motor, motor_pdo);
+        }
 
         ++sample_count;
         t += 0.001;
 
         if (!bridge_seen && bridge->rt_ready.load()) {
             bridge_seen = true;
-            std::cout << "[IMU Producer] DDS bridge connected." << std::endl;
+            std::cout << "[Producer] DDS bridge connected." << std::endl;
         }
 
         next_tick += std::chrono::milliseconds(1);

@@ -1,7 +1,6 @@
 robot:
   name: kyon   # Robot name, used as a prefix for ROS2 node and topic names
-  domain: 42   # ROS2 domain ID for isolating communication (default: 0)      
-  
+
   joints:
     # Arm1
     - name: shoulder_yaw_1
@@ -73,3 +72,6 @@ robot:
     #   ecat_id: 31
     # - name: wheel_joint_4
     #   ecat_id: 32
+
+dds:
+  domain: 42   # DDS/ROS 2 domain ID (default: 0)
