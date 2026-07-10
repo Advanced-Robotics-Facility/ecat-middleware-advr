@@ -5,31 +5,31 @@ project(advrf_middleware_core
     LANGUAGES CXX
 )
 
-find_package(protobuf_msgs REQUIRED)
+find_package(advrf_interfaces_protobuf REQUIRED)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-add_library(mw_core INTERFACE)
-add_library(advrf::mw_core ALIAS mw_core)
+add_library(advrf_middleware_core INTERFACE)
+# add_library(advrf_middleware_core ALIAS mw_core)
 
-target_compile_features(mw_core
+target_compile_features(advrf_middleware_core
     INTERFACE
         cxx_std_17
 )
 
-target_include_directories(mw_core
+target_include_directories(advrf_middleware_core
     INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-target_link_libraries(mw_core
+target_link_libraries(advrf_middleware_core
     INTERFACE
-        protobuf_msgs::protobuf_msgs
+        advrf_interfaces_protobuf
 )
 install(
-    TARGETS mw_core
+    TARGETS advrf_middleware_core
     EXPORT advrf_middleware_coreTargets
 )
 
@@ -41,7 +41,6 @@ install(
 install(
     EXPORT advrf_middleware_coreTargets
     FILE advrf_middleware_coreTargets.cmake
-    NAMESPACE advrf::
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 

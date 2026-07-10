@@ -1,46 +1,46 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(ecat-master-future
+project(ecat_master_future
     VERSION 1.0.0
     LANGUAGES CXX
 )
 
-find_package(protobuf_msgs REQUIRED)
+find_package(advrf_interfaces_protobuf REQUIRED)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-add_library(ecat-master-future SHARED
+add_library(ecat_master_future SHARED
     src/shm_utils.cpp
     src/shm_shared_types.cpp
 )
 
-add_library(ecat-master-future::ecat-master-future ALIAS ecat-master-future)
+# add_library(advrf::ecat_master_future ALIAS ecat_master_future)
 
-target_compile_features(ecat-master-future
+target_compile_features(ecat_master_future
     PUBLIC
         cxx_std_17
 )
 
-target_include_directories(ecat-master-future
+target_include_directories(ecat_master_future
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-target_link_libraries(ecat-master-future
+target_link_libraries(ecat_master_future
     PUBLIC
-        protobuf_msgs::protobuf_msgs
+        advrf_interfaces_protobuf
 )
 
-set_target_properties(ecat-master-future PROPERTIES
+set_target_properties(ecat_master_future PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION 1
 )
 
 install(
-    TARGETS ecat-master-future
-    EXPORT ecat-master-futureTargets
+    TARGETS ecat_master_future
+    EXPORT ecat_master_futureTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -52,7 +52,7 @@ install(
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-option(BUILD_ECAT_MASTER_FUTURE_TOOLS "Build ecat-master-future tools" ON)
+option(BUILD_ECAT_MASTER_FUTURE_TOOLS "Build ecat_master_future tools" ON)
 
 if(BUILD_ECAT_MASTER_FUTURE_TOOLS)
     add_executable(ecat_master_future_producer
@@ -66,8 +66,8 @@ if(BUILD_ECAT_MASTER_FUTURE_TOOLS)
 
     target_link_libraries(ecat_master_future_producer
         PRIVATE
-            ecat-master-future::ecat-master-future
-            protobuf_msgs::protobuf_msgs
+            ecat_master_future
+            advrf_interfaces_protobuf
     )
 
     install(
@@ -77,27 +77,26 @@ if(BUILD_ECAT_MASTER_FUTURE_TOOLS)
 endif()
 
 install(
-    EXPORT ecat-master-futureTargets
-    FILE ecat-master-futureTargets.cmake
-    NAMESPACE ecat-master-future::
+    EXPORT ecat_master_futureTargets
+    FILE ecat_master_futureTargets.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
 configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ecat-master-futureConfig.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/ecat-master-futureConfig.cmake"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ecat_master_futureConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/ecat_master_futureConfig.cmake"
     INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
 write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/ecat-master-futureConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/ecat_master_futureConfigVersion.cmake"
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY SameMajorVersion
 )
 
 install(
     FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/ecat-master-futureConfig.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/ecat-master-futureConfigVersion.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/ecat_master_futureConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/ecat_master_futureConfigVersion.cmake"
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )

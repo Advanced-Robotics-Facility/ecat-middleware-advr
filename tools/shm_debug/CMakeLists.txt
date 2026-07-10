@@ -16,8 +16,8 @@ target_include_directories(shm_debug_writer
 
 target_link_libraries(shm_debug_writer
     PRIVATE
-        ecat-master-future
-        protobuf_msgs
+        advrf::ecat_master_future
+        advrf::protobuf_msgs
 )
 
 install(TARGETS shm_debug_writer
@@ -35,8 +35,8 @@ target_include_directories(shm_debug_reader
 
 target_link_libraries(shm_debug_reader
     PRIVATE
-        ecat-master-future
-        protobuf_msgs
+        advrf::ecat_master_future
+        advrf::protobuf_msgs
 )
 
 install(TARGETS shm_debug_reader

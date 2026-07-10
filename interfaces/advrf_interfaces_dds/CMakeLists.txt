@@ -29,9 +29,7 @@ set(DDS_INTERFACE_PACKAGES
     advrf_interfaces
 )
 
-add_library(advrf_dds_interfaces INTERFACE)
-add_library(advrf::dds_interfaces ALIAS advrf_dds_interfaces)
-
+add_library(advrf_interfaces_dds INTERFACE)
 foreach(package IN LISTS DDS_INTERFACE_PACKAGES)
 
     message(STATUS "[DDS] Processing package '${package}'")
@@ -127,7 +125,7 @@ foreach(package IN LISTS DDS_INTERFACE_PACKAGES)
         INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
 
-    target_link_libraries(advrf_dds_interfaces
+    target_link_libraries(advrf_interfaces_dds
         INTERFACE
             advrf::${package}
     )
@@ -135,7 +133,7 @@ foreach(package IN LISTS DDS_INTERFACE_PACKAGES)
 endforeach()
 
 install(
-    TARGETS advrf_dds_interfaces
+    TARGETS advrf_interfaces_dds
     EXPORT advrf_interfaces_ddsTargets
 )
 
@@ -155,7 +153,6 @@ install(
 install(
     EXPORT advrf_interfaces_ddsTargets
     FILE advrf_interfaces_ddsTargets.cmake
-    NAMESPACE advrf::
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
 )
 

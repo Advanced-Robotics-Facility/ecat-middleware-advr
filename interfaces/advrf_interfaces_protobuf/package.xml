@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>protobuf_msgs</name>
+  <name>advrf_interfaces_protobuf</name>
   <version>1.0.0</version>
   <description>Generated protobuf message library.</description>
 

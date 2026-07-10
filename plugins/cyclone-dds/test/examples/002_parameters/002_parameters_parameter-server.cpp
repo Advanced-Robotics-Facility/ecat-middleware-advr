@@ -1,6 +1,6 @@
 #include <dds/dds.hpp>
 #include <iostream>
-#include "parameter/parameter_server.hpp"
+#include "advrf_cyclonedds_plugin/parameter/parameter_server.hpp"
 
 constexpr int DOMAIN_ID = 42;
 

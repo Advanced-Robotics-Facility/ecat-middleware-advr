@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>ecat_plugin_cyclonedds</name>
+  <name>advrf_cyclonedds_plugin</name>
   <version>0.1.0</version>
   <description>ECAT plugin implementation using CycloneDDS.</description>
 
@@ -14,8 +14,8 @@
   <depend>CycloneDDS-CXX</depend> -->
   <depend>advrf_interfaces_dds</depend>
   <depend>advrf_middleware_core</depend>
-  <depend>protobuf_msgs</depend>
-  <depend>ecat-master-future</depend>
+  <depend>advrf_interfaces_protobuf</depend>
+  <depend>ecat_master_future</depend>
   <depend>advrf_cyclonedds_lib</depend>
 
   <export>

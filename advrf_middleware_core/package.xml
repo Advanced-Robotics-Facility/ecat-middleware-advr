@@ -10,7 +10,7 @@
 
   <buildtool_depend>cmake</buildtool_depend>
 
-  <depend>protobuf_msgs</depend>
+  <depend>advrf_interfaces_protobuf</depend>
 
   <export>
     <build_type>cmake</build_type>

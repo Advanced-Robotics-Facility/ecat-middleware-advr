@@ -5,8 +5,8 @@
 #include <csignal>
 #include <new>
 
-#include "shm_utils.hpp" 
-#include "shm_shared_types.hpp" 
+#include "ecat_master_future/shm_utils.hpp" 
+#include "ecat_master_future/shm_shared_types.hpp" 
 
 #include "ecat_pdo.pb.h"
 

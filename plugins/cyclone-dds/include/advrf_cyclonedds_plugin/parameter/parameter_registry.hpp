@@ -4,8 +4,8 @@
 #include <string>
 #include <unordered_map>
 
-#include "parameter/parameter_make_get.hpp"
-#include "parameter/parameter_entry.hpp"
+#include "advrf_cyclonedds_plugin/parameter/parameter_make_get.hpp"
+#include "advrf_cyclonedds_plugin/parameter/parameter_entry.hpp"
 
 #include <advrf_interfaces/msg/Enums.hpp>
 

@@ -2,7 +2,7 @@
 #include <iostream>
 #include <advrf_interfaces/msg/Enums.hpp>
 
-#include "parameter/parameter_registry.hpp"
+#include "advrf_cyclonedds_plugin/parameter/parameter_registry.hpp"
 
 
 int main()

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(protobuf_msgs
+project(advrf_interfaces_protobuf
     VERSION 1.0.0
     LANGUAGES CXX
 )
@@ -25,46 +25,47 @@ set(PROTO_FILES
 
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILES})
 
-add_library(protobuf_msgs STATIC
+add_library(advrf_interfaces_protobuf STATIC
     ${PROTO_SRCS}
     ${PROTO_HDRS}
 )
 
-add_library(protobuf_msgs::protobuf_msgs ALIAS protobuf_msgs)
+# add_library(advrf_interfaces_protobuf ALIAS advrf_interfaces_protobuf)
 
-set_target_properties(protobuf_msgs
+set_target_properties(advrf_interfaces_protobuf
     PROPERTIES
         POSITION_INDEPENDENT_CODE ON
 )
 
-target_compile_features(protobuf_msgs
+target_compile_features(advrf_interfaces_protobuf
     PUBLIC
         cxx_std_17
 )
 
-target_include_directories(protobuf_msgs
+target_include_directories(advrf_interfaces_protobuf
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/protobuf_msgs>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/advrf_interfaces_protobuf>
 )
 
-target_link_libraries(protobuf_msgs
+
+target_link_libraries(advrf_interfaces_protobuf
     PUBLIC
         protobuf::libprotobuf
 )
 
 install(
-    TARGETS protobuf_msgs
-    EXPORT protobuf_msgsTargets
+    TARGETS advrf_interfaces_protobuf
+    EXPORT advrf_interfaces_protobufTargets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/protobuf_msgs
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/advrf_interfaces_protobuf
 )
 
 install(
     FILES ${PROTO_HDRS}
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/protobuf_msgs
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/advrf_interfaces_protobuf
 )
 
 install(
@@ -73,27 +74,26 @@ install(
 )
 
 install(
-    EXPORT protobuf_msgsTargets
-    FILE protobuf_msgsTargets.cmake
-    NAMESPACE protobuf_msgs::
+    EXPORT advrf_interfaces_protobufTargets
+    FILE advrf_interfaces_protobufTargets.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
 configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/protobuf_msgsConfig.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/protobuf_msgsConfig.cmake"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/advrf_interfaces_protobufConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/advrf_interfaces_protobufConfig.cmake"
     INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
 write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/protobuf_msgsConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/advrf_interfaces_protobufConfigVersion.cmake"
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY SameMajorVersion
 )
 
 install(
     FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/protobuf_msgsConfig.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/protobuf_msgsConfigVersion.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/advrf_interfaces_protobufConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/advrf_interfaces_protobufConfigVersion.cmake"
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )

@@ -9,10 +9,10 @@
 
 #include "shm_utils.hpp" 
 #include "shm_shared_types.hpp" 
-#include <ecat-master-future/ecat_pdo.pb.h>
-#include <ecat-master-future/pdo_utils.hpp>
+#include <ecat_master_future/ecat_pdo.pb.h>
+#include <ecat_master_future/pdo_utils.hpp>
 
-#include "publisher.hpp"
+#include "advrf_cyclonedds_plugin/publisher.hpp"
 
 namespace {
 volatile std::sig_atomic_t keep_running = 1;

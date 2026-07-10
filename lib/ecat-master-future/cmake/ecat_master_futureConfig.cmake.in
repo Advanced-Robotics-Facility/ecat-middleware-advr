@@ -1,0 +1,5 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/ecat_master_futureTargets.cmake")
+
+check_required_components(ecat_master_future)

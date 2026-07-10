@@ -4,7 +4,7 @@ add_executable(001_services_sdo-get-request-server
 
 target_link_libraries(001_services_sdo-get-request-server
     PRIVATE
-        ecat_plugin_cyclonedds
+        advrf_cyclonedds_plugin
 )
 
 add_executable(001_services_sdo-get-request-client
@@ -13,5 +13,5 @@ add_executable(001_services_sdo-get-request-client
 
 target_link_libraries(001_services_sdo-get-request-client
     PRIVATE
-        ecat_plugin_cyclonedds
+        advrf_cyclonedds_plugin
 )

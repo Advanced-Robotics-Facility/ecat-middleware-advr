@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(ecat_plugin_cyclonedds
+project(advrf_cyclonedds_plugin
     VERSION 0.1.0
     LANGUAGES CXX
 )
@@ -8,13 +8,13 @@ project(ecat_plugin_cyclonedds
 find_package(advrf_cyclonedds_lib REQUIRED)
 find_package(advrf_interfaces_dds REQUIRED)
 find_package(advrf_middleware_core REQUIRED)
-find_package(protobuf_msgs REQUIRED)
-find_package(ecat-master-future REQUIRED)
+find_package(advrf_interfaces_protobuf REQUIRED)
+find_package(ecat_master_future REQUIRED)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-add_library(ecat_plugin_cyclonedds
+add_library(advrf_cyclonedds_plugin
     src/main.cpp
     src/parameter_make_get.cpp
     src/service.cpp
@@ -22,30 +22,30 @@ add_library(ecat_plugin_cyclonedds
     src/parameter_server.cpp
 )
 
-add_library(ecat::plugin_cyclonedds ALIAS ecat_plugin_cyclonedds)
+# add_library(ecat::plugin_cyclonedds ALIAS advrf_cyclonedds_plugin)
 
-target_compile_features(ecat_plugin_cyclonedds
+target_compile_features(advrf_cyclonedds_plugin
     PUBLIC
         cxx_std_17
 )
 
-target_include_directories(ecat_plugin_cyclonedds
+target_include_directories(advrf_cyclonedds_plugin
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-target_link_libraries(ecat_plugin_cyclonedds
+target_link_libraries(advrf_cyclonedds_plugin
     PUBLIC
-        advrf::mw_core
-        advrf::advrf_dds_interfaces
-        protobuf_msgs::protobuf_msgs
-        ecat-master-future::ecat-master-future
+        advrf_middleware_core
+        advrf_interfaces_dds
+        advrf_interfaces_protobuf
+        ecat_master_future
         CycloneDDS-CXX::ddscxx
 )
 install(
-    TARGETS ecat_plugin_cyclonedds
-    EXPORT ecat_plugin_cycloneddsTargets
+    TARGETS advrf_cyclonedds_plugin
+    EXPORT advrf_cyclonedds_pluginTargets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -58,28 +58,28 @@ install(
 )
 
 install(
-    EXPORT ecat_plugin_cycloneddsTargets
-    FILE ecat_plugin_cycloneddsTargets.cmake
-    NAMESPACE ecat::
+    EXPORT advrf_cyclonedds_pluginTargets
+    FILE advrf_cyclonedds_pluginTargets.cmake
+    NAMESPACE advrf::
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
 configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ecat_plugin_cycloneddsConfig.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/ecat_plugin_cycloneddsConfig.cmake"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/advrf_cyclonedds_pluginConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/advrf_cyclonedds_pluginConfig.cmake"
     INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
 write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/ecat_plugin_cycloneddsConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/advrf_cyclonedds_pluginConfigVersion.cmake"
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY SameMajorVersion
 )
 
 install(
     FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/ecat_plugin_cycloneddsConfig.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/ecat_plugin_cycloneddsConfigVersion.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/advrf_cyclonedds_pluginConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/advrf_cyclonedds_pluginConfigVersion.cmake"
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
