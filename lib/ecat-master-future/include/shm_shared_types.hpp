@@ -67,8 +67,9 @@ struct ProtoSlot {
     uint8_t  data[PROTO_MAX_BYTES]{};
 };
 
+// TODO1: Create queue only if device exists??
+// TODO2: Remove atomic count variables in place of dynamic discovery of ecat slaves
 struct SharedBridge {
-    // todo: add check, if device exists then create the queue?
     // Pub --> from EcatMaster to DDS
     SPSCQueue<ProtoSlot, 64> imu;
     SPSCQueue<ProtoSlot, 64> motor;

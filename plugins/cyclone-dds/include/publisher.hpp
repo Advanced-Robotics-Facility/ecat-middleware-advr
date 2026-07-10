@@ -619,15 +619,12 @@ public:
     DdsAdapter() = default;
     ~DdsAdapter() override = default;
     
+    // TODO: this initialization needs to be modified in the future
+    // We need to init (create) the publishers only if they are dinamically discovered by the network
+    // Joints are the only exception and the only depend on the config file .yaml
     bool init(const RobotConfig& cfg) {
         try {
             dp_ = dds::domain::DomainParticipant(cfg.domain_id);
-
-            joint_state_pub_ = std::make_unique<JointStatePublisher>();
-            if (!joint_state_pub_->init(cfg.joint_names(), cfg.robot_name, dp_)) {
-                std::cerr << "[DDS] Failed to init JointStatePublisher\n";
-                return false;
-            }
  
             imu_pub_ = std::make_unique<ImuPublisher>();
             if (!imu_pub_->init(cfg.robot_name, dp_)) {
@@ -651,6 +648,14 @@ public:
             if (!pump_pub_->init(cfg.robot_name, dp_)) {
                 std::cerr << "[DDS] Failed to init PumpPublisher\n";
                 return false;
+            }
+
+            if (!cfg.motors.empty() || !cfg.valves.empty() || !cfg.grippers.empty()) {
+                joint_state_pub_ = std::make_unique<JointStatePublisher>();
+                if (!joint_state_pub_->init(cfg.joint_names(), cfg.robot_name, dp_)) {
+                    std::cerr << "[DDS] Failed to init JointStatePublisher\n";
+                    return false;
+                }
             }
  
             if (!cfg.valves.empty()) {

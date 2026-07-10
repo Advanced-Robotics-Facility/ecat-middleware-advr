@@ -37,20 +37,14 @@ void populate_pdo_header(iit::advrf::Ec_slave_pdo& pdo, const std::string& id, u
     stamp->set_nsec(static_cast<int32_t>(now_ns % 1'000'000'000ULL));
 }
 
-iit::advrf::Ec_slave_pdo make_imu_pdo(double t, uint64_t sample_index) // , int imu_id)
+iit::advrf::Ec_slave_pdo make_imu_pdo(double t, uint64_t sample_index, int imu_id)
 {
     iit::advrf::Ec_slave_pdo pdo;
     pdo.set_type(iit::advrf::Ec_slave_pdo::RX_IMU_VN);
-    populate_pdo_header(pdo, "imu", sample_index);
-
-    const uint64_t mono_ns = monotonic_now_ns();
-    auto* header = pdo.mutable_header();
-    header->set_str_id("imu");
-    header->set_index(static_cast<int32_t>(sample_index));
-
-    auto* stamp = header->mutable_stamp();
-    stamp->set_sec(static_cast<int32_t>(mono_ns / 1'000'000'000ULL));
-    stamp->set_nsec(static_cast<int32_t>(mono_ns % 1'000'000'000ULL));
+    
+    // TODO: for sensor data, we should have n topics: /imu1, /imu2, ...
+    std::string imu_name = "imu" + std::to_string(imu_id);
+    populate_pdo_header(pdo, imu_name, sample_index);
 
     auto* imu_payload = pdo.mutable_imuvn_rx_pdo();
 
@@ -151,6 +145,7 @@ int main(int argc, char** argv)
     auto* bridge = shm.get<SharedBridge>();
     new (bridge) SharedBridge{};
 
+    const uint32_t imu_count = 1;
     bridge->motor_count.store(static_cast<uint32_t>(motor_count));
     bridge->gripper_count.store(static_cast<uint32_t>(gripper_count));
     bridge->mw_ready.store(true);
@@ -165,8 +160,11 @@ int main(int argc, char** argv)
 
     auto next_tick = std::chrono::steady_clock::now();
     while (keep_running) {
-        const auto imu_pdo = make_imu_pdo(t, sample_count);
-        proto_helper.push(bridge->imu, imu_pdo);
+        
+        for (size_t imu_id = 1; imu_id <= imu_count; ++imu_id) {
+            const auto imu_pdo = make_imu_pdo(t, sample_count, imu_count);
+            proto_helper.push(bridge->imu, imu_pdo);
+        }
 
         for (size_t motor_id = 1; motor_id <= motor_count; ++motor_id) {
             const auto motor_pdo = make_motor_pdo(t, sample_count, static_cast<int>(motor_id));
