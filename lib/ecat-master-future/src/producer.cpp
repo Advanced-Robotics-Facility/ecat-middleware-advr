@@ -108,6 +108,26 @@ iit::advrf::Ec_slave_pdo make_motor_pdo(double t, uint64_t sample_index, int mot
 
     return pdo;
 }
+
+iit::advrf::Ec_slave_pdo make_gripper_pdo(double t, uint64_t sample_index, int gripper_id) {
+
+    iit::advrf::Ec_slave_pdo pdo;
+    pdo.set_type(iit::advrf::Ec_slave_pdo::RX_GRIPPER);
+    populate_pdo_header(pdo, "gripper", sample_index);
+
+    const double phase = t + 0.2 * gripper_id;
+
+    auto* gripper_payload = pdo.mutable_gripper_rx_pdo();
+
+    gripper_payload->set_statusword(0x4321);
+    gripper_payload->set_motor_pos(static_cast<float>(std::sin(phase)));
+    gripper_payload->set_link_pos(static_cast<float>(std::sin(phase)));
+    gripper_payload->set_demanded_pos(static_cast<float>(0.0));
+    gripper_payload->set_demanded_vel(static_cast<float>(0.0));
+    gripper_payload->set_error_code(0);
+
+    return pdo;
+}
 }
 
 int main(int argc, char** argv)
@@ -119,6 +139,7 @@ int main(int argc, char** argv)
     if (!cfg) return 1;
 
     const size_t motor_count = cfg->motors.size();
+    const size_t gripper_count = cfg->grippers.size();
     std::cout << "[Producer] Initializing shared memory segment: " << SHM_NAME << std::endl;
 
     SharedMemoryOwner shm(SHM_NAME, sizeof(SharedBridge));
@@ -131,6 +152,7 @@ int main(int argc, char** argv)
     new (bridge) SharedBridge{};
 
     bridge->motor_count.store(static_cast<uint32_t>(motor_count));
+    bridge->gripper_count.store(static_cast<uint32_t>(gripper_count));
     bridge->mw_ready.store(true);
     bridge->rt_ready.store(false);
 
@@ -139,7 +161,7 @@ int main(int argc, char** argv)
     uint64_t sample_count = 0;
     bool bridge_seen = false;
 
-    std::cout << "[Producer] Starting transmission loop at 1kHz with " << motor_count << " motors\n";
+    std::cout << "[Producer] Starting transmission loop at 1kHz with " << motor_count << " motors and " << gripper_count << " grippers.\n";
 
     auto next_tick = std::chrono::steady_clock::now();
     while (keep_running) {
@@ -149,6 +171,11 @@ int main(int argc, char** argv)
         for (size_t motor_id = 1; motor_id <= motor_count; ++motor_id) {
             const auto motor_pdo = make_motor_pdo(t, sample_count, static_cast<int>(motor_id));
             proto_helper.push(bridge->motor, motor_pdo);
+        }
+
+        for (size_t gripper_id = 1; gripper_id <= motor_count; ++gripper_id) {
+            const auto gripper_pdo = make_gripper_pdo(t, sample_count, static_cast<int>(gripper_id));
+            proto_helper.push(bridge->gripper, gripper_pdo);
         }
 
         ++sample_count;

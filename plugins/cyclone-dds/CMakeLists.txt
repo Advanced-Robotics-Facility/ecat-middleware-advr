@@ -78,7 +78,7 @@ add_subdirectory(test)
 add_executable(publisher src/publisher.cpp)
 
 target_include_directories(publisher PRIVATE
-    ${CMAKE_BINARY_DIR}/include
+    include
 )
 
 target_compile_definitions(publisher PRIVATE

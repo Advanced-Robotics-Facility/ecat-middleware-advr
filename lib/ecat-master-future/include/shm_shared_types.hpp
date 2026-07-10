@@ -76,8 +76,11 @@ struct SharedBridge {
     SPSCQueue<ProtoSlot, 64> power_board;
     SPSCQueue<ProtoSlot, 64> pump;
     SPSCQueue<ProtoSlot, 64> valve;
+    SPSCQueue<ProtoSlot, 64> gripper;
 
     alignas(64) std::atomic<uint32_t> motor_count{0};
+    alignas(64) std::atomic<uint32_t> gripper_count{0};
+    
     alignas(64) std::atomic<bool> mw_ready{false};
     alignas(64) std::atomic<bool> rt_ready{false};
 };

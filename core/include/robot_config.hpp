@@ -17,17 +17,20 @@ struct RobotConfig {
     std::string robot_name {"NoNe"};
     uint32_t domain_id {0};
 
-    std::vector<JointConfig> joints;   
-    std::vector<JointConfig> valves;   
+    std::vector<JointConfig> joints;  
     std::vector<JointConfig> motors;   
+    std::vector<JointConfig> valves;  
+    std::vector<JointConfig> grippers; 
 
+    std::vector<std::string> motor_names() const { return get_names(motors); }
     std::vector<std::string> joint_names() const { return get_names(joints); }
     std::vector<std::string> valve_names() const { return get_names(valves); }
-    std::vector<std::string> motor_names() const { return get_names(motors); }
+    std::vector<std::string> gripper_names() const { return get_names(grippers); }
 
+    std::unordered_map<int, size_t> motor_id_to_index() const { return get_map(motors); }
     std::unordered_map<int, size_t> joint_id_to_index() const { return get_map(joints); }
     std::unordered_map<int, size_t> valve_id_to_index() const { return get_map(valves); }
-    std::unordered_map<int, size_t> motor_id_to_index() const { return get_map(motors); }
+    std::unordered_map<int, size_t> gripper_id_to_index() const { return get_map(grippers); }
 
     private:
 
@@ -69,12 +72,14 @@ inline std::optional<RobotConfig> load_robot_config(const std::string& yaml_path
 
                 std::string type = j["type"] ? j["type"].as<std::string>() : "motor";
 
-                if (type == "valve") {
-                    cfg.valves.push_back(jc);
-                } else {
-                    cfg.joints.push_back(jc);
-                    cfg.motors.push_back(jc); 
-                }
+                cfg.joints.push_back(jc);
+
+                if (type == "motor")
+                    cfg.motors.push_back(jc);
+                else if (type == "gripper")
+                    cfg.grippers.push_back(jc);
+                else
+                    cfg.valves.push_back(jc); 
             }
         }
 

@@ -22,6 +22,7 @@
 #include "PowerBoardPubSubTypes.hpp"
 #include "PumpPubSubTypes.hpp"
 #include "ValvePubSubTypes.hpp"
+#include "GripperPubSubTypes.hpp"
 
 using namespace eprosima::fastdds::dds;
 
@@ -32,6 +33,7 @@ using MotorMsg       = ::advrf_msgs::msg::dds_::Motor_;
 using PowerBoardMsg  = ::advrf_msgs::msg::dds_::PowerBoard_;
 using PumpMsg        = ::advrf_msgs::msg::dds_::Pump_;
 using ValveMsg       = ::advrf_msgs::msg::dds_::Valve_;
+using GripperMsg     = ::advrf_msgs::msg::dds_::Gripper_;
 
 ////////////////////////////
 //  Base Class Publisher  //

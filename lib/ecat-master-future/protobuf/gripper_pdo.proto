@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package iit.advrf;
+
+message Gripper_rx_pdo {
+    uint32 statusword     = 1;
+    float motor_pos       = 2;
+    float link_pos        = 3;
+    float demanded_pos    = 4;
+    float demanded_vel    = 5;
+    float demanded_torque = 6;
+    uint32 error_code     = 7;
+}
+
+message Gripper_tx_pdo {
+    float target_pos    = 1;
+    float target_vel    = 2;
+    float target_torque = 3;
+    float gain_0        = 4;
+    float gain_1        = 5;
+    float gain_2        = 6;
+    float gain_3        = 7;
+    float gain_4        = 8;
+}

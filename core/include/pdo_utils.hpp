@@ -38,7 +38,8 @@ enum class PdoExpected {
     PowerBoard, 
     ForceTorque, 
     Valve, 
-    Pump 
+    Pump, 
+    Gripper
 };
 
 inline void warn_type_mismatch(iit::advrf::Ec_slave_pdo::Type got, PdoExpected expected)
@@ -49,7 +50,8 @@ inline void warn_type_mismatch(iit::advrf::Ec_slave_pdo::Type got, PdoExpected e
         expected == PdoExpected::PowerBoard  ? "power board":
         expected == PdoExpected::ForceTorque ? "force torque":
         expected == PdoExpected::Valve       ? "valve":
-                                               "pump";
+        expected == PdoExpected::Pump        ? "pump":
+                                               "gripper";
     static std::set<std::pair<iit::advrf::Ec_slave_pdo::Type, PdoExpected>> warned;
     if (!warned.insert({got, expected}).second) return;
 
@@ -90,6 +92,11 @@ inline bool is_pump_type(iit::advrf::Ec_slave_pdo::Type t)
     return t == iit::advrf::Ec_slave_pdo::RX_HYQ_HPU;
 }
 
+inline bool is_gripper_type(iit::advrf::Ec_slave_pdo::Type t) 
+{
+    return t == iit::advrf::Ec_slave_pdo::RX_GRIPPER;
+}
+
 inline bool is_hub_type(iit::advrf::Ec_slave_pdo::Type t)
 {
     return t == iit::advrf::Ec_slave_pdo::DUMMY ||
@@ -106,6 +113,7 @@ inline bool is_expected_type(iit::advrf::Ec_slave_pdo::Type t, PdoExpected expec
         case PdoExpected::ForceTorque: return is_ft_type(t);
         case PdoExpected::Valve:       return is_valve_type(t);
         case PdoExpected::Pump:        return is_pump_type(t);
+        case PdoExpected::Gripper:     return is_gripper_type(t);
     }
     return false;
 }
@@ -401,6 +409,33 @@ inline bool parse_pump_frame(const uint8_t* buf, ssize_t n, pump::rt_pump_msg& m
     msg.op_idx_ack          = rx.op_idx_ack();
     msg.aux                 = rx.aux();
     
+    return true;
+}
+
+// Parses a PDO frame that carries Gripper data 
+inline bool parse_gripper_frame(const uint8_t* buf, ssize_t n, gripper::rt_gripper_msg& msg)
+{
+    iit::advrf::Ec_slave_pdo pdo;
+    if (!parse_frame(buf, n, pdo))
+        return false;
+
+    if (!check_expected_type(pdo, PdoExpected::Gripper)) 
+        return false;
+
+    if (pdo.type() != iit::advrf::Ec_slave_pdo::RX_GRIPPER || !pdo.has_gripper_rx_pdo())
+        return false;
+
+    const auto& rx = pdo.gripper_rx_pdo();
+
+    msg.header.timestamp_ns = extract_timestamp_ns(pdo);
+
+    msg.statusword.push_back(rx.statusword());
+    msg.motor_pos.push_back(rx.motor_pos());
+    msg.link_pos.push_back(rx.link_pos());
+    msg.demanded_pos.push_back(rx.demanded_pos());
+    msg.demanded_vel.push_back(rx.demanded_vel());
+    msg.error_code.push_back(rx.error_code());
+
     return true;
 }
 

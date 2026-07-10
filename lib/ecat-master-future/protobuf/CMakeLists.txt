@@ -19,6 +19,7 @@ set(PROTO_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/power_pack_pdo.proto
     ${CMAKE_CURRENT_SOURCE_DIR}/cia402.proto
     ${CMAKE_CURRENT_SOURCE_DIR}/hyq.proto
+    ${CMAKE_CURRENT_SOURCE_DIR}/gripper_pdo.proto
     ${CMAKE_CURRENT_SOURCE_DIR}/generic.proto
 )
 

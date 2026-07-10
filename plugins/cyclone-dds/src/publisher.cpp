@@ -53,8 +53,12 @@ int main(int argc, char** argv)
     if (!keep_running) return 1;
 
     const size_t motor_count = bridge->motor_count.load();
+    const size_t gripper_count = bridge->gripper_count.load();
     cfg->motors.resize(motor_count);
-    cfg->joints = cfg->motors;
+    cfg->grippers.resize(gripper_count);
+    cfg->joints.clear();
+    cfg->joints.insert(cfg->joints.end(), cfg->motors.begin(), cfg->motors.end());
+    cfg->joints.insert(cfg->joints.end(), cfg->grippers.begin(), cfg->grippers.end());
 
     DdsAdapter dds_adapter;
     if (!dds_adapter.init(*cfg)) {
@@ -67,8 +71,10 @@ int main(int argc, char** argv)
     ShmProtoHelper proto_helper;
     ProtoSlot frame;
     size_t motors_in_batch = 0;
+    size_t grippers_in_batch = 0;
     joint_state::rt_joint_state_msg joint_msg;
     motor::rt_motor_msg motor_msg;
+    gripper::rt_gripper_msg gripper_msg;
 
     while (keep_running && bridge->mw_ready.load()) {
         bool active = false;
@@ -97,6 +103,24 @@ int main(int argc, char** argv)
                 dds_adapter.publish(joint_msg);
                 dds_adapter.publish(motor_msg);
                 motors_in_batch = 0;
+            }
+        }
+
+        while (bridge->gripper.try_pop(frame)) {
+            active = true;
+
+            if (grippers_in_batch == 0) {
+                gripper_msg = gripper::rt_gripper_msg{};
+            }
+
+            if (!pdo_utils::parse_gripper_frame(frame.data, static_cast<ssize_t>(frame.size), gripper_msg))
+                continue;
+
+            ++grippers_in_batch;
+
+            if (grippers_in_batch == gripper_count) {
+                dds_adapter.publish(gripper_msg);
+                grippers_in_batch = 0;
             }
         }
 

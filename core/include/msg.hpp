@@ -274,3 +274,31 @@ namespace valve {
         {}
     };
 }
+
+///////////////////////////
+//        Gripper        //
+///////////////////////////
+
+namespace gripper {
+    struct rt_gripper_msg
+    {
+        header::rt_header header;
+        std::vector<std::string> name;
+
+        std::vector<uint32_t> statusword;
+        std::vector<float>    motor_pos;
+        std::vector<float>    link_pos;
+        std::vector<float>    demanded_pos;
+        std::vector<float>    demanded_vel;
+        std::vector<uint32_t> error_code;
+
+        explicit rt_gripper_msg(size_t n = 0)
+            : statusword   (n, 0)
+            , motor_pos    (n, 0.0f)
+            , link_pos     (n, 0.0f)
+            , demanded_pos (n, 0.0f)
+            , demanded_vel (n, 0.0f)
+            , error_code   (n, 0)
+        {}
+    };
+}
