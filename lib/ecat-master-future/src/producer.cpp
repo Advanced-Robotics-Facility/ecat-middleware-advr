@@ -5,6 +5,7 @@
 #include <csignal>
 #include <new>
 #include <string>
+#include <vector>
 
 #include "shm_utils.hpp"
 #include "shm_shared_types.hpp"
@@ -41,10 +42,7 @@ iit::advrf::Ec_slave_pdo make_imu_pdo(double t, uint64_t sample_index, int imu_i
 {
     iit::advrf::Ec_slave_pdo pdo;
     pdo.set_type(iit::advrf::Ec_slave_pdo::RX_IMU_VN);
-    
-    // TODO: for sensor data, we should have n topics: /imu1, /imu2, ...
-    std::string imu_name = "imu" + std::to_string(imu_id);
-    populate_pdo_header(pdo, imu_name, sample_index);
+    populate_pdo_header(pdo, "imu" + std::to_string(imu_id), sample_index);
 
     auto* imu_payload = pdo.mutable_imuvn_rx_pdo();
 
@@ -75,7 +73,7 @@ iit::advrf::Ec_slave_pdo make_motor_pdo(double t, uint64_t sample_index, int mot
 
     iit::advrf::Ec_slave_pdo pdo;
     pdo.set_type(iit::advrf::Ec_slave_pdo::RX_CIA402);
-    populate_pdo_header(pdo, "motor", sample_index);
+    populate_pdo_header(pdo, "motor_" + std::to_string(motor_id), sample_index);
 
     const double phase = t + 0.2 * motor_id;
 
@@ -107,7 +105,7 @@ iit::advrf::Ec_slave_pdo make_gripper_pdo(double t, uint64_t sample_index, int g
 
     iit::advrf::Ec_slave_pdo pdo;
     pdo.set_type(iit::advrf::Ec_slave_pdo::RX_GRIPPER);
-    populate_pdo_header(pdo, "gripper", sample_index);
+    populate_pdo_header(pdo, "gripper_" + std::to_string(gripper_id), sample_index);
 
     const double phase = t + 0.2 * gripper_id;
 
@@ -132,8 +130,6 @@ int main(int argc, char** argv)
     auto cfg = load_robot_config(ROBOT_CONFIG_DIR);
     if (!cfg) return 1;
 
-    const size_t motor_count = cfg->motors.size();
-    const size_t gripper_count = cfg->grippers.size();
     std::cout << "[Producer] Initializing shared memory segment: " << SHM_NAME << std::endl;
 
     SharedMemoryOwner shm(SHM_NAME, sizeof(SharedBridge));
@@ -145,35 +141,74 @@ int main(int argc, char** argv)
     auto* bridge = shm.get<SharedBridge>();
     new (bridge) SharedBridge{};
 
-    const uint32_t imu_count = 1;
-    bridge->motor_count.store(static_cast<uint32_t>(motor_count));
-    bridge->gripper_count.store(static_cast<uint32_t>(gripper_count));
+    // Dynamic Discovery Generation Loop
+    uint32_t slave_idx = 0;
+    
+    // IMUs
+    const size_t imu_count = 1; 
+    for (size_t i = 1; i <= imu_count && slave_idx < MAX_SLAVES_CAPACITY; ++i) {
+        auto& slave = bridge->topology[slave_idx++];
+        slave.board_id = slave_idx;
+        slave.type = DeviceType::IMU;
+        std::snprintf(slave.name, sizeof(slave.name), "imu_%zu", i);
+    }
+
+    // Motors
+    const size_t motor_count = 12; 
+    for (size_t i = 1; i <= motor_count && slave_idx < MAX_SLAVES_CAPACITY; ++i) {
+        auto& slave = bridge->topology[slave_idx++];
+        slave.board_id = slave_idx;
+        slave.type = DeviceType::MOTOR;
+        std::snprintf(slave.name, sizeof(slave.name), "motor_%ld", i);
+    }
+
+    // Grippers
+    const size_t gripper_count = 2; 
+    for (size_t i = 1; i <= gripper_count && slave_idx < MAX_SLAVES_CAPACITY; ++i) {
+        auto& slave = bridge->topology[slave_idx++];
+        slave.board_id = slave_idx;
+        slave.type = DeviceType::GRIPPER;
+        std::snprintf(slave.name, sizeof(slave.name), "gripper_%ld", i);
+    }
+
+    bridge->topology_size.store(slave_idx);
     bridge->mw_ready.store(true);
     bridge->rt_ready.store(false);
+
+    std::cout << "\n=======================================\n";
+    std::cout << "[Producer] Bus Discovery Finished. Total Slaves Registered: " << slave_idx << "\n";
+    std::cout << "-----------------------------------------\n";
+    std::cout << " Board ID | Shared Memory Identifier \n";
+    std::cout << "-----------------------------------------\n";
+    
+    for (uint32_t i = 0; i < slave_idx; ++i) {
+        const auto& slave = bridge->topology[i];
+
+        std::printf("    %2u    | %s\n", 
+                     slave.board_id, slave.name);
+    }
+    std::cout << "=========================================\n\n";
 
     ShmProtoHelper proto_helper;
     double t = 0.0;
     uint64_t sample_count = 0;
     bool bridge_seen = false;
 
-    std::cout << "[Producer] Starting transmission loop at 1kHz with " << motor_count << " motors and " << gripper_count << " grippers.\n";
-
     auto next_tick = std::chrono::steady_clock::now();
     while (keep_running) {
         
-        for (size_t imu_id = 1; imu_id <= imu_count; ++imu_id) {
-            const auto imu_pdo = make_imu_pdo(t, sample_count, imu_count);
-            proto_helper.push(bridge->imu, imu_pdo);
-        }
+        for (uint32_t i = 0; i < slave_idx; ++i) {
+            const auto& slave = bridge->topology[i];
 
-        for (size_t motor_id = 1; motor_id <= motor_count; ++motor_id) {
-            const auto motor_pdo = make_motor_pdo(t, sample_count, static_cast<int>(motor_id));
-            proto_helper.push(bridge->motor, motor_pdo);
-        }
-
-        for (size_t gripper_id = 1; gripper_id <= motor_count; ++gripper_id) {
-            const auto gripper_pdo = make_gripper_pdo(t, sample_count, static_cast<int>(gripper_id));
-            proto_helper.push(bridge->gripper, gripper_pdo);
+            if (slave.type == DeviceType::IMU) {
+                proto_helper.push(bridge->imu, make_imu_pdo(t, sample_count, slave.board_id));
+            } 
+            else if (slave.type == DeviceType::MOTOR) {
+                proto_helper.push(bridge->motor, make_motor_pdo(t, sample_count, slave.board_id));
+            } 
+            else if (slave.type == DeviceType::GRIPPER) {
+                proto_helper.push(bridge->gripper, make_gripper_pdo(t, sample_count, slave.board_id));
+            }
         }
 
         ++sample_count;

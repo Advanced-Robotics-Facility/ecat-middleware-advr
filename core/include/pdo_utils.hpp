@@ -140,8 +140,9 @@ inline uint64_t extract_timestamp_ns(const iit::advrf::Ec_slave_pdo& pdo)
 
 // Parses a PDO frame that carries joint state data (CIA402, XT_MOTOR, ...)
 inline bool parse_joint_frame(const uint8_t* buf, ssize_t n,
-                               joint_state::rt_joint_state_msg& joint,
-                               motor::rt_motor_msg& motor)
+                              joint_state::rt_joint_state_msg& joint,
+                              motor::rt_motor_msg& motor,
+                              bool include_in_joint_state)
 {
     iit::advrf::Ec_slave_pdo pdo;
     if (!parse_frame(buf, n, pdo))
@@ -155,12 +156,12 @@ inline bool parse_joint_frame(const uint8_t* buf, ssize_t n,
 
     motor.header.timestamp_ns = timestamp_ns;
     motor.header.seq = seq;
-    joint.header.timestamp_ns = timestamp_ns;
-    joint.header.seq = seq;
+    if (include_in_joint_state) {
+        joint.header.timestamp_ns = timestamp_ns;
+        joint.header.seq = seq;
+    }
 
-    double pos = 0.0;
-    double vel = 0.0;
-    double eff = 0.0;
+    double pos = 0.0, vel = 0.0, eff = 0.0;
     motor::rt_motor m{};
 
     if (pdo.type() == iit::advrf::Ec_slave_pdo::RX_CIA402 && pdo.has_cia402_rx_pdo())
@@ -226,9 +227,11 @@ inline bool parse_joint_frame(const uint8_t* buf, ssize_t n,
         return false;
     }
 
-    joint.positions.push_back(pos);
-    joint.velocities.push_back(vel);
-    joint.efforts.push_back(eff);
+    if (include_in_joint_state) {
+        joint.positions.push_back(pos);
+        joint.velocities.push_back(vel);
+        joint.efforts.push_back(eff);
+    }
 
     motor.statusword.push_back(m.statusword);
     motor.modes_of_op.push_back(m.modes_of_op);
@@ -347,7 +350,10 @@ inline bool parse_ft_frame(const uint8_t* buf, ssize_t n, force_torque::rt_force
 }
 
 // Parses a PDO frame that carries Valve data 
-inline bool parse_valve_frame(const uint8_t* buf, ssize_t n, valve::rt_valve_msg& msg)
+inline bool parse_valve_frame(const uint8_t* buf, ssize_t n, 
+                              valve::rt_valve_msg& msg,
+                              joint_state::rt_joint_state_msg& joint,
+                              bool include_in_joint_state)
 {
     iit::advrf::Ec_slave_pdo pdo;
     if (!parse_frame(buf, n, pdo))
@@ -360,9 +366,9 @@ inline bool parse_valve_frame(const uint8_t* buf, ssize_t n, valve::rt_valve_msg
         return false;
 
     const auto& rx = pdo.hyqknee_rx_pdo();
+    const uint64_t timestamp_ns = extract_timestamp_ns(pdo);
 
-    msg.header.timestamp_ns = extract_timestamp_ns(pdo);
-
+    msg.header.timestamp_ns = timestamp_ns;
     msg.encoder_position.push_back(rx.encoder_position());
     msg.force.push_back(rx.force());
     msg.pressure1.push_back(rx.pressure_1());
@@ -376,6 +382,15 @@ inline bool parse_valve_frame(const uint8_t* buf, ssize_t n, valve::rt_valve_msg
     msg.current_ref_fb.push_back(rx.current_ref_fb());
     msg.position_ref_fb.push_back(rx.position_ref_fb());
     msg.force_ref_fb.push_back(rx.force_ref_fb());
+
+    if (include_in_joint_state) {
+        joint.header.timestamp_ns = timestamp_ns;
+        // TODO: Need convertion formula for pos and vel 
+        joint.positions.push_back(0.0);
+        joint.velocities.push_back(0.0);   
+        joint.efforts.push_back(rx.force());      
+        joint.header.seq = pdo.has_header() ? pdo.header().index() : 0;
+    }
 
     return true;
 }
@@ -413,7 +428,10 @@ inline bool parse_pump_frame(const uint8_t* buf, ssize_t n, pump::rt_pump_msg& m
 }
 
 // Parses a PDO frame that carries Gripper data 
-inline bool parse_gripper_frame(const uint8_t* buf, ssize_t n, gripper::rt_gripper_msg& msg)
+inline bool parse_gripper_frame(const uint8_t* buf, ssize_t n,
+                                gripper::rt_gripper_msg& msg,
+                                joint_state::rt_joint_state_msg& joint,
+                                bool include_in_joint_state)
 {
     iit::advrf::Ec_slave_pdo pdo;
     if (!parse_frame(buf, n, pdo))
@@ -426,15 +444,23 @@ inline bool parse_gripper_frame(const uint8_t* buf, ssize_t n, gripper::rt_gripp
         return false;
 
     const auto& rx = pdo.gripper_rx_pdo();
+    const uint64_t timestamp_ns = extract_timestamp_ns(pdo);
 
-    msg.header.timestamp_ns = extract_timestamp_ns(pdo);
-
+    msg.header.timestamp_ns = timestamp_ns;
     msg.statusword.push_back(rx.statusword());
     msg.motor_pos.push_back(rx.motor_pos());
     msg.link_pos.push_back(rx.link_pos());
     msg.demanded_pos.push_back(rx.demanded_pos());
     msg.demanded_vel.push_back(rx.demanded_vel());
     msg.error_code.push_back(rx.error_code());
+
+    if (include_in_joint_state) {
+        joint.header.timestamp_ns = timestamp_ns;
+        joint.positions.push_back(rx.link_pos());
+        joint.velocities.push_back(0.0);   
+        joint.efforts.push_back(0.0);      
+        joint.header.seq = pdo.has_header() ? pdo.header().index() : 0;
+    }
 
     return true;
 }
