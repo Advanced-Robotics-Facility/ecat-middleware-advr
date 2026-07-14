@@ -38,7 +38,8 @@ enum class PdoExpected {
     PowerBoard, 
     ForceTorque, 
     Valve, 
-    Pump 
+    Pump, 
+    Gripper
 };
 
 inline void warn_type_mismatch(iit::advrf::Ec_slave_pdo::Type got, PdoExpected expected)
@@ -49,7 +50,8 @@ inline void warn_type_mismatch(iit::advrf::Ec_slave_pdo::Type got, PdoExpected e
         expected == PdoExpected::PowerBoard  ? "power board":
         expected == PdoExpected::ForceTorque ? "force torque":
         expected == PdoExpected::Valve       ? "valve":
-                                               "pump";
+        expected == PdoExpected::Pump        ? "pump":
+                                               "gripper";
     static std::set<std::pair<iit::advrf::Ec_slave_pdo::Type, PdoExpected>> warned;
     if (!warned.insert({got, expected}).second) return;
 
@@ -90,6 +92,11 @@ inline bool is_pump_type(iit::advrf::Ec_slave_pdo::Type t)
     return t == iit::advrf::Ec_slave_pdo::RX_HYQ_HPU;
 }
 
+inline bool is_gripper_type(iit::advrf::Ec_slave_pdo::Type t) 
+{
+    return t == iit::advrf::Ec_slave_pdo::RX_GRIPPER;
+}
+
 inline bool is_hub_type(iit::advrf::Ec_slave_pdo::Type t)
 {
     return t == iit::advrf::Ec_slave_pdo::DUMMY ||
@@ -106,6 +113,7 @@ inline bool is_expected_type(iit::advrf::Ec_slave_pdo::Type t, PdoExpected expec
         case PdoExpected::ForceTorque: return is_ft_type(t);
         case PdoExpected::Valve:       return is_valve_type(t);
         case PdoExpected::Pump:        return is_pump_type(t);
+        case PdoExpected::Gripper:     return is_gripper_type(t);
     }
     return false;
 }
@@ -132,9 +140,9 @@ inline uint64_t extract_timestamp_ns(const iit::advrf::Ec_slave_pdo& pdo)
 
 // Parses a PDO frame that carries joint state data (CIA402, XT_MOTOR, ...)
 inline bool parse_joint_frame(const uint8_t* buf, ssize_t n,
-                               double& pos, double& vel, double& eff,
-                               uint64_t& timestamp_ns,
-                               motor::rt_motor& motor)
+                              joint_state::rt_joint_state_msg& joint,
+                              motor::rt_motor_msg& motor,
+                              bool include_in_joint_state)
 {
     iit::advrf::Ec_slave_pdo pdo;
     if (!parse_frame(buf, n, pdo))
@@ -143,39 +151,47 @@ inline bool parse_joint_frame(const uint8_t* buf, ssize_t n,
     if (!check_expected_type(pdo, PdoExpected::Motor)) 
         return false;
 
-    timestamp_ns = extract_timestamp_ns(pdo);
+    const uint64_t timestamp_ns = extract_timestamp_ns(pdo);
+    const uint64_t seq = pdo.has_header() ? pdo.header().index() : 0;
+
+    motor.header.timestamp_ns = timestamp_ns;
+    motor.header.seq = seq;
+    if (include_in_joint_state) {
+        joint.header.timestamp_ns = timestamp_ns;
+        joint.header.seq = seq;
+    }
+
+    double pos = 0.0, vel = 0.0, eff = 0.0;
+    motor::rt_motor m{};
 
     if (pdo.type() == iit::advrf::Ec_slave_pdo::RX_CIA402 && pdo.has_cia402_rx_pdo())
     {
-        // name?
         const auto& rx = pdo.cia402_rx_pdo();
         pos = rx.link_pos();
         vel = rx.link_vel();
         eff = rx.torque();
 
         // Required
-        motor.statusword       = rx.statusword();
-        motor.modes_of_op      = rx.modes_of_op();
-        motor.motor_pos        = rx.motor_pos();
-        motor.motor_vel        = rx.motor_vel();
-        motor.link_pos         = rx.link_pos();
-        motor.link_vel         = rx.link_vel();
-        motor.current          = rx.current();
-        motor.torque           = rx.torque();
+        m.statusword       = rx.statusword();
+        m.modes_of_op      = rx.modes_of_op();
+        m.motor_pos        = rx.motor_pos();
+        m.motor_vel        = rx.motor_vel();
+        m.link_pos         = rx.link_pos();
+        m.link_vel         = rx.link_vel();
+        m.current          = rx.current();
+        m.torque           = rx.torque();
 
-        motor.demanded_pos     = rx.demanded_pos();
-        motor.demanded_vel     = rx.demanded_vel();
-        motor.demanded_torque  = rx.demanded_torque();
-        motor.demanded_current = rx.demanded_current();
-        motor.control_effort   = rx.control_effort();
-        motor.motor_temp       = rx.motor_temp();
-        motor.drive_temp       = rx.drive_temp();
-        motor.error_code       = rx.error_code();
-        motor.error_report     = rx.error_report();
-        return true;
+        m.demanded_pos     = rx.demanded_pos();
+        m.demanded_vel     = rx.demanded_vel();
+        m.demanded_torque  = rx.demanded_torque();
+        m.demanded_current = rx.demanded_current();
+        m.control_effort   = rx.control_effort();
+        m.motor_temp       = rx.motor_temp();
+        m.drive_temp       = rx.drive_temp();
+        m.error_code       = rx.error_code();
+        m.error_report     = rx.error_report();
     }
-
-    if (pdo.type() == iit::advrf::Ec_slave_pdo::RX_XT_MOTOR && pdo.has_motor_xt_rx_pdo())
+    else if (pdo.type() == iit::advrf::Ec_slave_pdo::RX_XT_MOTOR && pdo.has_motor_xt_rx_pdo())
     {
         const auto& rx = pdo.motor_xt_rx_pdo();
         pos = rx.link_pos();
@@ -183,19 +199,16 @@ inline bool parse_joint_frame(const uint8_t* buf, ssize_t n,
         eff = rx.torque();
 
         // Required
-        motor.motor_pos   = rx.motor_pos();
-        motor.motor_vel   = rx.motor_vel();
-        motor.link_pos    = rx.link_pos();
-        motor.link_vel    = rx.link_vel();
-        motor.torque      = rx.torque();
-        motor.motor_temp  = rx.motor_temp();
-        motor.fault       = rx.fault();
-        motor.rtt         = rx.rtt();
-        
-        return true;
+        m.motor_pos   = rx.motor_pos();
+        m.motor_vel   = rx.motor_vel();
+        m.link_pos    = rx.link_pos();
+        m.link_vel    = rx.link_vel();
+        m.torque      = rx.torque();
+        m.motor_temp  = rx.motor_temp();
+        m.fault       = rx.fault();
+        m.rtt         = rx.rtt();
     }
-
-    if (pdo.type() == iit::advrf::Ec_slave_pdo::RX_MOTOR && pdo.has_motor_rx_pdo())
+    else if (pdo.type() == iit::advrf::Ec_slave_pdo::RX_MOTOR && pdo.has_motor_rx_pdo())
     {
         const auto& rx = pdo.motor_rx_pdo();
         pos = rx.link_pos();
@@ -203,16 +216,44 @@ inline bool parse_joint_frame(const uint8_t* buf, ssize_t n,
         eff = static_cast<float>(rx.torque());
 
         // Required
-        motor.link_pos    = rx.link_pos();
-        motor.motor_pos   = rx.motor_pos();
-        motor.torque      = static_cast<float>(rx.torque());       // Motor_rx_pdo has torque as int32
-        motor.motor_temp  = static_cast<float>(rx.temperature());  // Motor_rx_pdo has temp as uint32
-        motor.fault       = rx.fault();
-        motor.rtt         = rx.rtt();
-        return true;
+        m.link_pos    = rx.link_pos();
+        m.motor_pos   = rx.motor_pos();
+        m.torque      = static_cast<float>(rx.torque());       // Motor_rx_pdo has torque as int32
+        m.motor_temp  = static_cast<float>(rx.temperature());  // Motor_rx_pdo has temp as uint32
+        m.fault       = rx.fault();
+        m.rtt         = rx.rtt();
+    }
+    else {
+        return false;
     }
 
-    return false;
+    if (include_in_joint_state) {
+        joint.positions.push_back(pos);
+        joint.velocities.push_back(vel);
+        joint.efforts.push_back(eff);
+    }
+
+    motor.statusword.push_back(m.statusword);
+    motor.modes_of_op.push_back(m.modes_of_op);
+    motor.motor_pos.push_back(m.motor_pos);
+    motor.motor_vel.push_back(m.motor_vel);
+    motor.link_pos.push_back(m.link_pos);
+    motor.link_vel.push_back(m.link_vel);
+    motor.current.push_back(m.current);
+    motor.torque.push_back(m.torque);
+    motor.demanded_pos.push_back(m.demanded_pos);
+    motor.demanded_vel.push_back(m.demanded_vel);
+    motor.demanded_torque.push_back(m.demanded_torque);
+    motor.demanded_current.push_back(m.demanded_current);
+    motor.control_effort.push_back(m.control_effort);
+    motor.motor_temp.push_back(m.motor_temp);
+    motor.drive_temp.push_back(m.drive_temp);
+    motor.error_code.push_back(m.error_code);
+    motor.error_report.push_back(m.error_report);
+    motor.fault.push_back(m.fault);
+    motor.rtt.push_back(m.rtt);
+
+    return true;
 }
 
 // Parses a PDO frame that carries IMU data (RX_IMU_VN)
@@ -309,7 +350,10 @@ inline bool parse_ft_frame(const uint8_t* buf, ssize_t n, force_torque::rt_force
 }
 
 // Parses a PDO frame that carries Valve data 
-inline bool parse_valve_frame(const uint8_t* buf, ssize_t n, valve::rt_valve& msg)
+inline bool parse_valve_frame(const uint8_t* buf, ssize_t n, 
+                              valve::rt_valve_msg& msg,
+                              joint_state::rt_joint_state_msg& joint,
+                              bool include_in_joint_state)
 {
     iit::advrf::Ec_slave_pdo pdo;
     if (!parse_frame(buf, n, pdo))
@@ -322,22 +366,31 @@ inline bool parse_valve_frame(const uint8_t* buf, ssize_t n, valve::rt_valve& ms
         return false;
 
     const auto& rx = pdo.hyqknee_rx_pdo();
+    const uint64_t timestamp_ns = extract_timestamp_ns(pdo);
 
-    msg.header.timestamp_ns = extract_timestamp_ns(pdo);
+    msg.header.timestamp_ns = timestamp_ns;
+    msg.encoder_position.push_back(rx.encoder_position());
+    msg.force.push_back(rx.force());
+    msg.pressure1.push_back(rx.pressure_1());
+    msg.pressure2.push_back(rx.pressure_2());
+    msg.current.push_back(rx.current());
+    msg.temperature.push_back(rx.temperature());
+    msg.fault.push_back(rx.fault());
+    msg.rtt.push_back(rx.rtt());
+    msg.op_idx_ack.push_back(rx.op_idx_ack());
+    msg.aux.push_back(rx.aux());
+    msg.current_ref_fb.push_back(rx.current_ref_fb());
+    msg.position_ref_fb.push_back(rx.position_ref_fb());
+    msg.force_ref_fb.push_back(rx.force_ref_fb());
 
-    msg.encoder_position = rx.encoder_position();
-    msg.force            = rx.force();
-    msg.pressure1        = rx.pressure_1();
-    msg.pressure2        = rx.pressure_2();
-    msg.current          = rx.current();
-    msg.temperature      = rx.temperature();
-    msg.fault            = rx.fault();
-    msg.rtt              = rx.rtt();
-    msg.op_idx_ack       = rx.op_idx_ack();
-    msg.aux              = rx.aux();
-    msg.current_ref_fb   = rx.current_ref_fb();
-    msg.position_ref_fb  = rx.position_ref_fb();
-    msg.force_ref_fb     = rx.force_ref_fb();
+    if (include_in_joint_state) {
+        joint.header.timestamp_ns = timestamp_ns;
+        // TODO: Need convertion formula for pos and vel 
+        joint.positions.push_back(0.0);
+        joint.velocities.push_back(0.0);   
+        joint.efforts.push_back(rx.force());      
+        joint.header.seq = pdo.has_header() ? pdo.header().index() : 0;
+    }
 
     return true;
 }
@@ -371,6 +424,44 @@ inline bool parse_pump_frame(const uint8_t* buf, ssize_t n, pump::rt_pump_msg& m
     msg.op_idx_ack          = rx.op_idx_ack();
     msg.aux                 = rx.aux();
     
+    return true;
+}
+
+// Parses a PDO frame that carries Gripper data 
+inline bool parse_gripper_frame(const uint8_t* buf, ssize_t n,
+                                gripper::rt_gripper_msg& msg,
+                                joint_state::rt_joint_state_msg& joint,
+                                bool include_in_joint_state)
+{
+    iit::advrf::Ec_slave_pdo pdo;
+    if (!parse_frame(buf, n, pdo))
+        return false;
+
+    if (!check_expected_type(pdo, PdoExpected::Gripper)) 
+        return false;
+
+    if (pdo.type() != iit::advrf::Ec_slave_pdo::RX_GRIPPER || !pdo.has_gripper_rx_pdo())
+        return false;
+
+    const auto& rx = pdo.gripper_rx_pdo();
+    const uint64_t timestamp_ns = extract_timestamp_ns(pdo);
+
+    msg.header.timestamp_ns = timestamp_ns;
+    msg.statusword.push_back(rx.statusword());
+    msg.motor_pos.push_back(rx.motor_pos());
+    msg.link_pos.push_back(rx.link_pos());
+    msg.demanded_pos.push_back(rx.demanded_pos());
+    msg.demanded_vel.push_back(rx.demanded_vel());
+    msg.error_code.push_back(rx.error_code());
+
+    if (include_in_joint_state) {
+        joint.header.timestamp_ns = timestamp_ns;
+        joint.positions.push_back(rx.link_pos());
+        joint.velocities.push_back(0.0);   
+        joint.efforts.push_back(0.0);      
+        joint.header.seq = pdo.has_header() ? pdo.header().index() : 0;
+    }
+
     return true;
 }
 

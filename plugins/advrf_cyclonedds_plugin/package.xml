@@ -6,7 +6,7 @@
 
   <maintainer email="hugo.pousseur@iit.it">Hugo POUSSEUR</maintainer>
   <maintainer email="manuel.deluchi@iit.it">Manuel DELUCHI</maintainer>
-  <license>MIT</license>
+  <license>TODO</license>
 
   <buildtool_depend>cmake</buildtool_depend>
 

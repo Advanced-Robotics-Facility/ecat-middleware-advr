@@ -5,6 +5,7 @@ project(tools_shm_debug LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(advrf_middleware_core REQUIRED)
 find_package(advrf_interfaces_protobuf REQUIRED)
 find_package(ecat_master_future REQUIRED)
 

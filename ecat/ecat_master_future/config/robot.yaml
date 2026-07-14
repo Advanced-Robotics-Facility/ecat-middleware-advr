@@ -2,6 +2,7 @@ robot:
   name: kyon   # Robot name, used as a prefix for ROS2 node and topic names
 
   joints:
+
     # Arm1
     - name: shoulder_yaw_1
       ecat_id: 11
@@ -15,6 +16,8 @@ robot:
       ecat_id: 15
     - name: dagana_1_clamp_joint
       ecat_id: 101
+      type: gripper
+
     # Arm2
     - name: shoulder_yaw_2
       ecat_id: 21
@@ -28,6 +31,8 @@ robot:
       ecat_id: 25
     - name: dagana_2_clamp_joint
       ecat_id: 102
+      type: gripper
+
     # Leg1
     - name: hip_roll_1
       ecat_id: 31
@@ -39,6 +44,7 @@ robot:
     #   ecat_id: 16
     # - name: wheel_joint_1
     #   ecat_id: 17
+
     # Leg2
     - name: hip_roll_2
       ecat_id: 41
@@ -50,6 +56,7 @@ robot:
     #   ecat_id: 21
     # - name: wheel_joint_2
     #   ecat_id: 22
+
     # Leg3
     - name: hip_roll_3
       ecat_id: 51
@@ -61,6 +68,7 @@ robot:
     #   ecat_id: 26
     # - name: wheel_joint_3
     #   ecat_id: 27
+
     # Leg4
     - name: hip_roll_4
       ecat_id: 61

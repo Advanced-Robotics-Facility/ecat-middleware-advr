@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <cstring>
 
-static constexpr const char* SHM_NAME = "/rt_bridge";
+static constexpr const char* SHM_NAME = "/ecat_master";
 
 template<typename T, size_t N>
 struct SPSCQueue {
@@ -51,6 +51,12 @@ struct SPSCQueue {
         
         return true;
     }
+
+    size_t size() const {
+        size_t h = head.load(std::memory_order_relaxed);
+        size_t t = tail.load(std::memory_order_relaxed);
+        return (h - t) & MASK;
+    }
 };
 
 static constexpr size_t PROTO_MAX_BYTES = 512;
@@ -61,11 +67,38 @@ struct ProtoSlot {
     uint8_t  data[PROTO_MAX_BYTES]{};
 };
 
-struct SharedBridge {
-    SPSCQueue<ProtoSlot, 64> cmd;   
-    SPSCQueue<ProtoSlot, 64> joint_state;  
-    SPSCQueue<ProtoSlot, 64> imu;
+static constexpr size_t MAX_SLAVES_CAPACITY = 64;
 
+enum class DeviceType : uint8_t {
+    UNKNOWN      = 0,
+    IMU          = 1,
+    MOTOR        = 2,
+    FORCE_TORQUE = 3,
+    POWER_BOARD  = 4,
+    PUMP         = 5,
+    VALVE        = 6,
+    GRIPPER      = 7
+};
+
+struct DiscoveredSlave {
+    uint32_t board_id {0};
+    DeviceType type {DeviceType::UNKNOWN};
+    char name[32] {}; // 32 max safe length for SHM name
+};
+
+struct SharedBridge {
+    // Pub --> from EcatMaster to DDS
+    SPSCQueue<ProtoSlot, 64> imu;
+    SPSCQueue<ProtoSlot, 64> motor;
+    SPSCQueue<ProtoSlot, 64> force_torque;
+    SPSCQueue<ProtoSlot, 64> power_board;
+    SPSCQueue<ProtoSlot, 64> pump;
+    SPSCQueue<ProtoSlot, 64> valve;
+    SPSCQueue<ProtoSlot, 64> gripper;
+
+    alignas(64) std::atomic<uint32_t> topology_size {0};
+    std::array<DiscoveredSlave, MAX_SLAVES_CAPACITY> topology {};
+    
     alignas(64) std::atomic<bool> mw_ready{false};
     alignas(64) std::atomic<bool> rt_ready{false};
 };

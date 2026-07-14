@@ -10,15 +10,10 @@ find_package(advrf_interfaces_dds REQUIRED)
 find_package(advrf_middleware_core REQUIRED)
 find_package(advrf_interfaces_protobuf REQUIRED)
 find_package(ecat_master_future REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
-
-option(MY_OPTION "Enable my option" OFF)
-message(STATUS "MY_OPTION = ${MY_OPTION}")
-if(MY_OPTION)
-  message(STATUS ">>> MY_OPTION was enabled from colcon.meta !")
-endif()
 
 add_library(advrf_cyclonedds_plugin
     src/main.cpp
@@ -113,5 +108,26 @@ if(BUILD_ECAT_PLUGIN_CYCLONEDDS_TESTS)
     target_link_libraries(publisher
         PRIVATE
             advrf_cyclonedds_plugin
+            yaml-cpp::yaml-cpp
     )
+
+    target_compile_definitions(publisher PRIVATE
+        ROBOT_CONFIG_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../../ecat/ecat_master_future/config/robot.yaml"
+)
+
+    # target_link_libraries(publisher PRIVATE
+    #     ecat-master-future     
+    #     protobuf_msgs 
+    #     mw_core
+    #     CycloneDDS-CXX::ddscxx    
+    #     advrf_interfaces_dds
+    #     rcl_interfaces_dds
+    #     geometry_msgs_dds
+    #     sensor_msgs_dds
+    #     std_msgs_dds
+    #     builtin_interfaces_dds
+    #     yaml-cpp::yaml-cpp
+    # )
+
+
 endif()

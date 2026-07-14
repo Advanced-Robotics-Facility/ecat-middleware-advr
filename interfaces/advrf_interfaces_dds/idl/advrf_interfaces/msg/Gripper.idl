@@ -1,0 +1,19 @@
+#include "../../std_msgs/msg/Header.idl"
+
+module advrf_interfaces {
+    module msg {
+        module dds_ {
+            struct Gripper_ {
+                std_msgs::msg::dds_::Header_ header;
+                
+                sequence<string> name;
+                sequence<uint32> statusword;
+                sequence<float> motor_pos;
+                sequence<float> link_pos;
+                sequence<float> demanded_pos;
+                sequence<float> demanded_vel;
+                sequence<uint32> error_code;
+            };
+        };
+    };
+};

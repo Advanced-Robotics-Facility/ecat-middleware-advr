@@ -273,22 +273,32 @@ namespace valve {
             , aux             (n, 0.0f)
         {}
     };
+}
 
-    struct rt_valve
+///////////////////////////
+//        Gripper        //
+///////////////////////////
+
+namespace gripper {
+    struct rt_gripper_msg
     {
         header::rt_header header;
-        float     encoder_position = 0.0f;
-        float     force            = 0.0f;
-        float     pressure1        = 0.0f;
-        float     pressure2        = 0.0f;
-        float     current          = 0.0f;
-        float     temperature      = 0.0f;
-        float     current_ref_fb   = 0.0f;
-        float     position_ref_fb  = 0.0f;
-        float     force_ref_fb     = 0.0f;
-        uint32_t  fault            = 0;
-        uint32_t  rtt              = 0;
-        uint32_t  op_idx_ack       = 0;
-        float     aux              = 0.0f;
+        std::vector<std::string> name;
+
+        std::vector<uint32_t> statusword;
+        std::vector<float>    motor_pos;
+        std::vector<float>    link_pos;
+        std::vector<float>    demanded_pos;
+        std::vector<float>    demanded_vel;
+        std::vector<uint32_t> error_code;
+
+        explicit rt_gripper_msg(size_t n = 0)
+            : statusword   (n, 0)
+            , motor_pos    (n, 0.0f)
+            , link_pos     (n, 0.0f)
+            , demanded_pos (n, 0.0f)
+            , demanded_vel (n, 0.0f)
+            , error_code   (n, 0)
+        {}
     };
 }

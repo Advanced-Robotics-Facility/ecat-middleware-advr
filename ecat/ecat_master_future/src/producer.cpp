@@ -4,10 +4,15 @@
 #include <cmath>
 #include <csignal>
 #include <new>
+#include <string>
+#include <vector>
+
 
 #include "ecat_master_future/shm_utils.hpp" 
 #include "ecat_master_future/shm_shared_types.hpp" 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
+#include <advrf_middleware_core/robot_config.hpp>
+
 
 namespace {
 volatile std::sig_atomic_t keep_running = 1;
@@ -24,19 +29,22 @@ uint64_t monotonic_now_ns()
         std::chrono::duration_cast<std::chrono::nanoseconds>(now).count());
 }
 
-iit::advrf::Ec_slave_pdo make_imu_pdo(double t, uint64_t sample_index)
+void populate_pdo_header(iit::advrf::Ec_slave_pdo& pdo, const std::string& id, uint64_t sample_index) {
+    auto* header = pdo.mutable_header();
+    header->set_str_id(id);
+    header->set_index(static_cast<int32_t>(sample_index));
+
+    const auto now_ns = static_cast<uint64_t>(std::chrono::steady_clock::now().time_since_epoch().count());
+    auto* stamp = header->mutable_stamp();
+    stamp->set_sec(static_cast<int32_t>(now_ns / 1'000'000'000ULL));
+    stamp->set_nsec(static_cast<int32_t>(now_ns % 1'000'000'000ULL));
+}
+
+iit::advrf::Ec_slave_pdo make_imu_pdo(double t, uint64_t sample_index, int imu_id)
 {
     iit::advrf::Ec_slave_pdo pdo;
     pdo.set_type(iit::advrf::Ec_slave_pdo::RX_IMU_VN);
-
-    const uint64_t mono_ns = monotonic_now_ns();
-    auto* header = pdo.mutable_header();
-    header->set_str_id("imu");
-    header->set_index(static_cast<int32_t>(sample_index));
-
-    auto* stamp = header->mutable_stamp();
-    stamp->set_sec(static_cast<int32_t>(mono_ns / 1'000'000'000ULL));
-    stamp->set_nsec(static_cast<int32_t>(mono_ns % 1'000'000'000ULL));
+    populate_pdo_header(pdo, "imu" + std::to_string(imu_id), sample_index);
 
     auto* imu_payload = pdo.mutable_imuvn_rx_pdo();
 
@@ -62,14 +70,69 @@ iit::advrf::Ec_slave_pdo make_imu_pdo(double t, uint64_t sample_index)
 
     return pdo;
 }
-} 
 
-int main()
+iit::advrf::Ec_slave_pdo make_motor_pdo(double t, uint64_t sample_index, int motor_id) {
+
+    iit::advrf::Ec_slave_pdo pdo;
+    pdo.set_type(iit::advrf::Ec_slave_pdo::RX_CIA402);
+    populate_pdo_header(pdo, "motor_" + std::to_string(motor_id), sample_index);
+
+    const double phase = t + 0.2 * motor_id;
+
+    auto* motor_payload = pdo.mutable_cia402_rx_pdo();
+
+    motor_payload->set_statusword(0x1234);
+    motor_payload->set_modes_of_op(8);
+
+    motor_payload->set_motor_pos(static_cast<float>(std::sin(phase)));
+    motor_payload->set_motor_vel(static_cast<float>(std::cos(phase)));
+    motor_payload->set_link_pos(static_cast<float>(std::sin(phase)));
+    motor_payload->set_link_vel(static_cast<float>(std::cos(phase)));
+    motor_payload->set_current(static_cast<float>(0.0));
+    motor_payload->set_torque(static_cast<float>(0.0));
+    motor_payload->set_demanded_pos(static_cast<float>(0.0));
+    motor_payload->set_demanded_vel(static_cast<float>(0.0));
+    motor_payload->set_demanded_current(static_cast<float>(0.0));
+    motor_payload->set_demanded_torque(static_cast<float>(0.0));
+    motor_payload->set_control_effort(static_cast<float>(0.0));
+    motor_payload->set_motor_temp(static_cast<float>(0.0));
+    motor_payload->set_drive_temp(35.5);
+    motor_payload->set_error_code(0);
+    motor_payload->set_error_report("");
+
+    return pdo;
+}
+
+iit::advrf::Ec_slave_pdo make_gripper_pdo(double t, uint64_t sample_index, int gripper_id) {
+
+    iit::advrf::Ec_slave_pdo pdo;
+    pdo.set_type(iit::advrf::Ec_slave_pdo::RX_GRIPPER);
+    populate_pdo_header(pdo, "gripper_" + std::to_string(gripper_id), sample_index);
+
+    const double phase = t + 0.2 * gripper_id;
+
+    auto* gripper_payload = pdo.mutable_gripper_rx_pdo();
+
+    gripper_payload->set_statusword(0x4321);
+    gripper_payload->set_motor_pos(static_cast<float>(std::sin(phase)));
+    gripper_payload->set_link_pos(static_cast<float>(std::sin(phase)));
+    gripper_payload->set_demanded_pos(static_cast<float>(0.0));
+    gripper_payload->set_demanded_vel(static_cast<float>(0.0));
+    gripper_payload->set_error_code(0);
+
+    return pdo;
+}
+}
+
+int main(int argc, char** argv)
 {
     std::signal(SIGINT, on_signal);
     std::signal(SIGTERM, on_signal);
 
-    std::cout << "[IMU Producer] Initializing shared memory segment: " << SHM_NAME << std::endl;
+    auto cfg = load_robot_config(ROBOT_CONFIG_DIR);
+    if (!cfg) return 1;
+
+    std::cout << "[Producer] Initializing shared memory segment: " << SHM_NAME << std::endl;
 
     SharedMemoryOwner shm(SHM_NAME, sizeof(SharedBridge));
     if (!shm.is_valid()) {
@@ -80,30 +143,82 @@ int main()
     auto* bridge = shm.get<SharedBridge>();
     new (bridge) SharedBridge{};
 
-    std::cout << "[IMU Producer] Created a fresh shared memory segment." << std::endl;
+    // Dynamic Discovery Generation Loop
+    uint32_t slave_idx = 0;
+    
+    // IMUs
+    const size_t imu_count = 1; 
+    for (size_t i = 1; i <= imu_count && slave_idx < MAX_SLAVES_CAPACITY; ++i) {
+        auto& slave = bridge->topology[slave_idx++];
+        slave.board_id = slave_idx;
+        slave.type = DeviceType::IMU;
+        std::snprintf(slave.name, sizeof(slave.name), "imu_%zu", i);
+    }
+
+    // Motors
+    const size_t motor_count = 12; 
+    for (size_t i = 1; i <= motor_count && slave_idx < MAX_SLAVES_CAPACITY; ++i) {
+        auto& slave = bridge->topology[slave_idx++];
+        slave.board_id = slave_idx;
+        slave.type = DeviceType::MOTOR;
+        std::snprintf(slave.name, sizeof(slave.name), "motor_%ld", i);
+    }
+
+    // Grippers
+    const size_t gripper_count = 2; 
+    for (size_t i = 1; i <= gripper_count && slave_idx < MAX_SLAVES_CAPACITY; ++i) {
+        auto& slave = bridge->topology[slave_idx++];
+        slave.board_id = slave_idx;
+        slave.type = DeviceType::GRIPPER;
+        std::snprintf(slave.name, sizeof(slave.name), "gripper_%ld", i);
+    }
+
+    bridge->topology_size.store(slave_idx);
     bridge->mw_ready.store(true);
     bridge->rt_ready.store(false);
 
-    ShmProtoHelper proto_helper;
+    std::cout << "\n=======================================\n";
+    std::cout << "[Producer] Bus Discovery Finished. Total Slaves Registered: " << slave_idx << "\n";
+    std::cout << "-----------------------------------------\n";
+    std::cout << " Board ID | Shared Memory Identifier \n";
+    std::cout << "-----------------------------------------\n";
+    
+    for (uint32_t i = 0; i < slave_idx; ++i) {
+        const auto& slave = bridge->topology[i];
 
+        std::printf("    %2u    | %s\n", 
+                     slave.board_id, slave.name);
+    }
+    std::cout << "=========================================\n\n";
+
+    ShmProtoHelper proto_helper;
     double t = 0.0;
     uint64_t sample_count = 0;
     bool bridge_seen = false;
 
-    std::cout << "[IMU Producer] Starting transmission loop at 1kHz..." << std::endl;
-
     auto next_tick = std::chrono::steady_clock::now();
     while (keep_running) {
-        const auto pdo = make_imu_pdo(t, sample_count);
+        
+        for (uint32_t i = 0; i < slave_idx; ++i) {
+            const auto& slave = bridge->topology[i];
 
-        proto_helper.push(bridge->imu, pdo);
+            if (slave.type == DeviceType::IMU) {
+                proto_helper.push(bridge->imu, make_imu_pdo(t, sample_count, slave.board_id));
+            } 
+            else if (slave.type == DeviceType::MOTOR) {
+                proto_helper.push(bridge->motor, make_motor_pdo(t, sample_count, slave.board_id));
+            } 
+            else if (slave.type == DeviceType::GRIPPER) {
+                proto_helper.push(bridge->gripper, make_gripper_pdo(t, sample_count, slave.board_id));
+            }
+        }
 
         ++sample_count;
         t += 0.001;
 
         if (!bridge_seen && bridge->rt_ready.load()) {
             bridge_seen = true;
-            std::cout << "[IMU Producer] DDS bridge connected." << std::endl;
+            std::cout << "[Producer] DDS bridge connected." << std::endl;
         }
 
         next_tick += std::chrono::milliseconds(1);

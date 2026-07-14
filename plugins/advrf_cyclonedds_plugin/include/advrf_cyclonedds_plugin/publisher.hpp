@@ -20,6 +20,7 @@
 #include <advrf_interfaces/msg/PowerBoard.hpp>
 #include <advrf_interfaces/msg/Pump.hpp>
 #include <advrf_interfaces/msg/Valve.hpp>
+#include <advrf_interfaces/msg/Gripper.hpp>
 
 using TimeMsg        = ::builtin_interfaces::msg::dds_::Time_;
 using JointStateMsg  = ::sensor_msgs::msg::dds_::JointState_;
@@ -29,6 +30,7 @@ using MotorMsg       = ::advrf_interfaces::msg::dds_::Motor_;
 using PowerBoardMsg  = ::advrf_interfaces::msg::dds_::PowerBoard_;
 using PumpMsg        = ::advrf_interfaces::msg::dds_::Pump_;
 using ValveMsg       = ::advrf_interfaces::msg::dds_::Valve_;
+using GripperMsg     = ::advrf_interfaces::msg::dds_::Gripper_;
 
 ////////////////////////////
 //  Base Class Publisher  //
@@ -553,6 +555,63 @@ public:
 };
 
 ////////////////////////////
+//    Gripper Publisher   //
+////////////////////////////
+
+class GripperPublisher : public DdsPublisher<GripperMsg, GripperPublisher> {
+
+public:
+
+    using Base = DdsPublisher<GripperMsg, GripperPublisher>;
+    friend Base;
+
+    GripperPublisher() : Base() {}
+    ~GripperPublisher() = default;
+
+    bool init(const std::vector<std::string>& gripper_names,
+              const std::string& robot_name,
+              dds::domain::DomainParticipant& participant)
+    {
+        const std::string topic_name = "rt/advrf/" + robot_name + "/gripper";
+        if (!Base::init_dds(topic_name, participant))
+            return false;
+
+        const size_t n = gripper_names.size();
+        gripper_.name() = gripper_names;
+        gripper_.statusword().assign(n, 0);
+        gripper_.motor_pos().assign(n, 0.0f);
+        gripper_.link_pos().assign(n, 0.0f);
+        gripper_.demanded_pos().assign(n, 0.0f);
+        gripper_.demanded_vel().assign(n, 0.0f);
+        gripper_.error_code().assign(n, 0);
+
+        return true;
+    }
+
+    void publish(const gripper::rt_gripper_msg& msg)
+    {
+        Base::set_timestamp(gripper_.header().stamp(), msg.header.timestamp_ns); 
+
+        gripper_.statusword()   = msg.statusword;
+        gripper_.motor_pos()    = msg.motor_pos;
+        gripper_.link_pos()     = msg.link_pos;
+        gripper_.demanded_pos() = msg.demanded_pos;
+        gripper_.demanded_vel() = msg.demanded_vel;
+        gripper_.error_code()   = msg.error_code;
+
+        try {
+            writer_.write(gripper_);
+        } catch (const dds::core::Exception& e) {
+            std::cerr << "[GripperPublisher] Write error: " << e.what() << '\n';
+        }
+    }
+
+    private:
+
+        GripperMsg gripper_;
+};
+
+////////////////////////////
 //       DDS ADAPTER      //
 ////////////////////////////
 
@@ -561,15 +620,12 @@ public:
     DdsAdapter() = default;
     ~DdsAdapter() override = default;
     
+    // TODO: this initialization needs to be modified in the future
+    // We need to init (create) the publishers only if they are dinamically discovered by the network
+    // Joints are the only exception and the only depend on the config file .yaml
     bool init(const RobotConfig& cfg) {
         try {
             dp_ = dds::domain::DomainParticipant(cfg.domain_id);
-
-            joint_state_pub_ = std::make_unique<JointStatePublisher>();
-            if (!joint_state_pub_->init(cfg.joint_names(), cfg.robot_name, dp_)) {
-                std::cerr << "[DDS] Failed to init JointStatePublisher\n";
-                return false;
-            }
  
             imu_pub_ = std::make_unique<ImuPublisher>();
             if (!imu_pub_->init(cfg.robot_name, dp_)) {
@@ -594,6 +650,14 @@ public:
                 std::cerr << "[DDS] Failed to init PumpPublisher\n";
                 return false;
             }
+
+            if (!cfg.motors.empty() || !cfg.valves.empty() || !cfg.grippers.empty()) {
+                joint_state_pub_ = std::make_unique<JointStatePublisher>();
+                if (!joint_state_pub_->init(cfg.joint_names(), cfg.robot_name, dp_)) {
+                    std::cerr << "[DDS] Failed to init JointStatePublisher\n";
+                    return false;
+                }
+            }
  
             if (!cfg.valves.empty()) {
                 valve_pub_ = std::make_unique<ValvePublisher>();
@@ -607,6 +671,14 @@ public:
                 motor_pub_ = std::make_unique<MotorPublisher>();
                 if (!motor_pub_->init(cfg.motor_names(), cfg.robot_name, dp_)) {
                     std::cerr << "[DDS] Failed to init MotorPublisher\n";
+                    return false;
+                }
+            }
+
+            if (!cfg.grippers.empty()) {
+                gripper_pub_ = std::make_unique<GripperPublisher>();
+                if (!gripper_pub_->init(cfg.gripper_names(), cfg.robot_name, dp_)) {
+                    std::cerr << "[DDS] Failed to init GripperPublisher\n";
                     return false;
                 }
             }
@@ -649,6 +721,9 @@ public:
         if (valve_pub_) valve_pub_->publish(msg);
     }
 
+    void publish(const gripper::rt_gripper_msg& msg) override {
+        if (gripper_pub_) gripper_pub_->publish(msg);
+    }
 
 private:
     dds::domain::DomainParticipant dp_{dds::core::null};
@@ -660,4 +735,5 @@ private:
     std::unique_ptr<MotorPublisher> motor_pub_{nullptr};
     std::unique_ptr<PumpPublisher> pump_pub_{nullptr};
     std::unique_ptr<ValvePublisher> valve_pub_{nullptr};
+    std::unique_ptr<GripperPublisher> gripper_pub_{nullptr};
 };

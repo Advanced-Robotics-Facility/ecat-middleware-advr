@@ -28,7 +28,7 @@ int main()
 
     while (true) {
 
-        proto.parse_latest(bridge->cmd, cmd);
+        proto.parse_latest(bridge->motor, cmd);
 
         std::cout << "\033[2J\033[H"; // Clear terminal (optional)
 

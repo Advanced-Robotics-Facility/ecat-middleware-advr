@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -13,111 +14,73 @@ struct JointConfig {
 };
 
 struct RobotConfig {
-    std::string robot_name;
+    std::string robot_name {"NoNe"};
     uint32_t domain_id {0};
 
-    std::vector<JointConfig> joints;   
-    std::vector<JointConfig> valves;   
+    std::vector<JointConfig> joints;  
     std::vector<JointConfig> motors;   
-    std::vector<std::string> has_imu;  
-    std::vector<std::string> has_power_board;  
-    std::vector<std::string> has_force_torque; 
-    std::vector<std::string> has_pump;  
+    std::vector<JointConfig> valves;  
+    std::vector<JointConfig> grippers; 
 
-    std::vector<std::string> joint_names() const {
-        std::vector<std::string> out;
-        out.reserve(joints.size());
-        for (const auto& j : joints) out.push_back(j.name);
-        return out;
-    }
+    std::vector<std::string> motor_names() const { return get_names(motors); }
+    std::vector<std::string> joint_names() const { return get_names(joints); }
+    std::vector<std::string> valve_names() const { return get_names(valves); }
+    std::vector<std::string> gripper_names() const { return get_names(grippers); }
 
-    std::vector<std::string> valve_names() const {
-        std::vector<std::string> out;
-        out.reserve(valves.size());
-        for (const auto& v : valves) out.push_back(v.name);
-        return out;
-    }
+    std::unordered_map<int, size_t> motor_id_to_index() const { return get_map(motors); }
+    std::unordered_map<int, size_t> joint_id_to_index() const { return get_map(joints); }
+    std::unordered_map<int, size_t> valve_id_to_index() const { return get_map(valves); }
+    std::unordered_map<int, size_t> gripper_id_to_index() const { return get_map(grippers); }
 
-    std::vector<std::string> motor_names() const {
-        std::vector<std::string> out;
-        out.reserve(motors.size());
-        for (const auto& v : motors) out.push_back(v.name);
-        return out;
-    }
+    private:
 
-    std::unordered_map<int, size_t> joint_id_to_index() const {
-        std::unordered_map<int, size_t> m;
-        for (size_t i = 0; i < joints.size(); ++i) m[joints[i].ecat_id] = i;
-        return m;
-    }
-
-    std::unordered_map<int, size_t> valve_id_to_index() const {
-        std::unordered_map<int, size_t> m;
-        for (size_t i = 0; i < valves.size(); ++i) m[valves[i].ecat_id] = i;
-        return m;
-    }
-
-    std::unordered_map<int, size_t> motor_id_to_index() const {
-        std::unordered_map<int, size_t> m;
-        for (size_t i = 0; i < motors.size(); ++i) m[motors[i].ecat_id] = i;
-        return m;
-    }
+        static std::vector<std::string> get_names(const std::vector<JointConfig>& vec) {
+            std::vector<std::string> out;
+            for (const auto& j : vec) 
+                out.push_back(j.name);
+            return out;
+        }
+    
+        static std::unordered_map<int, size_t> get_map(const std::vector<JointConfig>& vec) {
+            std::unordered_map<int, size_t> m;
+            for (size_t i = 0; i < vec.size(); ++i) 
+                m[vec[i].ecat_id] = i;
+            return m;
+        }
 };
 
 inline std::optional<RobotConfig> load_robot_config(const std::string& yaml_path)
 {
     try {
         YAML::Node root = YAML::LoadFile(yaml_path);
+        YAML::Node robot = root["robot"] ? root["robot"] : root;
+        YAML::Node dds = root["dds"];
 
         RobotConfig cfg;
-        cfg.robot_name = root["robot"]["name"].as<std::string>();
-        cfg.domain_id  = root["domain"] ? root["domain"].as<uint32_t>() : 0u;
+        cfg.robot_name = robot["name"] ? robot["name"].as<std::string>() : "NoNe";
+        cfg.domain_id  = dds && dds["domain"] ? dds["domain"].as<uint32_t>() :
+                         robot["domain"] ? robot["domain"].as<uint32_t>() :
+                         root["domain"] ? root["domain"].as<uint32_t>() :
+                         0u;
 
-        if (root["joints"]) {
-            for (const auto& j : root["joints"]) {
+        const YAML::Node joints = robot["joints"] ? robot["joints"] : root["joints"];
+        if (joints) {
+            for (const auto& j : joints) {
                 JointConfig jc;
                 jc.name    = j["name"].as<std::string>();
                 jc.ecat_id = j["ecat_id"].as<int>();
+
+                std::string type = j["type"] ? j["type"].as<std::string>() : "motor";
+
                 cfg.joints.push_back(jc);
+
+                if (type == "motor")
+                    cfg.motors.push_back(jc);
+                else if (type == "gripper")
+                    cfg.grippers.push_back(jc);
+                else
+                    cfg.valves.push_back(jc); 
             }
-        }
-
-        if (root["valves"]) {
-            for (const auto& v : root["valves"]) {
-                JointConfig vc;
-                vc.name    = v["name"].as<std::string>();
-                vc.ecat_id = v["ecat_id"].as<int>();
-                cfg.valves.push_back(vc);
-            }
-        }
-
-        if (root["motors"]) {
-            for (const auto& v : root["motors"]) {
-                JointConfig vc;
-                vc.name    = v["name"].as<std::string>();
-                vc.ecat_id = v["ecat_id"].as<int>();
-                cfg.motors.push_back(vc);
-            }
-        }
-
-        if (root["imu"]) {
-            for (const auto& i : root["imu"])
-                cfg.has_imu.push_back(i.as<std::string>());
-        }
-
-        if (root["power_board"]) {
-            for (const auto& i : root["power_board"])
-                cfg.has_power_board.push_back(i.as<std::string>());
-        }
-
-        if (root["force_torque"]) {
-            for (const auto& i : root["force_torque"])
-                cfg.has_force_torque.push_back(i.as<std::string>());
-        }
-
-        if (root["pump"]) {
-            for (const auto& i : root["pump"])
-                cfg.has_pump.push_back(i.as<std::string>());
         }
 
         return cfg;

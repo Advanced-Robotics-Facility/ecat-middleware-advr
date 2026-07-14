@@ -50,7 +50,7 @@ int main()
         tx->set_target_torque(0.0f);
         tx->set_target_current(0.0f);
 
-        proto.push(bridge->cmd, cmd);
+        proto.push(bridge->motor, cmd);
 
         std::cout << "Wrote MotorCmd: pos_ref = " << pos << '\r' << std::flush;
 

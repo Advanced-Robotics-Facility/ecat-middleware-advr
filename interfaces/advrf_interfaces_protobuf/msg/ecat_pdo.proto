@@ -9,6 +9,7 @@ import "power_pack_pdo.proto";
 import "imu_pdo.proto";
 import "cia402.proto";
 import "hyq.proto";
+import "gripper_pdo.proto";
 import "generic.proto";
 
 message Ec_slave_pdo {
@@ -21,8 +22,9 @@ message Ec_slave_pdo {
         RX_POW_F28M36 = 8;  TX_POW_F28M36 = 9;
         RX_CIA402 = 10;     TX_CIA402 = 11;
         RX_HYQ_KNEE = 12;   TX_HYQ_KNEE = 13;
-        RX_HYQ_HPU = 14;    TX_HYQ_HPU = 15;  
-        DUMMY = 16;         CLIENT_PIPE = 17;
+        RX_HYQ_HPU = 14;    TX_HYQ_HPU = 15;
+        RX_GRIPPER = 16;    TX_GRIPPER = 17;  
+        DUMMY = 30;         CLIENT_PIPE = 31;
     }
 
     // Identifies which field is filled in.
@@ -45,6 +47,8 @@ message Ec_slave_pdo {
     HyqKnee_rx_pdo     hyqKnee_rx_pdo = 15;
     HyqHpu_tx_pdo      hyqHpu_tx_pdo = 16;
     HyqHpu_rx_pdo      hyqHpu_rx_pdo = 17;
-    Dummy              dummy_pdo = 18;
-    Client_pipe        client_pdo = 19;
+    Gripper_rx_pdo     Gripper_rx_pdo = 18;
+    Gripper_tx_pdo     Gripper_tx_pdo = 19;
+    Dummy              dummy_pdo = 30;
+    Client_pipe        client_pdo = 31;
 }
