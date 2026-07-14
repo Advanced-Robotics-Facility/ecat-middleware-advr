@@ -1,9 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(shm_debug LANGUAGES CXX)
+project(tools_shm_debug LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(advrf_interfaces_protobuf REQUIRED)
+find_package(ecat_master_future REQUIRED)
 
 add_executable(shm_debug_writer
     src/writer.cpp
@@ -16,8 +19,8 @@ target_include_directories(shm_debug_writer
 
 target_link_libraries(shm_debug_writer
     PRIVATE
-        advrf::ecat_master_future
-        advrf::protobuf_msgs
+        advrf_interfaces_protobuf
+        ecat_master_future
 )
 
 install(TARGETS shm_debug_writer
@@ -35,8 +38,8 @@ target_include_directories(shm_debug_reader
 
 target_link_libraries(shm_debug_reader
     PRIVATE
-        advrf::ecat_master_future
-        advrf::protobuf_msgs
+        ecat_master_future
+        advrf_interfaces_protobuf
 )
 
 install(TARGETS shm_debug_reader

@@ -7,12 +7,13 @@
 #include <exception>
 #include <string>
 
-#include "shm_utils.hpp" 
-#include "shm_shared_types.hpp" 
-#include <ecat_master_future/ecat_pdo.pb.h>
-#include <ecat_master_future/pdo_utils.hpp>
-
 #include "advrf_cyclonedds_plugin/publisher.hpp"
+
+#include <ecat_master_future/shm_utils.hpp> 
+#include <ecat_master_future/shm_shared_types.hpp>
+#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
+#include <advrf_middleware_core/pdo_utils.hpp>
+
 
 namespace {
 volatile std::sig_atomic_t keep_running = 1;

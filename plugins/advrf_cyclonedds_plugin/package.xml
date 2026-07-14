@@ -13,8 +13,8 @@
   <!-- <depend>CycloneDDS</depend>
   <depend>CycloneDDS-CXX</depend> -->
   <depend>advrf_interfaces_dds</depend>
-  <depend>advrf_middleware_core</depend>
   <depend>advrf_interfaces_protobuf</depend>
+  <depend>advrf_middleware_core</depend>
   <depend>ecat_master_future</depend>
   <depend>advrf_cyclonedds_lib</depend>
 

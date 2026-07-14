@@ -4,21 +4,22 @@
 #include <string>
 #include <vector>
 #include <cstdint>
-#include "msg.hpp"
-#include "mw_adapter.hpp"
-#include "robot_config.hpp"
+
+#include <advrf_middleware_core/msg.hpp>
+#include <advrf_middleware_core/mw_adapter.hpp>
+#include <advrf_middleware_core/robot_config.hpp>
 
 /* Include the C++ DDS API. */
 #include "dds/dds.hpp"
 
 /* Include data type and specific traits to be used with the C++ DDS API. */
-#include "advrf_interfaces_dds/sensor_msgs/msg/JointState.hpp"
-#include "advrf_interfaces_dds/advrf_interfaces/msg/Imu.hpp"
-#include "advrf_interfaces_dds/advrf_interfaces/msg/ForceTorque.hpp"
-#include "advrf_interfaces_dds/advrf_interfaces/msg/Motor.hpp"
-#include "advrf_interfaces_dds/advrf_interfaces/msg/PowerBoard.hpp"
-#include "advrf_interfaces_dds/advrf_interfaces/msg/Pump.hpp"
-#include "advrf_interfaces_dds/advrf_interfaces/msg/Valve.hpp"
+#include <sensor_msgs/msg/JointState.hpp>
+#include <advrf_interfaces/msg/Imu.hpp>
+#include <advrf_interfaces/msg/ForceTorque.hpp>
+#include <advrf_interfaces/msg/Motor.hpp>
+#include <advrf_interfaces/msg/PowerBoard.hpp>
+#include <advrf_interfaces/msg/Pump.hpp>
+#include <advrf_interfaces/msg/Valve.hpp>
 
 using TimeMsg        = ::builtin_interfaces::msg::dds_::Time_;
 using JointStateMsg  = ::sensor_msgs::msg::dds_::JointState_;

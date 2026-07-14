@@ -14,6 +14,12 @@ find_package(ecat_master_future REQUIRED)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
+option(MY_OPTION "Enable my option" OFF)
+message(STATUS "MY_OPTION = ${MY_OPTION}")
+if(MY_OPTION)
+  message(STATUS ">>> MY_OPTION was enabled from colcon.meta !")
+endif()
+
 add_library(advrf_cyclonedds_plugin
     src/main.cpp
     src/parameter_make_get.cpp
@@ -21,8 +27,6 @@ add_library(advrf_cyclonedds_plugin
     src/parameter_client.cpp
     src/parameter_server.cpp
 )
-
-# add_library(ecat::plugin_cyclonedds ALIAS advrf_cyclonedds_plugin)
 
 target_compile_features(advrf_cyclonedds_plugin
     PUBLIC
@@ -92,22 +96,22 @@ if(BUILD_ECAT_PLUGIN_CYCLONEDDS_TESTS)
         add_subdirectory(test)
     endif()
 
-    # add_executable(publisher
-    #     src/publisher.cpp
-    # )
+    add_executable(publisher
+        src/publisher.cpp
+    )
 
-    # target_compile_features(publisher
-    #     PRIVATE
-    #         cxx_std_17
-    # )
+    target_compile_features(publisher
+        PRIVATE
+            cxx_std_17
+    )
 
-    # target_include_directories(publisher
-    #     PRIVATE
-    #         ${CMAKE_CURRENT_SOURCE_DIR}/include
-    # )
+    target_include_directories(publisher
+        PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/include
+    )
 
-    # target_link_libraries(publisher
-    #     PRIVATE
-    #         ecat::plugin_cyclonedds
-    # )
+    target_link_libraries(publisher
+        PRIVATE
+            advrf_cyclonedds_plugin
+    )
 endif()

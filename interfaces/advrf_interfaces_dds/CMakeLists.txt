@@ -5,6 +5,7 @@ project(advrf_interfaces_dds
     LANGUAGES CXX
 )
 
+find_package(advrf_cyclonedds_lib REQUIRED)
 find_package(CycloneDDS REQUIRED)
 find_package(CycloneDDS-CXX REQUIRED)
 

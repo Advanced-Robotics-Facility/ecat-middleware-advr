@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>advrf_interfaces_dds</name>
+  <name>tools_shm_debug</name>
   <version>0.1.0</version>
-  <description>DDS interfaces generated from IDL using CycloneDDS-CXX.</description>
+  <description>SHM debug tools.</description>
 
   <maintainer email="hugo.pousseur@iit.it">Hugo POUSSEUR</maintainer>
   <maintainer email="manuel.deluchi@iit.it">Manuel DELUCHI</maintainer>
@@ -10,9 +10,8 @@
 
   <buildtool_depend>cmake</buildtool_depend>
 
-  <depend>advrf_cyclonedds_lib</depend>
-  <depend>CycloneDDS</depend>
-  <depend>CycloneDDS-CXX</depend>
+  <depend>advrf_interfaces_protobuf</depend>
+  <depend>ecat_master_future</depend>
 
   <export>
     <build_type>cmake</build_type>

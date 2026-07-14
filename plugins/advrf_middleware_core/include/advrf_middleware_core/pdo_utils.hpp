@@ -2,7 +2,7 @@
 
 #include "msg.hpp"
 #include "clock_utils.hpp"
-#include "ecat_pdo.pb.h"
+#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 
 #include <cstring>
 #include <iostream>

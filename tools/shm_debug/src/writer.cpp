@@ -1,6 +1,6 @@
-#include "shm_shared_types.hpp"
-#include "shm_utils.hpp"
-#include "ecat_pdo.pb.h"
+#include <ecat_master_future/shm_shared_types.hpp>
+#include <ecat_master_future/shm_utils.hpp>
+#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 
 #include <chrono>
 #include <iostream>

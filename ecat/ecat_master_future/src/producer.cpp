@@ -7,8 +7,7 @@
 
 #include "ecat_master_future/shm_utils.hpp" 
 #include "ecat_master_future/shm_shared_types.hpp" 
-
-#include "ecat_pdo.pb.h"
+#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 
 namespace {
 volatile std::sig_atomic_t keep_running = 1;

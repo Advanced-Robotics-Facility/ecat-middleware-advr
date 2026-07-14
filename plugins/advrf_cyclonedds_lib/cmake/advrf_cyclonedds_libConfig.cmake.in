@@ -1,0 +1,16 @@
+@PACKAGE_INIT@
+
+# Force usage of CycloneDDS installed inside this same prefix.
+set(_advrf_vendor_prefix "${PACKAGE_PREFIX_DIR}")
+
+find_package(CycloneDDS REQUIRED
+    PATHS "${_advrf_vendor_prefix}"
+    NO_DEFAULT_PATH
+)
+
+find_package(CycloneDDS-CXX REQUIRED
+    PATHS "${_advrf_vendor_prefix}"
+    NO_DEFAULT_PATH
+)
+
+check_required_components(advrf_cyclonedds_lib)
