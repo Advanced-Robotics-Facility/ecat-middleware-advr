@@ -14,8 +14,11 @@ set(ADVRF_VENDOR_PREFIX
 )
 
 ExternalProject_Add(cyclonedds_vendor
-    GIT_REPOSITORY https://github.com/eclipse-cyclonedds/cyclonedds.git
-    GIT_TAG releases/11.0.x
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/cyclonedds
+
+    DOWNLOAD_COMMAND ""
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
 
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX=${ADVRF_VENDOR_PREFIX}
@@ -28,10 +31,13 @@ ExternalProject_Add(cyclonedds_vendor
 )
 
 ExternalProject_Add(cyclonedds_cxx_vendor
-    GIT_REPOSITORY https://github.com/eclipse-cyclonedds/cyclonedds-cxx.git
-    GIT_TAG releases/11.0.x
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/cyclonedds-cxx
 
     DEPENDS cyclonedds_vendor
+
+    DOWNLOAD_COMMAND ""
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
 
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX=${ADVRF_VENDOR_PREFIX}
@@ -44,7 +50,9 @@ ExternalProject_Add(cyclonedds_cxx_vendor
 
 add_custom_target(advrf_cyclonedds_vendor
     ALL
-    DEPENDS cyclonedds_vendor cyclonedds_cxx_vendor
+    DEPENDS
+        cyclonedds_vendor
+        cyclonedds_cxx_vendor
 )
 
 install(
@@ -59,10 +67,6 @@ install(CODE [[
         )
     endif()
 ]])
-
-
-include(GNUInstallDirs)
-include(CMakePackageConfigHelpers)
 
 configure_package_config_file(
     cmake/advrf_cyclonedds_libConfig.cmake.in

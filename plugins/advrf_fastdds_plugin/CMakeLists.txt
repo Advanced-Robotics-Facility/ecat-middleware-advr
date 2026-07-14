@@ -1,7 +1,12 @@
+cmake_minimum_required(VERSION 3.16)
+
+project(advrf_fastdds_plugin
+    VERSION 0.1.0
+    LANGUAGES C CXX
+)
+
 message(STATUS "Configuring FastDDS plugin")
 
-find_package(fastcdr 2 REQUIRED)
-find_package(fastdds 3 REQUIRED)
 
 if(NOT DDS_IDL_FILES)
     message(FATAL_ERROR "DDS_IDL_FILES not defined. interfaces/dds not loaded.")
@@ -33,10 +38,10 @@ add_custom_command(
     OUTPUT ${ALL_GEN_OUTPUTS}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${FAST_GEN_DIR}
     COMMAND ${CMAKE_COMMAND}
-        -D "IDL_FILES=${DDS_IDL_FILES}"
-        -D "IDL_DIR=${DDS_IDL_DIR}"
-        -D "OUTPUT_DIR=${FAST_GEN_DIR}"
-        -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_fastddsgen.cmake"
+        -DIDL_FILES=${DDS_IDL_FILES}
+        -DIDL_DIR=${DDS_IDL_DIR}
+        -DOUTPUT_DIR=${FAST_GEN_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_fastddsgen.cmake
     DEPENDS ${DDS_IDL_FILES}
     COMMENT "FastDDSGen: generating IDL sources"
     VERBATIM
@@ -56,7 +61,8 @@ target_include_directories(ecat_plugin_fastdds PUBLIC
     ${DDS_IDL_DIR}
 )
 
-target_link_libraries(ecat_plugin_fastdds PUBLIC
-    fastdds
-    fastcdr
+target_link_libraries(ecat_plugin_fastdds
+    PUBLIC
+        fastdds
+        fastcdr
 )

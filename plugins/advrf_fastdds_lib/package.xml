@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>advrf_fastdds_lib</name>
+  <version>0.1.0</version>
+  <description>Builds Fast DDS and Fast DDS-Gen from source and exposes a CMake wrapper target.</description>
+
+  <maintainer email="hugo.pousseur@iit.it">Hugo POUSSEUR</maintainer>
+  <maintainer email="manuel.deluchi@iit.it">Manuel DELUCHI</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>cmake</buildtool_depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>
