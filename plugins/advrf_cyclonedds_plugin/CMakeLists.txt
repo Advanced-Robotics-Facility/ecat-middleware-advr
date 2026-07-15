@@ -42,6 +42,7 @@ target_link_libraries(advrf_cyclonedds_plugin
         ecat_master_future
         CycloneDDS-CXX::ddscxx
 )
+
 install(
     TARGETS advrf_cyclonedds_plugin
     EXPORT advrf_cyclonedds_pluginTargets
@@ -90,29 +91,5 @@ if(BUILD_ECAT_PLUGIN_CYCLONEDDS_TESTS)
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test/CMakeLists.txt")
         add_subdirectory(test)
     endif()
-
-    add_executable(publisher
-        src/publisher.cpp
-    )
-
-    target_compile_features(publisher
-        PRIVATE
-            cxx_std_17
-    )
-
-    target_include_directories(publisher
-        PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}/include
-    )
-
-    target_link_libraries(publisher
-        PRIVATE
-            advrf_cyclonedds_plugin
-            yaml-cpp::yaml-cpp
-    )
-
-    target_compile_definitions(publisher PRIVATE
-        ROBOT_CONFIG_DIR="${ecat_master_future_CONFIG_DIR}/robot.yaml"
-    )
     
 endif()
