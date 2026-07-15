@@ -111,3 +111,8 @@ install(
         "${CMAKE_CURRENT_BINARY_DIR}/ecat_master_futureConfigVersion.cmake"
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
+
+install(
+    DIRECTORY config/
+    DESTINATION share/${PROJECT_NAME}/config
+)

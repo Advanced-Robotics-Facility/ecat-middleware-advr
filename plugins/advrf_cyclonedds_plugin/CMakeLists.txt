@@ -111,23 +111,9 @@ if(BUILD_ECAT_PLUGIN_CYCLONEDDS_TESTS)
             yaml-cpp::yaml-cpp
     )
 
+    get_filename_component(_share_dir "${ecat_master_future_DIR}" DIRECTORY)
     target_compile_definitions(publisher PRIVATE
-        ROBOT_CONFIG_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../../ecat/ecat_master_future/config/robot.yaml"
-)
-
-    # target_link_libraries(publisher PRIVATE
-    #     ecat-master-future     
-    #     protobuf_msgs 
-    #     mw_core
-    #     CycloneDDS-CXX::ddscxx    
-    #     advrf_interfaces_dds
-    #     rcl_interfaces_dds
-    #     geometry_msgs_dds
-    #     sensor_msgs_dds
-    #     std_msgs_dds
-    #     builtin_interfaces_dds
-    #     yaml-cpp::yaml-cpp
-    # )
-
+        ROBOT_CONFIG_DIR="${_share_dir}/config/robot.yaml"
+    )
 
 endif()
