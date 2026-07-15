@@ -116,3 +116,16 @@ install(
     DIRECTORY config/
     DESTINATION share/${PROJECT_NAME}/config
 )
+
+configure_package_config_file(
+    cmake/ecat_master_futureConfig.cmake.in
+    "${CMAKE_CURRENT_BINARY_DIR}/ecat_master_futureConfig.cmake"
+    INSTALL_DESTINATION lib/cmake/ecat_master_future
+)
+
+install(
+    FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/ecat_master_futureConfig.cmake"
+    DESTINATION
+        lib/cmake/ecat_master_future
+)

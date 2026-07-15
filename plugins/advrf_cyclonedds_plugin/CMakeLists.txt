@@ -111,9 +111,8 @@ if(BUILD_ECAT_PLUGIN_CYCLONEDDS_TESTS)
             yaml-cpp::yaml-cpp
     )
 
-    get_filename_component(_share_dir "${ecat_master_future_DIR}" DIRECTORY)
     target_compile_definitions(publisher PRIVATE
-        ROBOT_CONFIG_DIR="${_share_dir}/config/robot.yaml"
+        ROBOT_CONFIG_DIR="${ecat_master_future_CONFIG_DIR}/robot.yaml"
     )
-
+    
 endif()
