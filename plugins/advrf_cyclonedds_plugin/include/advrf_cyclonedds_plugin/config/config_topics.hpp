@@ -74,6 +74,9 @@ struct TopicsParameters : public TopicNamespace
     std::string getRequest()  const { return rq("parameters/getRequest"); }
     std::string getReply()    const { return rr("parameters/getReply"); }
 
+    std::string getCmdRequest()  const { return rq("parameters/getCmdRequest"); }
+    std::string getCmdReply()    const { return rr("parameters/getCmdReply"); }
+
     std::string setRequest()  const { return rq("parameters/setRequest"); }
     std::string setReply()    const { return rr("parameters/setReply"); }
 
@@ -84,17 +87,27 @@ struct TopicsParameters : public TopicNamespace
     std::string listGetReply()   const { return rr("parameters/listGetReply"); }
 };
 
+struct TopicsServices : public TopicNamespace
+{
+    using TopicNamespace::TopicNamespace;
+
+    std::string getCmdRequest()  const { return rq("parameters/getCmdRequest"); }
+    std::string getCmdReply()    const { return rr("parameters/getCmdReply"); }
+};
+
 } // namespace topics
 
 struct ConfigTopics
 {
     explicit ConfigTopics(std::vector<std::string> ns)
         : state(ns),
-          parameters(std::move(ns))
+          parameters(ns),
+        srv(ns)
     {}
 
     topics::TopicsState state;
     topics::TopicsParameters parameters;
+    topics::TopicsServices srv;
 };
 
 } // namespace config

@@ -14,17 +14,27 @@ import "generic.proto";
 
 message Ec_slave_pdo {
 
-    enum Type { 
-        RX_MOTOR = 0;       TX_MOTOR = 1;
-        RX_FT6 = 2;         TX_FT6 = 3;
-        RX_XT_MOTOR = 4;    TX_XT_MOTOR = 5;
-        RX_IMU_VN = 6;      TX_IMU_VN = 7;
-        RX_POW_F28M36 = 8;  TX_POW_F28M36 = 9;
-        RX_CIA402 = 10;     TX_CIA402 = 11;
-        RX_HYQ_KNEE = 12;   TX_HYQ_KNEE = 13;
-        RX_HYQ_HPU = 14;    TX_HYQ_HPU = 15;
-        RX_GRIPPER = 16;    TX_GRIPPER = 17;  
-        DUMMY = 30;         CLIENT_PIPE = 31;
+     enum Type { 
+        _UNSPECIFIED = 0;
+        RX_MOTOR = 1;       TX_MOTOR = 2;
+        RX_FT6 = 3;         TX_FT6 = 4;
+        RX_POW_WLK = 5;     TX_POW_WLK = 6;
+        RX_POW_CMN = 7;     TX_POW_CMN = 8;
+        RX_XT_MOTOR = 9;    TX_XT_MOTOR = 10;
+        RX_FOOT_SENS = 11;  TX_FOOT_SENS = 12;
+        RX_MC_HAND = 13;    TX_MC_HAND = 14;
+        RX_IMU_VN = 15;     TX_IMU_VN = 16;
+        RX_SKIN_SENS = 17;  TX_SKIN_SENS = 18;
+        RX_HERI_HAND = 19;  TX_HERI_HAND = 20;
+        RX_POW_F28M36 = 21; TX_POW_F28M36 = 22;
+        RX_GENERIC = 23;    TX_GENERIC = 24;
+        RX_CIA402 = 31;     TX_CIA402 = 32;
+        RX_HYQ_KNEE = 33;   TX_HYQ_KNEE = 34;
+        RX_HYQ_HPU = 35;    TX_HYQ_HPU = 36;
+        RX_GRIPPER = 37;    TX_GRIPPER = 38;
+        DUMMY = 101;
+        CLIENT_PIPE = 111;
+        
     }
 
     // Identifies which field is filled in.

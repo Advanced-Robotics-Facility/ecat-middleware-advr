@@ -13,7 +13,7 @@
 
 #include "advrf_cyclonedds_plugin/config/config_topics.hpp"
 #include "advrf_cyclonedds_plugin/parameter/parameter_make_get.hpp"
-#include "advrf_cyclonedds_plugin/service.hpp"
+#include "advrf_cyclonedds_plugin/service/service_client.hpp"
 
 
 using ParameterResult = advrf_interfaces::msg::dds_::enums_::ParameterResult_;

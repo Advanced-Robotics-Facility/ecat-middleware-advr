@@ -11,7 +11,7 @@ module advrf_interfaces {
       struct TrjQueueCmd_
       {        
         uint8 type;
-        string trj_names;
+        sequence<string> trj_names;
       };
 
     };

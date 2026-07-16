@@ -8,23 +8,23 @@ using namespace advrf_interfaces::srv::dds_;
 
 ParameterServer::ParameterServer(const config::ConfigTopics& config_topics,
     dds::domain::DomainParticipant& participant)
-    : get_server_(
-      participant,
-      config_topics.parameters.getRequest(),
-      config_topics.parameters.getReply())
-, set_server_(
-      participant,
-      config_topics.parameters.setRequest(),
-      config_topics.parameters.setReply())
-, list_server_(
-      participant,
-      config_topics.parameters.listRequest(),
-      config_topics.parameters.listReply())
-, listget_server_(
-      participant,
-      config_topics.parameters.listGetRequest(),
-      config_topics.parameters.listGetReply())
-{
+        : get_server_(
+        participant,
+        config_topics.parameters.getRequest(),
+        config_topics.parameters.getReply())
+    , set_server_(
+        participant,
+        config_topics.parameters.setRequest(),
+        config_topics.parameters.setReply())
+    , list_server_(
+        participant,
+        config_topics.parameters.listRequest(),
+        config_topics.parameters.listReply())
+    , listget_server_(
+        participant,
+        config_topics.parameters.listGetRequest(),
+        config_topics.parameters.listGetReply())
+    {
     //
     // GetParameters
     //
@@ -68,6 +68,8 @@ ParameterServer::ParameterServer(const config::ConfigTopics& config_topics,
                 dds_results.emplace_back(
                     static_cast<uint8_t>(result));
             }
+
+            // wait feedback from shm
 
             response.results(dds_results);
             return response;

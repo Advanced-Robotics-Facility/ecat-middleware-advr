@@ -4,7 +4,7 @@
 #include <dds/dds.hpp>
 
 #include "advrf_cyclonedds_plugin/parameter/parameter_make_get.hpp"
-#include "advrf_cyclonedds_plugin/service.hpp"
+#include "advrf_cyclonedds_plugin/service/service_client.hpp"
 
 #include <advrf_interfaces/srv/SdoGetRequest.hpp>
 

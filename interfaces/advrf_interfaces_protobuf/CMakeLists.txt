@@ -22,6 +22,7 @@ set(PROTO_FILES
     msg/hyq.proto
     msg/generic.proto
     msg/gripper_pdo.proto
+    msg/repl_cmd.proto
 )
 
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILES})

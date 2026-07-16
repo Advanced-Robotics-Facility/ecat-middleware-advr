@@ -15,6 +15,7 @@ message Vector2d {
 message Gains
 {
     enum Type { 
+        _UNSPECIFIED = 0;
         POSITION    = 0x3B;
         VELOCITY    = 0x71;
         IMPEDANCE   = 0xD4;
@@ -32,6 +33,7 @@ message Gains
 
 message AuxPDO {
     enum Op { 
+        _UNSPECIFIED = 0;
         NOP = 1;
         GET = 2;
         SET = 3;
@@ -63,6 +65,7 @@ message KeyValStr
 message Trajectory_cmd
 {
     enum Type { 
+        _UNSPECIFIED    = 0;
         HOMING          = 1;
         SINE            = 2;
         SMOOTHER        = 3;
@@ -106,8 +109,9 @@ message Trajectory_cmd
 message Trj_queue_cmd
 {
     enum Type { 
-        PUSH_QUE    = 1;
-        EMPTY_QUE   = 2;
+        _UNSPECIFIED = 0;
+        PUSH_QUE     = 1;
+        EMPTY_QUE    = 2;
     }
     Type       type        = 1;
     repeated string     trj_names   = 2;
@@ -120,6 +124,7 @@ message Repl_hdr {
 message Slave_registry_write {
 
     enum Type {
+        _UNSPECIFIED = 0;
         DRILL_ON = 1;
         DRILL_OFF = 2;
     }
@@ -131,6 +136,7 @@ message Slave_registry_write {
 message Ctrl_cmd
 {
     enum Type {
+        _UNSPECIFIED = 0;
         CTRL_TEST_DONE          = 1;
         CTRL_TEST_ERROR         = 2;
         CTRL_DAC_TUNE           = 3;
@@ -168,6 +174,7 @@ message Ctrl_cmd
 message Flash_cmd
 {
     enum Type { 
+        _UNSPECIFIED = 0;
         SAVE_PARAMS_TO_FLASH    = 1;
         LOAD_PARAMS_FROM_FLASH  = 2;
         LOAD_DEFAULT_PARAMS     = 3;        
@@ -188,6 +195,7 @@ message Slave_SDO_cmd
 message Slave_SDO_info
 {
     enum Type { 
+        _UNSPECIFIED = 0;
         SDO_NAME    = 1;
         SDO_OBJD    = 2;
     }
@@ -198,6 +206,7 @@ message Slave_SDO_info
 message Ecat_Master_cmd
 {
     enum Type { 
+        _UNSPECIFIED = 0;
         START_MASTER        = 1;
         STOP_MASTER         = 2;
         GET_SLAVES_DESCR    = 3;        
@@ -231,6 +240,7 @@ message Motors_PDO_cmd {
 message PDOs_aux_cmd {
     message Aux_cmd { 
         enum Type { 
+            _UNSPECIFIED = 0;
             BRAKE_RELEASE       = 1;
             BRAKE_ENGAGE        = 2;
             LED_ON              = 3;
@@ -247,6 +257,7 @@ message PDOs_aux_cmd {
 ///////////////////////////////////////////////////////////////////////////////
 
 enum CmdType { 
+    _UNSPECIFIED = 0;
     TRJ_CMD         = 1;
     CTRL_CMD        = 2;
     FLASH_CMD       = 3;
@@ -286,6 +297,7 @@ message Repl_cmd {
 message Cmd_reply {
 
    enum Type { 
+    _UNSPECIFIED = 0;
         ACK  = 1;
         NACK = 2;
     }

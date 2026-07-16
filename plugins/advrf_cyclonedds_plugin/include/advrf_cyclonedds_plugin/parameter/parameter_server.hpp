@@ -13,7 +13,7 @@
 #include "advrf_cyclonedds_plugin/config/config_topics.hpp"
 #include "advrf_cyclonedds_plugin/parameter/parameter_registry.hpp"
 #include "advrf_cyclonedds_plugin/config/config_topics.hpp"
-#include "advrf_cyclonedds_plugin/service.hpp"
+#include "advrf_cyclonedds_plugin/service/service_server.hpp"
 
 class ParameterServer
 {

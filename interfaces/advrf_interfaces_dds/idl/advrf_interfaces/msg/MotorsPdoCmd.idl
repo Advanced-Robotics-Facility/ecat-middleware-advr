@@ -1,17 +1,25 @@
 #pragma once
+#include "../../advrf_interfaces/msg/Gains.idl"
+#include "../../advrf_interfaces/msg/AuxPdo.idl"
 
 module advrf_interfaces {
   module msg {
     module dds_ {
 
+      struct MotorPdoCmd_
+      {        
+        int32 motor_id;
+        float pos_ref;
+        float vel_ref;
+        float tor_ref;
+        advrf_interfaces::msg::dds_::Gains_ gains;
+        advrf_interfaces::msg::dds_::AuxPdo_ aux_pdo;
+      };
+
       @final
       struct MotorsPdoCmd_
-      {        
-        string filename;
-        uint32 password;
-        string mcu_type;
-        int32 slave_pos;
-        int32 board_id;
+      {
+        sequence<MotorPdoCmd_> motors_pdo;
       };
     };
   };

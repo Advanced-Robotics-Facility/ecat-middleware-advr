@@ -18,9 +18,10 @@ include(CMakePackageConfigHelpers)
 add_library(advrf_cyclonedds_plugin
     src/main.cpp
     src/parameter_make_get.cpp
-    src/service.cpp
+    src/service_server.cpp
     src/parameter_client.cpp
     src/parameter_server.cpp
+    src/service_server_cmd.cpp
 )
 
 target_compile_features(advrf_cyclonedds_plugin
