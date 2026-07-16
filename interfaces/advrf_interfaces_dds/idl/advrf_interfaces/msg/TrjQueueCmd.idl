@@ -1,0 +1,19 @@
+#pragma once
+
+module advrf_interfaces {
+  module msg {
+    module dds_ {
+
+      const uint8 PUSH_QUE = 1;
+      const uint8 EMPTY_QUE = 2;
+
+      @final
+      struct TrjQueueCmd_
+      {        
+        uint8 type;
+        string trj_names;
+      };
+
+    };
+  };
+};

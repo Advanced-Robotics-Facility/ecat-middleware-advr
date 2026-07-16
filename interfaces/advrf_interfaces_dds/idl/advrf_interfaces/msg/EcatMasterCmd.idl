@@ -1,0 +1,20 @@
+#include "../../advrf_interfaces/msg/KeyValStr.idl"
+
+module advrf_interfaces {
+  module msg {
+    module dds_ {
+
+      const uint8 START_MASTER = 1;
+      const uint8 STOP_MASTER = 2;
+      const uint8 GET_SLAVES_DESCR = 3;
+
+      @final
+      struct EcatMasterCmd_
+      {        
+        uint8 type;
+        sequence<advrf_interfaces::msg::dds_::KeyValStr_> args;
+      };
+
+    };
+  };
+};

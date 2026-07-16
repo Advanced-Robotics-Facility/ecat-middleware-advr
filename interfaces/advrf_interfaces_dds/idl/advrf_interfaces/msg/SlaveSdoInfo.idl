@@ -1,0 +1,19 @@
+#pragma once
+
+module advrf_interfaces {
+  module msg {
+    module dds_ {
+
+      const uint8 SDO_NAME = 1;
+      const uint8 SDO_OBJD = 2;
+
+      @final
+      struct SlaveSdoInfo_
+      {        
+        uint8 type;
+        int32 board_id;
+      };
+
+    };
+  };
+};

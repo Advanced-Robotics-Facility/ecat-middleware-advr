@@ -1,0 +1,65 @@
+#pragma once
+
+#include "../../std_msgs/msg/Header.idl"
+#include "../../rcl_interfaces/msg/RequestHeader.idl"
+#include "../../advrf_interfaces/msg/TrajectoryCmd.idl"
+#include "../../advrf_interfaces/msg/CtrlCmd.idl"
+#include "../../advrf_interfaces/msg/FlashCmd.idl"
+#include "../../advrf_interfaces/msg/EcatMasterCmd.idl"
+#include "../../advrf_interfaces/msg/FoeMaster.idl"
+#include "../../advrf_interfaces/msg/TrjQueueCmd.idl"
+#include "../../advrf_interfaces/msg/SlaveSdoCmd.idl"
+#include "../../advrf_interfaces/msg/SlaveSdoInfo.idl"
+#include "../../advrf_interfaces/msg/MotorsPdoCmd.idl"
+#include "../../advrf_interfaces/msg/SlaveRegistryWrite.idl"
+#include "../../advrf_interfaces/msg/PdoAuxCmd.idl"
+
+module advrf_interfaces {
+  module srv {
+    module dds_ {
+
+      const uint8 TRJ_CMD = 1;
+      const uint8 CTRL_CMD = 2;
+      const uint8 FLASH_CMD = 3;
+      const uint8 ECAT_MASTER_CMD = 4;
+      const uint8 FOE_MASTER = 5;
+      const uint8 TRJ_QUEUE_CMD = 6;
+      const uint8 SLAVE_SDO_CMD = 7;
+      const uint8 SLAVE_SDO_INFO = 8;
+      const uint8 MOTOR_PDO_CMD = 9;
+      const uint8 SLAVE_REGISTRY_WRITE = 10;
+      const uint8 PDO_AUX_CMD = 99;
+
+      @final
+      struct ReplCmd_Request_
+      {
+        rcl_interfaces::msg::dds_::RequestHeader_ request_id;
+
+        uint8 type;
+        std_msgs::msg::dds_::Header_ header;
+        advrf_interfaces::msg::dds_::TrajectoryCmd_ trajectory_cmd;
+        advrf_interfaces::msg::dds_::CtrlCmd_ ctrl_cmd;
+        advrf_interfaces::msg::dds_::FlashCmd_ flash_cmd;
+        advrf_interfaces::msg::dds_::EcatMasterCmd_ ecat_master_cmd;
+        advrf_interfaces::msg::dds_::FoeMaster_ foe_master;
+        advrf_interfaces::msg::dds_::TrjQueueCmd_ trj_queue_cmd;
+        advrf_interfaces::msg::dds_::SlaveSdoCmd_ slave_sdo_cmd;
+        advrf_interfaces::msg::dds_::SlaveSdoInfo_ slave_sdo_info;
+        advrf_interfaces::msg::dds_::MotorsPdoCmd_ motors_pdo_cmd;
+        advrf_interfaces::msg::dds_::SlaveRegistryWrite_ slave_registry_write;
+        advrf_interfaces::msg::dds_::PdoAuxCmd_ pdos_aux_cmd;
+      };
+
+      @final
+      struct ReplCmd_Response_
+      {
+        rcl_interfaces::msg::dds_::RequestHeader_ request_id;
+        uint8 type;
+        string msg;
+        std_msgs::msg::dds_::Header_ header;
+        string pdo;
+      };
+
+    };
+  };
+};

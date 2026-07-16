@@ -1,0 +1,23 @@
+#pragma once
+
+#include "../../builtin_interfaces/msg/Time.idl"
+
+module advrf_interfaces {
+  module msg {
+    module dds_ {
+
+      @final
+      struct TmStats_
+      {        
+        int64 recv_dc_time;
+        int64 offset;
+        uint64 loop_time;
+        int32 ecat_rx_wkc;
+        int64 delta;
+        uint64 ec_cycle_ns;
+        builtin_interfaces::msg::dds_::Time_ ts;
+      };
+
+    };
+  };
+};

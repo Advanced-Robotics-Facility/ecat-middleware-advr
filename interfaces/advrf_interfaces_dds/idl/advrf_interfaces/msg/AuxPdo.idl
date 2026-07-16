@@ -1,0 +1,18 @@
+module advrf_interfaces {
+  module msg {
+    module dds_ {
+
+      const uint8 NOP = 1;
+      const uint8 GET = 2;
+      const uint8 SET = 3;
+
+      @final
+      struct AuxPdo_
+      {        
+        uint8 type;
+        int32 idx;
+        float value;
+      };
+    };
+  };
+};

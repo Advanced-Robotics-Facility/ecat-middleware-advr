@@ -1,0 +1,45 @@
+#include "../../advrf_interfaces/msg/Gains.idl"
+
+module advrf_interfaces {
+  module msg {
+    module dds_ {
+
+      const uint8 CTRL_TEST_DONE = 1;
+      const uint8 CTRL_TEST_ERROR = 2;
+      const uint8 CTRL_DAC_TUNE = 3;
+      const uint8 CTRL_REMOVE_TORQUE_OFFS = 4;
+      const uint8 CTRL_SET_ZERO_POSITION = 5;
+      const uint8 CTRL_FAN = 6;
+      const uint8 CTRL_LED = 7;
+      const uint8 CTRL_SANDBOX = 8;
+      const uint8 CTRL_REF_FILTER = 9;
+      const uint8 CTRL_POWER_MOD = 10;
+      const uint8 CTRL_CMD_START = 11;
+      const uint8 CTRL_CMD_STOP = 12;
+      const uint8 CTRL_SET_HOME = 13;
+      const uint8 CTRL_SET_MIN_POSITION = 14;
+      const uint8 CTRL_SET_MAX_POSITION = 15;        
+      const uint8 CTRL_RUN_TORQUE_CALIB = 16;        
+      const uint8 CTRL_SET_GAINS = 17;
+      const uint8 CTRL_SET_POSITION = 18;
+      const uint8 CTRL_SET_VELOCITY = 19;
+      const uint8 CTRL_SET_TORQUE = 20;
+      const uint8 CTRL_SET_CURRENT = 21;
+      const uint8 CTRL_GET_ADC = 22;
+      const uint8 CTRL_SET_DAC = 23;
+      const uint8 CTRL_BRAKE = 24;
+      const uint8 CTRL_SET_DAC_FLASH = 25;
+
+      @final
+      struct CtrlCmd_
+      {        
+        uint8 type;
+        int32 board_id;
+        float value;
+        
+        advrf_interfaces::msg::dds_::Gains_ gains;
+      };
+
+    };
+  };
+};

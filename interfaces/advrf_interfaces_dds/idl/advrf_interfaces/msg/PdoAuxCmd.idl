@@ -1,0 +1,25 @@
+#pragma once
+
+module advrf_interfaces {
+  module msg {
+    module dds_ {
+
+        const uint8 BRAKE_RELEASE = 1;
+        const uint8 BRAKE_ENGAGE = 2;
+        const uint8 LED_ON = 3;
+        const uint8 LED_OFF = 4;
+
+        struct AuxCmd_ {
+            uint8 type;
+            int32 board_id;
+        };
+
+        @final
+        struct PdoAuxCmd_
+        {        
+            sequence<AuxCmd_> aux_cmds;
+        };
+
+    };
+  };
+};

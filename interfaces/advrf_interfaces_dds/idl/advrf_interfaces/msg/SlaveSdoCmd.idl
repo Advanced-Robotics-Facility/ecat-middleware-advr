@@ -1,0 +1,19 @@
+#pragma once
+
+#include "../../advrf_interfaces/msg/KeyValStr.idl"
+
+module advrf_interfaces {
+  module msg {
+    module dds_ {
+
+      @final
+      struct SlaveSdoCmd_
+      {        
+        int32 board_id;
+        sequence<string> rd_sdo;
+        sequence<advrf_interfaces::msg::dds_::KeyValStr_> wr_sdo;
+      };
+
+    };
+  };
+};

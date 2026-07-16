@@ -1,0 +1,18 @@
+module advrf_interfaces {
+  module msg {
+    module dds_ {
+
+      const uint8 SAVE_PARAMS_TO_FLASH = 1;
+      const uint8 LOAD_PARAMS_FROM_FLASH = 2;
+      const uint8 LOAD_DEFAULT_PARAMS = 3;
+
+      @final
+      struct FlashCmd_
+      {        
+        uint8 type;
+        int32 board_id;
+      };
+
+    };
+  };
+};

@@ -1,3 +1,5 @@
+#pragma once
+
 module rcl_interfaces {
   module msg {
     module dds_ {

@@ -1,0 +1,33 @@
+#pragma once
+
+#include "../../std_msgs/msg/Header.idl"
+#include "../../rcl_interfaces/msg/RequestHeader.idl"
+#include "../../advrf_interfaces/msg/TrjStatus.idl"
+#include "../../advrf_interfaces/msg/TmStats.idl"
+
+module advrf_interfaces {
+  module srv {
+    module dds_ {
+
+      @final
+      struct ReplInfo_Request_
+      {
+        rcl_interfaces::msg::dds_::RequestHeader_ request_id;
+      };
+
+      @final
+      struct ReplInfo_Response_
+      {
+        rcl_interfaces::msg::dds_::RequestHeader_ request_id;
+
+        std_msgs::msg::dds_::Header_ header;
+        string info;
+        advrf_interfaces::msg::dds_::TrjStatus_ trj_status;
+        advrf_interfaces::msg::dds_::TmStats_ tm_stats;
+        
+        boolean success; 
+      };
+
+    };
+  };
+};

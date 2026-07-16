@@ -1,0 +1,16 @@
+#pragma once
+
+module advrf_interfaces {
+  module msg {
+    module dds_ {
+
+      @final
+      struct KeyValStr_
+      {        
+        string name;
+        string value;
+      };
+
+    };
+  };
+};

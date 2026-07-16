@@ -1,0 +1,20 @@
+#pragma once
+
+module advrf_interfaces {
+  module msg {
+    module dds_ {
+
+      @final
+      struct SlaveObjd_
+      {        
+        int32 index;
+        int32 subindex;
+        int32 datatype;
+        int32 bitlength;
+        int32 access;
+        string name;
+      };
+
+    };
+  };
+};

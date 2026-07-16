@@ -1,0 +1,26 @@
+#pragma once
+
+module advrf_interfaces {
+  module msg {
+    module dds_ {
+
+      const uint8 POSITION  = 0x3B;
+      const uint8 VELOCITY  = 0x71;
+      const uint8 IMPEDANCE = 0xD4;
+      const uint8 TORQUE    = 0xCC;
+      const uint8 CURRENT   = 0xDD;
+
+      @final
+      struct Gains_
+      {        
+        uint8 type;
+        double pos_kp;
+        double pos_kd;
+        double tor_kp;
+        double tor_ki;
+        double tor_kd;
+      };
+
+    };
+  };
+};

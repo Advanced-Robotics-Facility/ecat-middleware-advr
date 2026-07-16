@@ -1,0 +1,57 @@
+#pragma once
+
+module advrf_interfaces {
+  module msg {
+    module dds_ {
+
+      const uint8 HOMING = 1;
+      const uint8 SINE = 2;
+      const uint8 SMOOTHER = 3;
+      const uint8 SMOOTHER_VEL = 4;
+
+      @final
+      struct HomingPar_ {
+        sequence<double> x;
+      };
+
+      @final
+      struct PeriodPar_ {
+        double freq;
+        double ampl;
+        double teta;
+        double secs;
+      };
+
+      @final
+      struct SmoothPar_ {
+        sequence<double> x;
+        sequence<double> y;
+      };
+
+      @final
+      struct SmoothVelPar_ {
+        double dt;
+        double p0;
+        double v0;
+        double pt;
+        double vt;
+        double ds;
+        double magic;
+      };
+
+      @final
+      struct TrajectoryCmd_
+      {        
+        uint8 type;
+        string name;
+        int32 board_id; 
+        
+        advrf_interfaces::msg::dds_::SmoothPar_ smooth_par;
+        advrf_interfaces::msg::dds_::PeriodPar_ period_par;
+        advrf_interfaces::msg::dds_::HomingPar_ homing_par;
+        advrf_interfaces::msg::dds_::SmoothVelPar_ smooth_vel_par;
+      };
+
+    };
+  };
+};

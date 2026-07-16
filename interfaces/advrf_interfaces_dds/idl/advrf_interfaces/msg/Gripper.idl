@@ -1,3 +1,4 @@
+#pragma once
 #include "../../std_msgs/msg/Header.idl"
 
 module advrf_interfaces {

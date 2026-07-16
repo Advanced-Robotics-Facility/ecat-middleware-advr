@@ -70,7 +70,7 @@ message Trajectory_cmd
     }
     message Homing_par
     {
-        repeated double     x = 1;
+        repeated double x = 1;
     }
     message Period_par
     {
@@ -81,8 +81,8 @@ message Trajectory_cmd
     } 
     message Smooth_par
     {
-        repeated double     x = 1;
-        repeated double     y = 2;
+        repeated double x = 1;
+        repeated double y = 2;
     }
     message SmoothVel_par
     {

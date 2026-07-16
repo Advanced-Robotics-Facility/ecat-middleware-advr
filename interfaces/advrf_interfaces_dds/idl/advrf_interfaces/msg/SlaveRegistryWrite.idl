@@ -1,0 +1,19 @@
+#pragma once
+
+module advrf_interfaces {
+  module msg {
+    module dds_ {
+
+      const uint8 DRILL_ON = 1;
+      const uint8 DRILL_OFF = 2;
+
+      @final
+      struct SlaveRegistryWrite_
+      {        
+        uint8 type;
+        int32 board_id;
+      };
+
+    };
+  };
+};
