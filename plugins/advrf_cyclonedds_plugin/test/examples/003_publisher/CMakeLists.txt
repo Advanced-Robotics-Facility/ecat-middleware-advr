@@ -21,3 +21,8 @@ add_test(
     NAME publisher
     COMMAND publisher
 )
+
+install(
+    TARGETS publisher
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)

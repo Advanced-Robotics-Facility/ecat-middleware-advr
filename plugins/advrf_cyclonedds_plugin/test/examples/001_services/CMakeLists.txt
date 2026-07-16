@@ -7,6 +7,11 @@ target_link_libraries(001_services_sdo-get-request-server
         advrf_cyclonedds_plugin
 )
 
+install(
+    TARGETS 001_services_sdo-get-request-server
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
 add_executable(001_services_sdo-get-request-client
     001_services_sdo-get-request-client.cpp
 )
@@ -14,4 +19,9 @@ add_executable(001_services_sdo-get-request-client
 target_link_libraries(001_services_sdo-get-request-client
     PRIVATE
         advrf_cyclonedds_plugin
+)
+
+install(
+    TARGETS 001_services_sdo-get-request-client
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
