@@ -1,14 +1,14 @@
 #pragma once
+
 #include <cstdint>
 #include <string>
 
 #include <advrf_interfaces_protobuf/repl_cmd.pb.h>
 #include <advrf_interfaces/srv/ReplCmd.hpp>
-#include "advrf_cyclonedds_plugin/service/shm_data.hpp"
 
-namespace convert::protobuf {
+namespace convert::to_protobuf {
     template<typename DDS_TYPE, typename PROTOBUF_TYPE>
-    PROTOBUF_TYPE from_dds(const DDS_TYPE&) = delete;
+    PROTOBUF_TYPE convert_dds_to_protobuf(const DDS_TYPE&) = delete;
 
     inline iit::advrf::Time convert_dds_to_protobuf(const builtin_interfaces::msg::dds_::Time_& msgdds)
     {
@@ -46,7 +46,6 @@ namespace convert::protobuf {
         pb_trj_cmd.set_name(msgdds.name());
         pb_trj_cmd.set_board_id(msgdds.board_id());
 
-
         auto pb_smooth_par = pb_trj_cmd.mutable_smooth_par();
         for (const auto& x : msgdds.smooth_par().x()) {
             pb_smooth_par->add_x(x);
@@ -65,7 +64,7 @@ namespace convert::protobuf {
         for (const auto& x : msgdds.homing_par().x()) {
             pb_homing_par->add_x(x);
         }
-        
+
         auto pb_smooth_vel_par = pb_trj_cmd.mutable_smooth_vel_par();
         pb_smooth_vel_par->set_dt(msgdds.smooth_vel_par().dt());
         pb_smooth_vel_par->set_p0(msgdds.smooth_vel_par().p0());
@@ -84,7 +83,7 @@ namespace convert::protobuf {
         pb_ctrl_cmd.set_type(static_cast<iit::advrf::Ctrl_cmd::Type>(msgdds.type()));
         pb_ctrl_cmd.set_board_id(msgdds.board_id());
         pb_ctrl_cmd.set_value(msgdds.value());
-        *pb_ctrl_cmd.mutable_gains() = from_dds(msgdds.gains());
+        *pb_ctrl_cmd.mutable_gains() = convert_dds_to_protobuf(msgdds.gains());
         return pb_ctrl_cmd;
     }
 
@@ -118,8 +117,7 @@ namespace convert::protobuf {
         pb_foe_master.set_slave_pos(msgdds.slave_pos());
         pb_foe_master.set_board_id(msgdds.board_id());
         return pb_foe_master;
-    }   
-
+    }
 
     inline iit::advrf::Trj_queue_cmd convert_dds_to_protobuf(const advrf_interfaces::msg::dds_::TrjQueueCmd_& msgdds)
     {
@@ -154,8 +152,6 @@ namespace convert::protobuf {
         return pb;
     }
 
- 
-
     inline iit::advrf::Motors_PDO_cmd convert_dds_to_protobuf(const advrf_interfaces::msg::dds_::MotorsPdoCmd_& msgdds)
     {
         iit::advrf::Motors_PDO_cmd pb;
@@ -165,7 +161,7 @@ namespace convert::protobuf {
             pb_motor->set_pos_ref(motor.pos_ref());
             pb_motor->set_vel_ref(motor.vel_ref());
             pb_motor->set_tor_ref(motor.tor_ref());
-            *pb_motor->mutable_gains() = from_dds(motor.gains());
+            *pb_motor->mutable_gains() = convert_dds_to_protobuf(motor.gains());
         }
         return pb;
     }
@@ -193,38 +189,27 @@ namespace convert::protobuf {
     {
         iit::advrf::Repl_cmd pb_repl_cmd;
         pb_repl_cmd.set_type(static_cast<iit::advrf::CmdType>(request.type()));
-        
-        *pb_repl_cmd.mutable_trajectory_cmd() = from_dds(request.trajectory_cmd());
-        *pb_repl_cmd.mutable_ctrl_cmd() = from_dds(request.ctrl_cmd());
-        *pb_repl_cmd.mutable_flash_cmd() = from_dds(request.flash_cmd());
-        *pb_repl_cmd.mutable_trajectory_cmd() = from_dds(request.trajectory_cmd());
-        *pb_repl_cmd.mutable_ecat_master_cmd() = from_dds(request.ecat_master_cmd());
-        *pb_repl_cmd.mutable_foe_master() = from_dds(request.foe_master());
-        *pb_repl_cmd.mutable_trj_queue_cmd() = from_dds(request.trj_queue_cmd());
-        *pb_repl_cmd.mutable_slave_sdo_cmd() = from_dds(request.slave_sdo_cmd());
-        *pb_repl_cmd.mutable_slave_sdo_info() = from_dds(request.slave_sdo_info());
-        *pb_repl_cmd.mutable_motors_pdo_cmd() = from_dds(request.motors_pdo_cmd());
-        *pb_repl_cmd.mutable_slave_registry_write() = from_dds(request.slave_registry_write());
-        *pb_repl_cmd.mutable_pdos_aux_cmd() = from_dds(request.pdos_aux_cmd());
+
+        *pb_repl_cmd.mutable_trajectory_cmd() = convert_dds_to_protobuf(request.trajectory_cmd());
+        *pb_repl_cmd.mutable_flash_cmd() = convert_dds_to_protobuf(request.flash_cmd());
+        *pb_repl_cmd.mutable_ecat_master_cmd() = convert_dds_to_protobuf(request.ecat_master_cmd());
+        *pb_repl_cmd.mutable_foe_master() = convert_dds_to_protobuf(request.foe_master());
+        *pb_repl_cmd.mutable_trj_queue_cmd() = convert_dds_to_protobuf(request.trj_queue_cmd());
+        *pb_repl_cmd.mutable_slave_sdo_cmd() = convert_dds_to_protobuf(request.slave_sdo_cmd());
+        *pb_repl_cmd.mutable_slave_sdo_info() = convert_dds_to_protobuf(request.slave_sdo_info());
+        *pb_repl_cmd.mutable_motors_pdo_cmd() = convert_dds_to_protobuf(request.motors_pdo_cmd());
+        *pb_repl_cmd.mutable_slave_registry_write() = convert_dds_to_protobuf(request.slave_registry_write());
+        *pb_repl_cmd.mutable_pdos_aux_cmd() = convert_dds_to_protobuf(request.pdos_aux_cmd());
 
         return pb_repl_cmd;
     }
-
-    iit::advrf::Cmd_reply from_shm(const SHMBaseSrv& shm_repl_cmd)
-    {
-        iit::advrf::Cmd_reply pb_reply;
-        //TODO
-        return pb_reply;
-    }
-
 }
 
-namespace convert::dds {
+namespace convert::to_dds {
     template<typename DDS_TYPE, typename PROTOBUF_TYPE>
-    DDS_TYPE from_protobuf(const PROTOBUF_TYPE&) = delete;
-    
+    DDS_TYPE convert_protobuf_to_dds(const PROTOBUF_TYPE&) = delete;
 
-    inline  advrf_interfaces::srv::dds_::ReplCmd_Response_ convert_protobuf_to_dds(const iit::advrf::Cmd_reply& pb)
+    inline advrf_interfaces::srv::dds_::ReplCmd_Response_ convert_protobuf_to_dds(const iit::advrf::Cmd_reply& pb)
     {
         advrf_interfaces::srv::dds_::ReplCmd_Response_ reply;
         reply.type() = static_cast<uint8_t>(pb.type());
@@ -236,20 +221,3 @@ namespace convert::dds {
         return reply;
     }
 };
-
-namespace convert::shm {
-    template<typename SHM_TYPE, typename PROTOBUF_TYPE>
-    SHM_TYPE from_protobuf(const PROTOBUF_TYPE&) = delete;
-
-    void from_protobuf(const iit::advrf::Repl_cmd& pb, SHMBaseSrv& shm)
-    {
-        
-    }
-};
-
-
-// template<>
-// MyProto from_dds<MyDDS, MyProto>(const MyDDS& msg)
-// {
-//     ...
-// }

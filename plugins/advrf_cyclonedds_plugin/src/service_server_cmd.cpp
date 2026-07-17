@@ -35,7 +35,7 @@ ServiceServerCmd::ServiceServerCmd(const config::ConfigTopics& config_topics,
     });
 }
 
-bool ServiceServerCmd::read_from_shm(const SHMRequestInfo& shm_request_info, ResponseProtobuf& shm_output)
+ResponseDDS ServiceServerCmd::process_cmd_(const RequestDDS& request)
 {
     RequestProtobuf pb_req = convert::to_protobuf::convert_dds_to_protobuf(request);
     ResponseProtobuf pb_resp = process_cmd_(pb_req);
@@ -45,7 +45,7 @@ bool ServiceServerCmd::read_from_shm(const SHMRequestInfo& shm_request_info, Res
 }
 
 ResponseProtobuf ServiceServerCmd::process_cmd_(const RequestProtobuf& request)
-{    
+{
     std::cerr << "[ServiceServerCmd] Got DDS request, type=" << request.type() << std::endl;
     ResponseProtobuf reply{};
 
@@ -62,9 +62,7 @@ ResponseProtobuf ServiceServerCmd::process_cmd_(const RequestProtobuf& request)
         reply.set_msg("shm request queue full");
         return reply;
     }
-
     std::cerr << "[ServiceServerCmd] pushed request to shm, waiting for reply..." << std::endl;
-
 
     ProtoSlot frame;
     const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(500);

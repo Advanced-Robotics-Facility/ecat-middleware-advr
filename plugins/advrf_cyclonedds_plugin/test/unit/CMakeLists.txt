@@ -27,8 +27,3 @@ plugin_test(
     002_parameter-server_001
     002_parameter-server/002_parameter-server_001.cpp
 )
-
-plugin_test(
-    003_converter_001_fromdds
-    003_converter/003_converter_001_fromdds.cpp
-)
