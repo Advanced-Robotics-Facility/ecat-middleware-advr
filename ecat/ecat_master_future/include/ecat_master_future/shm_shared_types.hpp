@@ -5,7 +5,8 @@
 #include <cstddef>
 #include <cstring>
 
-static constexpr const char* SHM_NAME = "/ecat_master";
+static constexpr const char* SHM_NAME = "/ecat_master_pub";
+static constexpr const char* SHM_REPL_NAME = "/ecat_master_repl";
 
 template<typename T, size_t N>
 struct SPSCQueue {
@@ -86,7 +87,7 @@ struct DiscoveredSlave {
     char name[32] {}; // 32 max safe length for SHM name
 };
 
-struct SharedBridge {
+struct SharedPubBridge {
     // Pub --> from EcatMaster to DDS
     SPSCQueue<ProtoSlot, 64> imu;
     SPSCQueue<ProtoSlot, 64> motor;
@@ -99,6 +100,16 @@ struct SharedBridge {
     alignas(64) std::atomic<uint32_t> topology_size {0};
     std::array<DiscoveredSlave, MAX_SLAVES_CAPACITY> topology {};
     
+    alignas(64) std::atomic<bool> mw_ready{false};
+    alignas(64) std::atomic<bool> rt_ready{false};
+};
+
+struct SharedReplBridge {
+    // Middleware -> EcatMaster (Repl_cmd)
+    SPSCQueue<ProtoSlot, 16> request;
+    // EcatMaster -> Middleware (Repl_info)
+    SPSCQueue<ProtoSlot, 16> reply;
+
     alignas(64) std::atomic<bool> mw_ready{false};
     alignas(64) std::atomic<bool> rt_ready{false};
 };

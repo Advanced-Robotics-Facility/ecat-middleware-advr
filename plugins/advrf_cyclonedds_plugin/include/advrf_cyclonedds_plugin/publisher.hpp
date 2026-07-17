@@ -619,6 +619,8 @@ class DdsAdapter : public MiddlewareAdapter {
 public:
     DdsAdapter() = default;
     ~DdsAdapter() override = default;
+
+    dds::domain::DomainParticipant& participant() { return dp_; }
     
     // TODO: this initialization needs to be modified in the future
     // We need to init (create) the publishers only if they are dinamically discovered by the network

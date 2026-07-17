@@ -5,7 +5,7 @@
   <description>SHM debug tools.</description>
 
   <maintainer email="hugo.pousseur@iit.it">Hugo POUSSEUR</maintainer>
-  <maintainer email="manuel.deluchi@iit.it">Manuel DELUCHI</maintainer>
+  <maintainer email="manuel.delucchi@iit.it">Manuel DELUCCHI</maintainer>
   <license>TODO</license>
 
   <buildtool_depend>cmake</buildtool_depend>

@@ -1,0 +1,29 @@
+robot:
+  name: pegasus  # Robot name, used as a prefix for ROS2 node and topic names
+  domain: 42   # ROS2 domain ID for isolating communication (default: 0)      
+  
+  joints:
+    - name: lf_haa_joint
+      ecat_id: 1
+    - name: lf_hfe_joint
+      ecat_id: 2
+    - name: lf_kfe_joint
+      ecat_id: 3
+    - name: rf_haa_joint
+      ecat_id: 4
+    - name: rf_hfe_joint
+      ecat_id: 5
+    - name: rf_kfe_joint
+      ecat_id: 6
+    - name: lh_haa_joint
+      ecat_id: 7
+    - name: lh_hfe_joint
+      ecat_id: 8
+    - name: lh_kfe_joint
+      ecat_id: 9
+    - name: rh_haa_joint
+      ecat_id: 10
+    - name: rh_hfe_joint
+      ecat_id: 11
+    - name: rh_kfe_joint
+      ecat_id: 12

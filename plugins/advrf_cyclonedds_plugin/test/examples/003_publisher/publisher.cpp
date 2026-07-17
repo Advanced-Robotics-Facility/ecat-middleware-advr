@@ -4,7 +4,9 @@
 #include <memory>
 #include <csignal>
 #include <string>
-
+#include <unordered_map>
+#include <unordered_set>
+#include <atomic>
 
 #include "advrf_cyclonedds_plugin/publisher.hpp"
 
@@ -12,6 +14,9 @@
 #include <ecat_master_future/shm_shared_types.hpp>
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/pdo_utils.hpp>
+
+#include "advrf_cyclonedds_plugin/service/service_server_cmd.hpp"
+#include "advrf_cyclonedds_plugin/config/config_topics.hpp"
 
 namespace {
 volatile std::sig_atomic_t keep_running = 1;
@@ -24,7 +29,7 @@ void on_signal(int)
 std::unique_ptr<SharedMemoryClient> wait_for_shared_memory()
 {
     while (keep_running) {
-        auto shm = std::make_unique<SharedMemoryClient>(SHM_NAME, sizeof(SharedBridge));
+        auto shm = std::make_unique<SharedMemoryClient>(SHM_NAME, sizeof(SharedPubBridge));
         if (shm->is_valid())
             return shm;
 
@@ -49,7 +54,7 @@ int main(int argc, char** argv)
     auto shm = wait_for_shared_memory();
     if (!shm) return 1;
 
-    auto* bridge = shm->get<SharedBridge>();
+    auto* bridge = shm->get<SharedPubBridge>();
     while (keep_running && !bridge->mw_ready.load()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
@@ -93,7 +98,6 @@ int main(int argc, char** argv)
             m_cfg.name = "motor_" + std::to_string(id);
             cfg->motors.push_back(m_cfg);
 
-            // Filter for joint_states: ONLY if it matches the configuration file
             if (valid_motor_ids.count(id)) {
                 JointConfig j_cfg;
                 j_cfg.ecat_id = id;
@@ -135,7 +139,25 @@ int main(int argc, char** argv)
         std::cerr << "[SHM-DDS Bridge] Failed to bind to target DDS channels." << std::endl;
         return 1;
     }
-    
+
+    // Repl/command service: mirrors the namespace convention used by ParameterServer
+    // ({"advrf", "robot"}) rather than a robot-name-derived namespace.
+    config::ConfigTopics repl_topics({"advrf", "robot"});
+    ServiceServerCmd service_server_cmd(repl_topics, dds_adapter.participant());
+
+    std::cout << "[SHM-DDS Bridge] Repl/command service ready." << std::endl;
+
+    // Repl service runs on its own thread since process_cmd_() blocks (up to 500ms)
+    // waiting on the shm round-trip; keeping it off the PDO forwarding loop avoids
+    // stalling telemetry whenever a command comes in.
+    std::thread repl_thread([&service_server_cmd]() {
+        std::cerr << "[repl_thread] polling..." << std::endl;
+        while (keep_running) {
+            service_server_cmd.spin_once();
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        }
+    });
+
     bridge->rt_ready.store(true);
 
     ShmProtoHelper proto_helper;
@@ -210,6 +232,8 @@ int main(int argc, char** argv)
 
     std::cout << "[SHM-DDS Bridge] Disconnected from shared memory pipeline. Shutting down." << std::endl;
     bridge->rt_ready.store(false);
+
+    repl_thread.join();
 
     return 0;
 }

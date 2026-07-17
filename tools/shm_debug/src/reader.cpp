@@ -9,17 +9,17 @@
 
 int main()
 {
-    SharedMemoryOpenOrCreate shm(SHM_NAME, sizeof(SharedBridge));
+    SharedMemoryOpenOrCreate shm(SHM_NAME, sizeof(SharedPubBridge));
 
     if (!shm.is_valid()) {
         std::cerr << "Failed to open/create shared memory.\n";
         return 1;
     }
 
-    auto* bridge = static_cast<SharedBridge*>(shm.raw_ptr());
+    auto* bridge = static_cast<SharedPubBridge*>(shm.raw_ptr());
 
     if (shm.created()) {
-        new (bridge) SharedBridge();
+        new (bridge) SharedPubBridge();
         std::cout << "Created shared memory.\n";
     }
 
