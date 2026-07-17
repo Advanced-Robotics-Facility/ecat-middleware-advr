@@ -84,13 +84,14 @@ install(
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
-option(BUILD_ECAT_PLUGIN_CYCLONEDDS_TESTS "Build ecat_plugin_cyclonedds tests" ON)
+option(BUILD_TEST_EXAMPLES "Build testing examples" ON)
+option(BUILD_TESTING "Build unit tests" ON)
 
-if(BUILD_ECAT_PLUGIN_CYCLONEDDS_TESTS)
+if(BUILD_TESTING)
     enable_testing()
+    add_subdirectory(test/unit)    
+endif()
 
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test/CMakeLists.txt")
-        add_subdirectory(test)
-    endif()
-    
+if(BUILD_TEST_EXAMPLES)
+    add_subdirectory(test/examples)    
 endif()

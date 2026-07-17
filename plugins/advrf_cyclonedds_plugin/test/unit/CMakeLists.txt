@@ -1,3 +1,5 @@
+include(CTest)
+
 function(plugin_test TEST_NAME TEST_SOURCE)
     add_executable(${TEST_NAME}
         ${TEST_SOURCE}
@@ -12,7 +14,7 @@ function(plugin_test TEST_NAME TEST_SOURCE)
 
     add_test(
         NAME ${TEST_NAME}
-        COMMAND ${TEST_NAME}
+        COMMAND $<TARGET_FILE:${TEST_NAME}>
     )
 endfunction()
 
@@ -24,4 +26,9 @@ plugin_test(
 plugin_test(
     002_parameter-server_001
     002_parameter-server/002_parameter-server_001.cpp
+)
+
+plugin_test(
+    003_converter_001_fromdds
+    003_converter/003_converter_001_fromdds.cpp
 )

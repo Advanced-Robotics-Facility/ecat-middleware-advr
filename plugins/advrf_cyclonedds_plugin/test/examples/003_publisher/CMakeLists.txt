@@ -17,11 +17,6 @@ target_compile_definitions(publisher PRIVATE
     ROBOT_CONFIG_DIR="${ecat_master_future_CONFIG_DIR}/robot.yaml"
 )
 
-add_test(
-    NAME publisher
-    COMMAND publisher
-)
-
 install(
     TARGETS publisher
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
