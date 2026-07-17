@@ -273,6 +273,11 @@ enum CmdType {
 
 }
 
+message Request_header {
+    uint32 guid = 1;
+    int32 seq = 2;
+}
+
 message Repl_cmd {
 
     // Identifies which field is filled in.
@@ -286,12 +291,11 @@ message Repl_cmd {
     FOE_Master         foe_master      =  7;
     Trj_queue_cmd      trj_queue_cmd   =  8;
     Slave_SDO_cmd      slave_sdo_cmd   =  9;
-    Slave_SDO_info     slave_sdo_info  = 10;
-    Motors_PDO_cmd     motors_pdo_cmd  = 11;
-    Slave_registry_write slave_registry_write = 12;
+    Slave_SDO_info     slave_sdo_info  =  10;
+    Motors_PDO_cmd     motors_pdo_cmd  =  11;
+    Slave_registry_write slave_registry_write = 132;
     // quick and dirty
     PDOs_aux_cmd       pdos_aux_cmd     = 99;
-        
 }
 
 message Cmd_reply {
@@ -304,11 +308,9 @@ message Cmd_reply {
     // Identifies which field is filled in.
     Type               type        = 1;
     CmdType            cmd_type    = 2;
-    string             msg         = 3;
-    
+    string             msg         = 3;    
     Header             header      = 4;
     string             pdo         = 5;
-    
 }
 
 message Trj_Status {
