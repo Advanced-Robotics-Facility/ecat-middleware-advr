@@ -67,6 +67,14 @@ struct TopicsState : public TopicNamespace
     std::string valve()       const { return rt("valve"); }
 };
 
+struct TopicsReplCmd : public TopicNamespace
+{
+    using TopicNamespace::TopicNamespace;
+
+    std::string request() const { return rq("replCmd/request"); }
+    std::string reply()   const { return rr("replCmd/reply"); }
+};
+
 struct TopicsParameters : public TopicNamespace
 {
     using TopicNamespace::TopicNamespace;
@@ -102,12 +110,14 @@ struct ConfigTopics
     explicit ConfigTopics(std::vector<std::string> ns)
         : state(ns),
           parameters(ns),
-        srv(ns)
+          srv(ns),
+          replCmd(ns)
     {}
 
     topics::TopicsState state;
     topics::TopicsParameters parameters;
     topics::TopicsServices srv;
+    topics::TopicsReplCmd replCmd;
 };
 
 } // namespace config

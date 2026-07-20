@@ -1,4 +1,4 @@
-#pragma 
+#pragma once
 #include <cstdint>
 #include <string>
 
@@ -10,7 +10,7 @@ namespace convert::protobuf {
     template<typename DDS_TYPE, typename PROTOBUF_TYPE>
     PROTOBUF_TYPE from_dds(const DDS_TYPE&) = delete;
 
-    iit::advrf::Time from_dds(const builtin_interfaces::msg::dds_::Time_& msgdds)
+    inline iit::advrf::Time from_dds(const builtin_interfaces::msg::dds_::Time_& msgdds)
     {
         iit::advrf::Time pb_time;
         pb_time.set_sec(msgdds.sec());
@@ -18,7 +18,7 @@ namespace convert::protobuf {
         return pb_time;
     }
 
-    iit::advrf::Header from_dds(const std_msgs::msg::dds_::Header_& msgdds)
+    inline iit::advrf::Header from_dds(const std_msgs::msg::dds_::Header_& msgdds)
     {
         iit::advrf::Header pb_header;
         pb_header.set_str_id(static_cast<std::string>(msgdds.frame_id()));
@@ -27,7 +27,7 @@ namespace convert::protobuf {
         return pb_header;
     }
 
-    iit::advrf::Gains from_dds(const advrf_interfaces::msg::dds_::Gains_& msgdds)
+    inline iit::advrf::Gains from_dds(const advrf_interfaces::msg::dds_::Gains_& msgdds)
     {
         iit::advrf::Gains pb;
         pb.set_type(static_cast<iit::advrf::Gains::Type>(msgdds.type()));
@@ -39,7 +39,7 @@ namespace convert::protobuf {
         return pb;
     }
 
-    iit::advrf::Trajectory_cmd from_dds(const advrf_interfaces::msg::dds_::TrajectoryCmd_& msgdds)
+    inline iit::advrf::Trajectory_cmd from_dds(const advrf_interfaces::msg::dds_::TrajectoryCmd_& msgdds)
     {
         iit::advrf::Trajectory_cmd pb_trj_cmd;
         pb_trj_cmd.set_type(static_cast<iit::advrf::Trajectory_cmd::Type>(msgdds.type()));
@@ -78,7 +78,7 @@ namespace convert::protobuf {
         return pb_trj_cmd;
     }
 
-    iit::advrf::Ctrl_cmd from_dds(const advrf_interfaces::msg::dds_::CtrlCmd_& msgdds)
+    inline iit::advrf::Ctrl_cmd from_dds(const advrf_interfaces::msg::dds_::CtrlCmd_& msgdds)
     {
         iit::advrf::Ctrl_cmd pb_ctrl_cmd;
         pb_ctrl_cmd.set_type(static_cast<iit::advrf::Ctrl_cmd::Type>(msgdds.type()));
@@ -88,7 +88,7 @@ namespace convert::protobuf {
         return pb_ctrl_cmd;
     }
 
-    iit::advrf::Flash_cmd from_dds(const advrf_interfaces::msg::dds_::FlashCmd_& msgdds)
+    inline iit::advrf::Flash_cmd from_dds(const advrf_interfaces::msg::dds_::FlashCmd_& msgdds)
     {
         iit::advrf::Flash_cmd pb_flash_cmd;
         pb_flash_cmd.set_type(static_cast<iit::advrf::Flash_cmd::Type>(msgdds.type()));
@@ -96,7 +96,7 @@ namespace convert::protobuf {
         return pb_flash_cmd;
     }
 
-    iit::advrf::Ecat_Master_cmd from_dds(const advrf_interfaces::msg::dds_::EcatMasterCmd_& msgdds)
+    inline iit::advrf::Ecat_Master_cmd from_dds(const advrf_interfaces::msg::dds_::EcatMasterCmd_& msgdds)
     {
         iit::advrf::Ecat_Master_cmd pb_ecat_master_cmd;
         pb_ecat_master_cmd.set_type(static_cast<iit::advrf::Ecat_Master_cmd::Type>(msgdds.type()));
@@ -109,7 +109,7 @@ namespace convert::protobuf {
         return pb_ecat_master_cmd;
     }
 
-    iit::advrf::FOE_Master from_dds(const advrf_interfaces::msg::dds_::FoeMaster_& msgdds)
+    inline iit::advrf::FOE_Master from_dds(const advrf_interfaces::msg::dds_::FoeMaster_& msgdds)
     {
         iit::advrf::FOE_Master pb_foe_master;
         pb_foe_master.set_filename(msgdds.filename());
@@ -121,7 +121,7 @@ namespace convert::protobuf {
     }   
 
 
-    iit::advrf::Trj_queue_cmd from_dds(const advrf_interfaces::msg::dds_::TrjQueueCmd_& msgdds)
+    inline iit::advrf::Trj_queue_cmd from_dds(const advrf_interfaces::msg::dds_::TrjQueueCmd_& msgdds)
     {
         iit::advrf::Trj_queue_cmd pb;
         pb.set_type(static_cast<iit::advrf::Trj_queue_cmd::Type>(msgdds.type()));
@@ -131,7 +131,7 @@ namespace convert::protobuf {
         return pb;
     }
 
-    iit::advrf::Slave_SDO_cmd from_dds(const advrf_interfaces::msg::dds_::SlaveSdoCmd_& msgdds)
+    inline iit::advrf::Slave_SDO_cmd from_dds(const advrf_interfaces::msg::dds_::SlaveSdoCmd_& msgdds)
     {
         iit::advrf::Slave_SDO_cmd pb;
         pb.set_board_id(msgdds.board_id());
@@ -146,7 +146,7 @@ namespace convert::protobuf {
         return pb;
     }
 
-    iit::advrf::Slave_SDO_info from_dds(const advrf_interfaces::msg::dds_::SlaveSdoInfo_& msgdds)
+    inline iit::advrf::Slave_SDO_info from_dds(const advrf_interfaces::msg::dds_::SlaveSdoInfo_& msgdds)
     {
         iit::advrf::Slave_SDO_info pb;
         pb.set_type(static_cast<iit::advrf::Slave_SDO_info::Type>(msgdds.type()));
@@ -156,7 +156,7 @@ namespace convert::protobuf {
 
  
 
-    iit::advrf::Motors_PDO_cmd from_dds(const advrf_interfaces::msg::dds_::MotorsPdoCmd_& msgdds)
+    inline iit::advrf::Motors_PDO_cmd from_dds(const advrf_interfaces::msg::dds_::MotorsPdoCmd_& msgdds)
     {
         iit::advrf::Motors_PDO_cmd pb;
         for(const auto& motor: msgdds.motors_pdo()) {
@@ -170,7 +170,7 @@ namespace convert::protobuf {
         return pb;
     }
 
-    iit::advrf::Slave_registry_write from_dds(const advrf_interfaces::msg::dds_::SlaveRegistryWrite_& msgdds)
+    inline iit::advrf::Slave_registry_write from_dds(const advrf_interfaces::msg::dds_::SlaveRegistryWrite_& msgdds)
     {
         iit::advrf::Slave_registry_write pb;
         pb.set_type(static_cast<iit::advrf::Slave_registry_write::Type>(msgdds.type()));
@@ -178,7 +178,7 @@ namespace convert::protobuf {
         return pb;
     }
 
-    iit::advrf::PDOs_aux_cmd from_dds(const advrf_interfaces::msg::dds_::PdoAuxCmd_& msgdds)
+    inline iit::advrf::PDOs_aux_cmd from_dds(const advrf_interfaces::msg::dds_::PdoAuxCmd_& msgdds)
     {
         iit::advrf::PDOs_aux_cmd pb;
         for(const auto& aux_cmd: msgdds.aux_cmds()) {
@@ -189,7 +189,7 @@ namespace convert::protobuf {
         return pb;
     }
 
-    iit::advrf::Request_header from_dds(const rcl_interfaces::msg::dds_::RequestHeader_& msgdds)
+    inline iit::advrf::Request_header from_dds(const rcl_interfaces::msg::dds_::RequestHeader_& msgdds)
     {
         iit::advrf::Request_header pb;
         pb.set_guid(msgdds.guid());
@@ -197,7 +197,7 @@ namespace convert::protobuf {
         return pb;
     }
 
-    iit::advrf::Repl_cmd from_dds(const advrf_interfaces::srv::dds_::ReplCmd_Request_& request)
+    inline iit::advrf::Repl_cmd from_dds(const advrf_interfaces::srv::dds_::ReplCmd_Request_& request)
     {
         iit::advrf::Repl_cmd pb_repl_cmd;
         pb_repl_cmd.set_type(static_cast<iit::advrf::CmdType>(request.type()));
@@ -217,14 +217,6 @@ namespace convert::protobuf {
 
         return pb_repl_cmd;
     }
-
-    iit::advrf::Cmd_reply from_shm(const SHMBaseSrv& shm_repl_cmd)
-    {
-        iit::advrf::Cmd_reply pb_reply;
-        //TODO
-        return pb_reply;
-    }
-
 }
 
 namespace convert::dds {
@@ -232,7 +224,7 @@ namespace convert::dds {
     DDS_TYPE from_protobuf(const PROTOBUF_TYPE&) = delete;
     
      
-    advrf_interfaces::srv::dds_::ReplCmd_Response_ from_protobuf(const iit::advrf::Cmd_reply& pb)
+    inline advrf_interfaces::srv::dds_::ReplCmd_Response_ from_protobuf(const iit::advrf::Cmd_reply& pb)
     {
         advrf_interfaces::srv::dds_::ReplCmd_Response_ reply;
         reply.type() = static_cast<uint8_t>(pb.type());
@@ -244,20 +236,3 @@ namespace convert::dds {
         return reply;
     }
 };
-
-namespace convert::shm {
-    template<typename SHM_TYPE, typename PROTOBUF_TYPE>
-    SHM_TYPE from_protobuf(const PROTOBUF_TYPE&) = delete;
-
-    void from_protobuf(const iit::advrf::Repl_cmd& pb, SHMBaseSrv& shm)
-    {
-        
-    }
-};
-
-
-// template<>
-// MyProto from_dds<MyDDS, MyProto>(const MyDDS& msg)
-// {
-//     ...
-// }

@@ -7,12 +7,12 @@
 #include <string>
 #include <vector>
 
-
 #include "ecat_master_future/shm_utils.hpp" 
 #include "ecat_master_future/shm_shared_types.hpp" 
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
-#include <advrf_middleware_core/robot_config.hpp>
 
+#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
+#include <advrf_interfaces_protobuf/repl_cmd.pb.h>
+#include <advrf_middleware_core/robot_config.hpp>
 
 namespace {
 volatile std::sig_atomic_t keep_running = 1;
@@ -132,16 +132,25 @@ int main(int argc, char** argv)
     auto cfg = load_robot_config(ROBOT_CONFIG_DIR);
     if (!cfg) return 1;
 
-    std::cout << "[Producer] Initializing shared memory segment: " << SHM_NAME << std::endl;
+    std::cout << "[Producer] Initializing shared memory segment: " << SHM_NAME << '\n';
 
-    SharedMemoryOwner shm(SHM_NAME, sizeof(SharedBridge));
+    // Publisher SHM
+    SharedMemoryOwner shm(SHM_NAME, sizeof(SharedPubBridge));
     if (!shm.is_valid()) {
-        std::cerr << "Failed to allocate or map shared memory segment." << std::endl;
+        std::cerr << "Failed to allocate or map shared memory segment." << '\n';
         return 1;
     }
+    auto* bridge = shm.get<SharedPubBridge>();
+    new (bridge) SharedPubBridge{};
 
-    auto* bridge = shm.get<SharedBridge>();
-    new (bridge) SharedBridge{};
+    // REPL SHM
+    SharedMemoryOwner repl_shm(SHM_REPL_NAME, sizeof(SharedReplBridge));
+    if (!repl_shm.is_valid()) {
+        std::cerr << "Failed to allocate repl shared memory segment." << '\n';
+        return 1;
+    }
+    auto* repl_bridge = repl_shm.get<SharedReplBridge>();
+    new (repl_bridge) SharedReplBridge{};
 
     // Dynamic Discovery Generation Loop
     uint32_t slave_idx = 0;
@@ -176,6 +185,7 @@ int main(int argc, char** argv)
     bridge->topology_size.store(slave_idx);
     bridge->mw_ready.store(true);
     bridge->rt_ready.store(false);
+    repl_bridge->rt_ready.store(true);
 
     std::cout << "\n=======================================\n";
     std::cout << "[Producer] Bus Discovery Finished. Total Slaves Registered: " << slave_idx << "\n";
@@ -191,6 +201,9 @@ int main(int argc, char** argv)
     }
     std::cout << "=========================================\n\n";
 
+    ShmProtoHelper repl_proto_helper;
+    iit::advrf::Repl_cmd cmd_msg;
+     
     ShmProtoHelper proto_helper;
     double t = 0.0;
     uint64_t sample_count = 0;
@@ -199,6 +212,49 @@ int main(int argc, char** argv)
     auto next_tick = std::chrono::steady_clock::now();
     while (keep_running) {
         
+        repl_proto_helper.drain(repl_bridge->request, cmd_msg, [&](const iit::advrf::Repl_cmd& cmd) {
+            iit::advrf::Cmd_reply reply;
+            reply.set_type(iit::advrf::Cmd_reply::ACK);
+            reply.set_cmd_type(cmd.type());
+            reply.set_msg("test ack received");
+
+            if (cmd.type() == iit::advrf::CmdType::ECAT_MASTER_CMD) {
+                const auto& ecat_cmd = cmd.ecat_master_cmd();
+
+                switch (ecat_cmd.type()) {
+                    case iit::advrf::Ecat_Master_cmd::GET_SLAVES_DESCR: {
+                        const uint32_t n = bridge->topology_size.load();
+
+                        std::ostringstream oss;
+                        oss << n << " slaves: ";
+                        for (uint32_t i = 0; i < n; ++i) {
+                            const auto& slave = bridge->topology[i];
+                            oss << slave.name << "(id=" << slave.board_id << ") ";
+                        }
+
+                        reply.set_msg(oss.str());
+                        break;
+                    }
+
+                    case iit::advrf::Ecat_Master_cmd::START_MASTER:
+                        reply.set_msg("mock: master already running (no-op)");
+                        break;
+
+                    case iit::advrf::Ecat_Master_cmd::STOP_MASTER:
+                        reply.set_msg("mock: stop not implemented in mock master");
+                        break;
+
+                    default:
+                        reply.set_msg("mock: unhandled Ecat_Master_cmd type");
+                        break;
+                }
+            }
+
+            if (!repl_proto_helper.push(repl_bridge->reply, reply)) {
+                std::cerr << "[Producer] Failed to push repl reply (queue full)" << '\n';
+            }
+        });
+
         for (uint32_t i = 0; i < slave_idx; ++i) {
             const auto& slave = bridge->topology[i];
 
@@ -218,7 +274,7 @@ int main(int argc, char** argv)
 
         if (!bridge_seen && bridge->rt_ready.load()) {
             bridge_seen = true;
-            std::cout << "[Producer] DDS bridge connected." << std::endl;
+            std::cout << "[Producer] DDS bridge connected." << '\n';
         }
 
         next_tick += std::chrono::milliseconds(1);

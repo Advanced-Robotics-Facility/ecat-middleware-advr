@@ -301,7 +301,7 @@ message Repl_cmd {
 message Cmd_reply {
 
    enum Type { 
-    _UNSPECIFIED = 0;
+        _UNSPECIFIED = 0;
         ACK  = 1;
         NACK = 2;
     }

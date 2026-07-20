@@ -2,72 +2,80 @@ robot:
   name: kyon   # Robot name, used as a prefix for ROS2 node and topic names
 
   joints:
+
     # Arm1
     - name: shoulder_yaw_1
-      ecat_id: 11
+      ecat_id: 51
     - name: shoulder_pitch_1
-      ecat_id: 12
+      ecat_id: 52
     - name: elbow_pitch_1
-      ecat_id: 13
+      ecat_id: 53
     - name: wrist_pitch_1
-      ecat_id: 14
+      ecat_id: 54
     - name: wrist_yaw_1
-      ecat_id: 15
+      ecat_id: 55
     - name: dagana_1_clamp_joint
       ecat_id: 101
+      type: gripper
+
     # Arm2
     - name: shoulder_yaw_2
-      ecat_id: 21
+      ecat_id: 61
     - name: shoulder_pitch_2
-      ecat_id: 22
+      ecat_id: 62
     - name: elbow_pitch_2
-      ecat_id: 23
+      ecat_id: 63
     - name: wrist_pitch_2
-      ecat_id: 24
+      ecat_id: 64
     - name: wrist_yaw_2
-      ecat_id: 25
+      ecat_id: 65
     - name: dagana_2_clamp_joint
       ecat_id: 102
+      type: gripper
+
     # Leg1
     - name: hip_roll_1
-      ecat_id: 31
+      ecat_id: 11
     - name: hip_pitch_1
-      ecat_id: 32
+      ecat_id: 12
     - name: knee_pitch_1
-      ecat_id: 33
+      ecat_id: 13
     # - name: ankle_yaw_1
     #   ecat_id: 16
     # - name: wheel_joint_1
     #   ecat_id: 17
+
     # Leg2
     - name: hip_roll_2
-      ecat_id: 41
+      ecat_id: 21
     - name: hip_pitch_2
-      ecat_id: 42
+      ecat_id: 22
     - name: knee_pitch_2
-      ecat_id: 43
+      ecat_id: 23
     # - name: ankle_yaw_2
     #   ecat_id: 21
     # - name: wheel_joint_2
     #   ecat_id: 22
+
     # Leg3
     - name: hip_roll_3
-      ecat_id: 51
+      ecat_id: 31
     - name: hip_pitch_3
-      ecat_id: 52
+      ecat_id: 32
     - name: knee_pitch_3
-      ecat_id: 53
+      ecat_id: 33
     # - name: ankle_yaw_3
     #   ecat_id: 26
     # - name: wheel_joint_3
     #   ecat_id: 27
+
     # Leg4
     - name: hip_roll_4
-      ecat_id: 61
+      ecat_id: 41
     - name: hip_pitch_4
-      ecat_id: 62
+      ecat_id: 42
     - name: knee_pitch_4
-      ecat_id: 63
+      ecat_id: 43
     # - name: ankle_yaw_4
     #   ecat_id: 31
     # - name: wheel_joint_4

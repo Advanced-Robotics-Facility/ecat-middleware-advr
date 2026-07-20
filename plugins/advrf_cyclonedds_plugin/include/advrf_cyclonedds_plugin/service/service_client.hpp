@@ -1,11 +1,9 @@
 #pragma once
 
 #include <chrono>
-#include <functional>
 #include <optional>
 #include <string>
 #include <thread>
-#include <utility>
 
 #include <dds/dds.hpp>
 #include <dds/dds.h>

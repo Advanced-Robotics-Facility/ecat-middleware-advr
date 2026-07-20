@@ -1,85 +1,87 @@
 #include "advrf_cyclonedds_plugin/service/service_server_cmd.hpp"
-#include <cfloat>
+#include <ecat_master_future/shm_utils.hpp>
+#include <ecat_master_future/shm_shared_types.hpp>
+#include <chrono>
+#include <thread>
+#include <iostream>
 
-
- ServiceServerCmd::ServiceServerCmd(const config::ConfigTopics& config_topics,
-                     dds::domain::DomainParticipant& participant): 
-            server_(participant,
-                config_topics.srv.getCmdRequest(),
-                config_topics.srv.getCmdReply())
+bool ServiceServerCmd::connect_shm_()
 {
-    server_.set_callback(
-        [this](const RequestDDS& request)
-        {
-            return process_cmd_dds(request);
-        });
+    while (true) {
+        repl_shm_ = std::make_unique<SharedMemoryClient>(SHM_REPL_NAME, sizeof(SharedReplBridge));
+        if (repl_shm_->is_valid())
+            break;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
 
-}
+    repl_bridge_ = repl_shm_->get<SharedReplBridge>();
 
+    while (!repl_bridge_->rt_ready.load()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
 
-bool ServiceServerCmd::write_to_shm(const SHMBaseSrv& shm_content)
-{
+    repl_bridge_->mw_ready.store(true);
     return true;
 }
 
-bool ServiceServerCmd::read_from_shm(const SHMRequestInfo& shm_request_info, ResponseProtobuf& shm_output)
+ServiceServerCmd::ServiceServerCmd(const config::ConfigTopics& config_topics,
+                                    dds::domain::DomainParticipant& participant)
+    : server_(participant, config_topics.replCmd.request(), config_topics.replCmd.reply())
 {
-    const SHMBaseSrv shm_recv; // TODO: read from shm
-    const bool is_same_req = true; //TODO: shm_recv.request_info.header == shm_reference.request_info.header;
-    const bool is_ready = true; // TODO: shm_recv.request_info.status == READY;
-    if(is_same_req && is_ready) {
-        // TODO: convert from shm to protobuf
-        shm_output = convert::protobuf::from_shm(shm_recv);
-        return true;
-    }
-    return false;
+    connect_shm_();
+
+    server_.set_callback([this](const RequestDDS& req) {
+        return process_cmd_(req);
+    });
 }
 
-ResponseDDS ServiceServerCmd::process_cmd_dds(const RequestDDS& request)
+ResponseDDS ServiceServerCmd::process_cmd_(const RequestDDS& request)
 {
-    // convert to protobuf
-    RequestProtobuf pb_repl_cmd = convert::protobuf::from_dds(request);
-    RequestHeaderProtobuf pb_request_header = convert::protobuf::from_dds(request.request_id());
-    
-    ResponseDDS dds_reply;
-    ResponseProtobuf pb_reply;
+    RequestProtobuf pb_req = convert::protobuf::from_dds(request);
+    ResponseProtobuf pb_resp = process_cmd_(pb_req);
+    ResponseDDS resp = convert::dds::from_protobuf(pb_resp);
+    resp.request_id() = request.request_id();
+    return resp;
+}
 
-    // convert to shm
-    SHMBaseSrv shm_repl_cmd;
-    convert::shm::from_protobuf(pb_repl_cmd, shm_repl_cmd); // TODO
+ResponseProtobuf ServiceServerCmd::process_cmd_(const RequestProtobuf& request)
+{    
+    std::cerr << "[ServiceServerCmd] Got DDS request, type=" << request.type() << std::endl;
+    ResponseProtobuf reply{};
 
-    // write to shm
-    bool shm_write_success = write_to_shm(shm_repl_cmd);
-    if (!shm_write_success)
-    {
-        dds_reply.request_id(request.request_id());
-        dds_reply.success(false);
-        dds_reply.msg("Failed to write to shared memory");
-        return dds_reply;
+    if (!repl_bridge_ || !repl_bridge_->rt_ready.load()) {
+        std::cerr << "[ServiceServerCmd] repl_bridge_ null or rt_ready=false" << std::endl;
+        reply.set_type(iit::advrf::Cmd_reply::NACK);
+        reply.set_msg("ecat master not connected");
+        return reply;
     }
 
-    // wait for response from shm
-    bool is_timeout = false; // TODO
-    while (!is_timeout && !read_from_shm(shm_repl_cmd.request_info, pb_reply))
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    if (!proto_helper_.push(repl_bridge_->request, request)) {
+        std::cerr << "[ServiceServerCmd] push to request queue FAILED" << std::endl;
+        reply.set_type(iit::advrf::Cmd_reply::NACK);
+        reply.set_msg("shm request queue full");
+        return reply;
     }
 
-    // handle is timeout case
-    if(is_timeout)
-    {
-        dds_reply.request_id(request.request_id());
-        dds_reply.success(false);
-        dds_reply.msg("Timeout while waiting for response from shared memory");
-        // TODO clear shm;
-        return dds_reply;
+    std::cerr << "[ServiceServerCmd] pushed request to shm, waiting for reply..." << std::endl;
+
+
+    ProtoSlot frame;
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(500);
+
+    while (std::chrono::steady_clock::now() < deadline) {
+        if (proto_helper_.pop_latest_frame(repl_bridge_->reply, frame)) {
+            uint32_t payload_size = 0;
+            if (ShmProtoHelper::frame_payload_size(frame, payload_size) &&
+                reply.ParseFromArray(frame.data + PROTO_FRAME_HEADER_BYTES,
+                                      static_cast<int>(payload_size))) {
+                return reply;
+            }
+        }
+        std::this_thread::sleep_for(std::chrono::microseconds(200));
     }
 
-    // convert from shm to protobuf
-
-    dds_reply = convert::dds::from_protobuf(pb_reply);
-    dds_reply.request_id(request.request_id());
-    dds_reply.success(true);
-
-    return dds_reply;
+    reply.set_type(iit::advrf::Cmd_reply::NACK);
+    reply.set_msg("timeout waiting for ecat master reply");
+    return reply;
 }

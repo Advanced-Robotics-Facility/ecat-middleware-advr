@@ -1,3 +1,4 @@
 add_subdirectory(001_services)
 add_subdirectory(002_parameters)
 add_subdirectory(003_publisher)
+add_subdirectory(004_repl_client)
