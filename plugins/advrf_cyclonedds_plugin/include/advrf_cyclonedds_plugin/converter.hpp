@@ -4,7 +4,11 @@
 
 #include <advrf_interfaces_protobuf/repl_cmd.pb.h>
 #include <advrf_interfaces/srv/ReplCmd.hpp>
-#include "advrf_cyclonedds_plugin/service/shm_data.hpp"
+// #include "advrf_cyclonedds_plugin/service/shm_data.hpp"
+
+
+#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
+#include <advrf_interfaces/msg/Imu.hpp>
 
 namespace convert::protobuf {
     template<typename DDS_TYPE, typename PROTOBUF_TYPE>
@@ -218,12 +222,6 @@ namespace convert::protobuf {
         return pb;
     }
 
-    inline iit::advrf::Cmd_reply from_shm(const SHMBaseSrv& shm_repl_cmd)
-    {
-        iit::advrf::Cmd_reply pb_reply;
-        //TODO
-        return pb_reply;
-    }
 };
 
 namespace convert::dds {
@@ -243,14 +241,38 @@ namespace convert::dds {
         return dds_response;
     }
 
+
+    inline advrf_interfaces::msg::dds_::Imu_ from_protobuf(const iit::advrf::ImuVN_rx_pdo& pb)
+    {
+        advrf_interfaces::msg::dds_::Imu_ ddsmsg;
+
+        ddsmsg.linear_acceleration().x()  = pb.x_acc();
+        ddsmsg.linear_acceleration().y()  = pb.y_acc();
+        ddsmsg.linear_acceleration().z()  = pb.z_acc();
+    
+        ddsmsg.angular_velocity().x()     = pb.x_rate();
+        ddsmsg.angular_velocity().y()     = pb.y_rate();
+        ddsmsg.angular_velocity().z()     = pb.z_rate();
+        
+        ddsmsg.orientation().x()          = pb.x_quat();
+        ddsmsg.orientation().y()          = pb.y_quat();
+        ddsmsg.orientation().z()          = pb.z_quat();
+        ddsmsg.orientation().w()          = pb.w_quat();
+        
+        ddsmsg.imu_ts()                   = pb.imu_ts();
+        ddsmsg.temperature()              = pb.temperature();
+        ddsmsg.digital_in()               = pb.digital_in();
+        ddsmsg.fault()                    = pb.fault();
+        ddsmsg.rtt()                      = pb.rtt();
+
+        return ddsmsg;
+    }
+
 };
 
 namespace convert::shm {
     template<typename SHM_TYPE, typename PROTOBUF_TYPE>
     SHM_TYPE from_protobuf(const PROTOBUF_TYPE&) = delete;
 
-    inline void from_protobuf(const iit::advrf::Repl_cmd& pb, SHMBaseSrv& shm)
-    {
-        
-    }
+    
 };

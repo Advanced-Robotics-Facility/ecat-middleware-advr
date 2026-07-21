@@ -8,15 +8,12 @@
 #include <unordered_set>
 #include <atomic>
 
-#include "advrf_cyclonedds_plugin/publisher.hpp"
-
 #include <ecat_master_future/shm_utils.hpp> 
 #include <ecat_master_future/shm_shared_types.hpp>
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/pdo_utils.hpp>
 
-#include "advrf_cyclonedds_plugin/service/service_server_cmd.hpp"
-#include "advrf_cyclonedds_plugin/config/config_topics.hpp"
+#include "advrf_cyclonedds_plugin/publisher.hpp"
 
 namespace {
 volatile std::sig_atomic_t keep_running = 1;
@@ -140,19 +137,6 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    config::ConfigTopics repl_topics({"advrf", "robot"});
-    ServiceServerCmd service_server_cmd(repl_topics, dds_adapter.participant());
-
-    std::cout << "[SHM-DDS Bridge] Repl/command service ready." << std::endl;
-
-    std::thread repl_thread([&service_server_cmd]() {
-        std::cerr << "[repl_thread] polling..." << std::endl;
-        while (keep_running) {
-            service_server_cmd.spin_once();
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
-        }
-    });
-
     bridge->rt_ready.store(true);
 
     ShmProtoHelper proto_helper;
@@ -227,8 +211,6 @@ int main(int argc, char** argv)
 
     std::cout << "[SHM-DDS Bridge] Disconnected from shared memory pipeline. Shutting down." << std::endl;
     bridge->rt_ready.store(false);
-
-    repl_thread.join();
 
     return 0;
 }

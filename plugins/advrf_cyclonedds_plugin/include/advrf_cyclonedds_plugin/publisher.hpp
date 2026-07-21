@@ -8,6 +8,7 @@
 #include <advrf_middleware_core/msg.hpp>
 #include <advrf_middleware_core/mw_adapter.hpp>
 #include <advrf_middleware_core/robot_config.hpp>
+#include <advrf_middleware_core/utils/log.hpp>
 
 /* Include the C++ DDS API. */
 #include "dds/dds.hpp"
@@ -71,7 +72,7 @@ class DdsPublisher {
                 return true;
             } 
             catch (const dds::core::Exception& e) {
-                std::cerr << "DDS Pub Init Error: " << e.what() << '\n';
+                LOG_ERROR("DDS Pub Init Error: {}", e.what());
                 return false;
             }
         }
@@ -135,7 +136,7 @@ public:
         try {
             writer_.write(joint_state_);
         } catch (const dds::core::Exception& e) {
-            std::cerr << "[JointStatePublisher] Write error: " << e.what() << '\n';
+            LOG_ERROR("[JointStatePublisher] Write error: {}", e.what());
         }
     }
 
@@ -210,7 +211,7 @@ public:
         try {
             writer_.write(imu_);
         } catch (const dds::core::Exception& e) {
-            std::cerr << "[ImuPublisher] Write error: " << e.what() << '\n';
+            LOG_ERROR("[ImuPublisher] Write error: {}", e.what());
         }
     }
 
@@ -269,7 +270,7 @@ public:
         try {
             writer_.write(ft_);
         } catch (const dds::core::Exception& e) {
-            std::cerr << "[ForceTorquePublisher] Write error: " << e.what() << '\n';
+            LOG_ERROR("[ForceTorquePublisher] Write error: {}", e.what());
         }
     }
 
@@ -352,7 +353,7 @@ public:
         try {
             writer_.write(motor_);
         } catch (const dds::core::Exception& e) {
-            std::cerr << "[MotorPublisher] Write error: " << e.what() << '\n';
+            LOG_ERROR("[MotorPublisher] Write error: {}", e.what());
         }
     }
 
@@ -412,7 +413,7 @@ public:
         try {
             writer_.write(pb_);
         } catch (const dds::core::Exception& e) {
-            std::cerr << "[PowerBoardPublisher] Write error: " << e.what() << '\n';
+            LOG_ERROR("[PowerBoardPublisher] Write error: {}", e.what());
         }
     }
 
@@ -473,7 +474,7 @@ public:
         try {
             writer_.write(pump_);
         } catch (const dds::core::Exception& e) {
-            std::cerr << "[PumpPublisher] Write error: " << e.what() << '\n';
+            LOG_ERROR("[PumpPublisher] Write error: {}", e.what());
         }
     }
 
@@ -545,7 +546,7 @@ public:
         try {
             writer_.write(valve_);
         } catch (const dds::core::Exception& e) {
-            std::cerr << "[ValvePublisher] Write error: " << e.what() << '\n';
+            LOG_ERROR("[ValvePublisher] Write error: {}", e.what());
         }
     }
 
@@ -602,7 +603,7 @@ public:
         try {
             writer_.write(gripper_);
         } catch (const dds::core::Exception& e) {
-            std::cerr << "[GripperPublisher] Write error: " << e.what() << '\n';
+            LOG_ERROR("[GripperPublisher] Write error: {}", e.what());
         }
     }
 
@@ -631,32 +632,32 @@ public:
  
             imu_pub_ = std::make_unique<ImuPublisher>();
             if (!imu_pub_->init(cfg.robot_name, dp_)) {
-                std::cerr << "[DDS] Failed to init ImuPublisher\n";
+                LOG_ERROR("[DDS] Failed to init ImuPublisher");
                 return false;
             }
  
             force_torque_pub_ = std::make_unique<ForceTorquePublisher>();
             if (!force_torque_pub_->init(cfg.robot_name, dp_)) {
-                std::cerr << "[DDS] Failed to init ForceTorquePublisher\n";
+                LOG_ERROR("[DDS] Failed to init ForceTorquePublisher");
                 return false;
             }
  
             power_board_pub_ = std::make_unique<PowerBoardPublisher>();
             if (!power_board_pub_->init(cfg.robot_name, dp_)) {
-                std::cerr << "[DDS] Failed to init PowerBoardPublisher\n";
+                LOG_ERROR("[DDS] Failed to init PowerBoardPublisher");
                 return false;
             }
  
             pump_pub_ = std::make_unique<PumpPublisher>();
             if (!pump_pub_->init(cfg.robot_name, dp_)) {
-                std::cerr << "[DDS] Failed to init PumpPublisher\n";
+                LOG_ERROR("[DDS] Failed to init PumpPublisher");
                 return false;
             }
 
             if (!cfg.motors.empty() || !cfg.valves.empty() || !cfg.grippers.empty()) {
                 joint_state_pub_ = std::make_unique<JointStatePublisher>();
                 if (!joint_state_pub_->init(cfg.joint_names(), cfg.robot_name, dp_)) {
-                    std::cerr << "[DDS] Failed to init JointStatePublisher\n";
+                    LOG_ERROR("[DDS] Failed to init JointStatePublisher");
                     return false;
                 }
             }
@@ -664,7 +665,7 @@ public:
             if (!cfg.valves.empty()) {
                 valve_pub_ = std::make_unique<ValvePublisher>();
                 if (!valve_pub_->init(cfg.valve_names(), cfg.robot_name, dp_)) {
-                    std::cerr << "[DDS] Failed to init ValvePublisher\n";
+                    LOG_ERROR("[DDS] Failed to init ValvePublisher");
                     return false;
                 }
             }
@@ -672,7 +673,7 @@ public:
             if (!cfg.motors.empty()) {
                 motor_pub_ = std::make_unique<MotorPublisher>();
                 if (!motor_pub_->init(cfg.motor_names(), cfg.robot_name, dp_)) {
-                    std::cerr << "[DDS] Failed to init MotorPublisher\n";
+                    LOG_ERROR("[DDS] Failed to init MotorPublisher");
                     return false;
                 }
             }
@@ -680,7 +681,7 @@ public:
             if (!cfg.grippers.empty()) {
                 gripper_pub_ = std::make_unique<GripperPublisher>();
                 if (!gripper_pub_->init(cfg.gripper_names(), cfg.robot_name, dp_)) {
-                    std::cerr << "[DDS] Failed to init GripperPublisher\n";
+                    LOG_ERROR("[DDS] Failed to init GripperPublisher");
                     return false;
                 }
             }
@@ -688,7 +689,7 @@ public:
             return true;
 
         } catch (const dds::core::Exception& e) {
-            std::cerr << "[DDS Adapter] Initialization error: " << e.what() << '\n';
+            LOG_ERROR("[DDS Adapter] Initialization error: {}", e.what());
             return false;
         }
 

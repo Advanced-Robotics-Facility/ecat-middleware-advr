@@ -42,6 +42,15 @@ target_link_libraries(advrf_cyclonedds_plugin
         advrf_interfaces_protobuf
         ecat_master_future
         CycloneDDS-CXX::ddscxx
+        spdlog::spdlog
+)
+
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
+target_compile_definitions(advrf_cyclonedds_plugin PUBLIC
+    $<$<CONFIG:Debug>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE>
+    $<$<CONFIG:RelWithDebInfo>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG>
+    $<$<CONFIG:Release>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_INFO>
 )
 
 install(

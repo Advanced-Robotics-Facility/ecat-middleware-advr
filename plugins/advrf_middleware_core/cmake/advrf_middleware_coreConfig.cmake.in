@@ -1,6 +1,9 @@
 @PACKAGE_INIT@
 
 include(CMakeFindDependencyMacro)
+
 find_dependency(advrf_interfaces_protobuf)
+find_dependency(spdlog)
+
 include("${CMAKE_CURRENT_LIST_DIR}/advrf_middleware_coreTargets.cmake")
 check_required_components(advrf_middleware_core)

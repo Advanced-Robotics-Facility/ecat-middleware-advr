@@ -6,12 +6,12 @@ project(advrf_middleware_core
 )
 
 find_package(advrf_interfaces_protobuf REQUIRED)
+find_package(spdlog REQUIRED)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 add_library(advrf_middleware_core INTERFACE)
-# add_library(advrf_middleware_core ALIAS mw_core)
 
 target_compile_features(advrf_middleware_core
     INTERFACE
@@ -27,7 +27,9 @@ target_include_directories(advrf_middleware_core
 target_link_libraries(advrf_middleware_core
     INTERFACE
         advrf_interfaces_protobuf
+        spdlog::spdlog
 )
+
 install(
     TARGETS advrf_middleware_core
     EXPORT advrf_middleware_coreTargets

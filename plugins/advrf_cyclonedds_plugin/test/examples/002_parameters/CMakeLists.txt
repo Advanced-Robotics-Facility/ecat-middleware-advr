@@ -1,8 +1,8 @@
-add_executable(002_parameters_parameter-client
-    002_parameters_parameter-client.cpp
+add_executable(002_parameters_parameter_client
+    002_parameters_parameter_client.cpp
 )
 
-target_link_libraries(002_parameters_parameter-client
+target_link_libraries(002_parameters_parameter_client
     PRIVATE
         advrf_cyclonedds_plugin
         advrf_interfaces_dds
@@ -10,15 +10,15 @@ target_link_libraries(002_parameters_parameter-client
 )
 
 install(
-    TARGETS 002_parameters_parameter-client
+    TARGETS 002_parameters_parameter_client
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-add_executable(002_parameters_parameter-server
-    002_parameters_parameter-server.cpp
+add_executable(002_parameters_parameter_server
+    002_parameters_parameter_server.cpp
 )
 
-target_link_libraries(002_parameters_parameter-server
+target_link_libraries(002_parameters_parameter_server
     PRIVATE
         advrf_cyclonedds_plugin
         advrf_interfaces_dds
@@ -26,6 +26,6 @@ target_link_libraries(002_parameters_parameter-server
 )
 
 install(
-    TARGETS 002_parameters_parameter-server
+    TARGETS 002_parameters_parameter_server
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
