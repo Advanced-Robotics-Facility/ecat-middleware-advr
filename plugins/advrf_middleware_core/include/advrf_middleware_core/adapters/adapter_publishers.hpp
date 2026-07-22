@@ -3,12 +3,12 @@
 #include "advrf_middleware_core/robot_config.hpp"
 #include "advrf_middleware_core/utils/log.hpp"
 #include "advrf_middleware_core/pdo_utils.hpp"
+#include "advrf_middleware_core/shared_memory/shm_connection_publishers.hpp"
+#include "advrf_middleware_core/utils/channel.hpp"
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <ecat_master_future/shm_shared_types.hpp>
-
 #include <ecat_master_future/shm_utils.hpp>
-
 
 
 inline std::unique_ptr<SharedMemoryClient> wait_for_shared_memory()
@@ -33,16 +33,6 @@ public:
 
     using Pdo = iit::advrf::Ec_slave_pdo;
     using Queue = decltype(SharedPubBridge::imu); // supposed all queues have the same type, which is true for now
-    
-    enum class Channel : std::size_t
-    {
-        Imu,
-        Motor,
-        Gripper,
-        Pump,
-        PowerBoard,
-        Count
-    };
 
     class ICallback
     {
@@ -60,60 +50,20 @@ public:
         std::vector<Channel> channels;
     };
 
+
     AdapterPublishers() = default;
-    AdapterPublishers(SharedPubBridge* bridge)
-        : bridge_(bridge){}
     virtual ~AdapterPublishers() = default;
 
     virtual bool init(const RobotConfig& cfg) = 0;
 
-    bool shm_connect()
+    PublisherShmConnection& shm()
     {
-        shm_ = wait_for_shared_memory();
-         if (!shm_) return false;
-
-        bridge_.reset(shm_->get<SharedPubBridge>());
-        while (!bridge_->mw_ready.load()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
-
-        channel_map_ = {
-            {Channel::Imu,        &bridge_->imu},
-            {Channel::Motor,      &bridge_->motor},
-            {Channel::Gripper,    &bridge_->gripper},
-            {Channel::Pump,       &bridge_->pump},
-            {Channel::PowerBoard, &bridge_->power_board},
-        };
-
-        return true;
+        return shm_;
     }
 
-    void shm_declare_ready()
+    const PublisherShmConnection& shm() const
     {
-        if(bridge_ == nullptr) {
-            LOG_ERROR("Bridge not setup");
-            return;
-        }
-        bridge_->rt_ready.store(true);
-    }
-
-    void shm_declare_not_ready()
-    {
-        if(bridge_ == nullptr) {
-            LOG_ERROR("Bridge not setup");
-            return;
-        }
-        bridge_->rt_ready.store(false);
-    }
-
-    bool is_connected() const
-    {
-        return bridge_ != nullptr;
-    }
-
-    bool is_ok() const
-    {
-        return bridge_ != nullptr && bridge_->mw_ready.load();
+        return shm_;
     }
 
     void spin_once()
@@ -124,9 +74,9 @@ public:
 
             for (auto channel : sub.channels)
             {
-                auto it = channel_map_.find(channel);
-                if (it != channel_map_.end())
-                    process_one_queue(*it->second, sub.callback);
+                process_one_queue(
+                    shm_.resolve(channel),
+                    sub.callback);
             }
 
             sub.callback->on_exit();
@@ -144,8 +94,7 @@ protected:
         subscriptions_.push_back({subscription, std::move(channels)});
     }
 
-    std::unique_ptr<SharedPubBridge> bridge_ = nullptr;
-    std::unique_ptr<SharedMemoryClient> shm_ = nullptr;
+    PublisherShmConnection shm_;
 
 private:
 
@@ -169,11 +118,6 @@ private:
     template<typename... Queues>
     void process_queues(ICallback* callback, Queues&... queues)
     {
-        if (!bridge_) {
-            LOG_ERROR("Bridge not setup");
-            return;
-        }
-
         if (!callback) {
             LOG_ERROR("Callback not setup");
             return;
@@ -184,8 +128,6 @@ private:
         callback->on_exit();
 }
 
-    std::array<Queue*, static_cast<size_t>(Channel::Count)> channels_;
-    std::unordered_map<Channel, Queue*> channel_map_;
     std::vector<Subscription> subscriptions_;
 
     ShmProtoHelper proto_helper_;

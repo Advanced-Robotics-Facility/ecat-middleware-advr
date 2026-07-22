@@ -25,7 +25,6 @@ public:
             throw std::runtime_error("Failed to initialize publisher");
 
         subscribe(pub.get(), channels);
-
         pdo_publishers_.push_back(std::move(pub));
     }
 

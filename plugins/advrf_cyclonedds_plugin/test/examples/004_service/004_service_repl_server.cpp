@@ -13,7 +13,6 @@
 #include "advrf_cyclonedds_plugin/config/config_topics.hpp"
 #include "advrf_middleware_core/robot_config.hpp"
 
-
 namespace {
 volatile std::sig_atomic_t keep_running = 1;
 
@@ -56,7 +55,7 @@ int main(int argc, char** argv)
     );
         
     config::ConfigTopics repl_topics({"advrf", "robot"});
-    service_server_cmd.shm_connect();
+    service_server_cmd.shm().connect();
    
     std::cerr << "[repl_thread] polling..." << std::endl;
     while (keep_running) {

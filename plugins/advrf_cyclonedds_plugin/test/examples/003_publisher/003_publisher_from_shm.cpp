@@ -1,12 +1,6 @@
-#include <iostream>
 #include <chrono>
 #include <thread>
-#include <memory>
 #include <csignal>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <atomic>
 
 #include <ecat_master_future/shm_utils.hpp> 
 #include <ecat_master_future/shm_shared_types.hpp>
@@ -39,20 +33,20 @@ int main(int argc, char** argv)
     LOG_INFO("Connecting to shared memory: {}", SHM_NAME);
 
     DDSAdapterPublishers dds_adapter;
-    dds_adapter.shm_connect();
+    dds_adapter.shm().connect();
     if (!dds_adapter.init(*cfg)) {
         LOG_ERROR("Failed to bind to target DDS channels.");
         return 1;
     }
 
-    dds_adapter.shm_declare_ready();
-    while (keep_running && dds_adapter.is_ok()) {
+    dds_adapter.shm().declare_ready();
+    while (keep_running && dds_adapter.shm().is_ok()) {
         dds_adapter.spin_once();
         std::this_thread::sleep_for(std::chrono::microseconds(100));
     }
 
     LOG_INFO("Disconnected from shared memory pipeline. Shutting down.");
-    dds_adapter.shm_declare_not_ready();
+    dds_adapter.shm().declare_not_ready();
 
     return 0;
 }

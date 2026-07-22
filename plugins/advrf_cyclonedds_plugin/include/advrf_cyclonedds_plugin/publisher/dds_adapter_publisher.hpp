@@ -75,7 +75,6 @@ private:
     bool has_update_ = false;
 };
 
-using Channel = middleware_adapter::message::AdapterPublishers::Channel;
 
 #include <advrf_interfaces/msg/Imu.hpp>
 using ImuMsg = ::advrf_interfaces::msg::dds_::Imu_;
