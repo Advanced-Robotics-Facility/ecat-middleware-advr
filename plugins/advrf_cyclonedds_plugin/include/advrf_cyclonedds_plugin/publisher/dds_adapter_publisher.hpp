@@ -82,9 +82,7 @@ using ImuMsg = ::advrf_interfaces::msg::dds_::Imu_;
 class ImuPublisher : public DDSAdapterPublisher<ImuMsg, ImuPublisher> {
 public:
     inline static constexpr std::string_view endpoint = "imu";
-    inline static std::vector<Channel> channels ={ Channel::Imu };
-    
-    
+
     ImuPublisher() = default;
 
     bool consume(const iit::advrf::Ec_slave_pdo& pdo) override {
@@ -108,8 +106,6 @@ using JointStateMsg = ::sensor_msgs::msg::dds_::JointState_;
 class JointStatePublisher : public DDSAdapterPublisher<JointStateMsg, JointStatePublisher> {
 public:
     inline static constexpr std::string_view endpoint = "joints";
-    inline static std::vector<Channel> channels = { Channel::Motor, 
-                                                    Channel::Gripper };
     
     JointStatePublisher() = default;
     ~JointStatePublisher() override = default;
@@ -147,7 +143,6 @@ using MotorMsg = ::advrf_interfaces::msg::dds_::Motor_;
 class MotorsPublisher : public DDSAdapterPublisher<MotorMsg, MotorsPublisher> {
 public:
     inline static constexpr std::string_view endpoint = "motors";
-    inline static std::vector<Channel> channels = { Channel::Motor};
 
     MotorsPublisher() = default;
     ~MotorsPublisher() override = default;
@@ -182,7 +177,6 @@ using PowerBoardMsg = ::advrf_interfaces::msg::dds_::PowerBoard_;
 class PowerBoardPublisher : public DDSAdapterPublisher<PowerBoardMsg, PowerBoardPublisher> {
 public:
     inline static constexpr std::string_view endpoint = "power_boards";
-    inline static std::vector<Channel> channels = { Channel::PowerBoard};
 
     PowerBoardPublisher() = default;
     ~PowerBoardPublisher() override = default;
@@ -211,7 +205,6 @@ using PumpMsg = ::advrf_interfaces::msg::dds_::Pump_;
 class PumpPublisher : public DDSAdapterPublisher<PumpMsg, PumpPublisher> {
 public:
     inline static constexpr std::string_view endpoint = "pumps";
-    inline static std::vector<Channel> channels = { Channel::Pump};
 
     PumpPublisher() = default;
     ~PumpPublisher() override = default;

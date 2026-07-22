@@ -16,24 +16,41 @@ public:
     ~DDSAdapterPublishers() override = default;
 
     template<typename Pub>
-    void register_publisher(const std::string& robot_name)
+    void register_publisher(const std::string& robot_name,
+                            const std::vector<Channel>& channels)
     {
         auto pub = std::make_unique<Pub>();
+
         if (!pub->init(robot_name, dp_))
             throw std::runtime_error("Failed to initialize publisher");
 
-        subscribe(pub.get(), Pub::channels);
+        subscribe(pub.get(), channels);
+
         pdo_publishers_.push_back(std::move(pub));
     }
 
     dds::domain::DomainParticipant& participant() { return dp_; }
     bool init(const RobotConfig& cfg) override {
         dp_ = dds::domain::DomainParticipant(cfg.domain_id);
-        register_publisher<ImuPublisher>(cfg.robot_name);
-        register_publisher<JointStatePublisher>(cfg.robot_name);
-        register_publisher<MotorsPublisher>(cfg.robot_name);
-        register_publisher<PowerBoardPublisher>(cfg.robot_name);
-        register_publisher<PumpPublisher>(cfg.robot_name);
+        register_publisher<ImuPublisher>(
+            cfg.robot_name,
+            {Channel::Imu});
+
+        register_publisher<JointStatePublisher>(
+            cfg.robot_name,
+            {Channel::Motor, Channel::Gripper});
+
+        register_publisher<MotorsPublisher>(
+            cfg.robot_name,
+            {Channel::Motor});
+
+        register_publisher<PowerBoardPublisher>(
+            cfg.robot_name,
+            {Channel::PowerBoard});
+
+        register_publisher<PumpPublisher>(
+            cfg.robot_name,
+            {Channel::Pump});
 
         return true;
     }

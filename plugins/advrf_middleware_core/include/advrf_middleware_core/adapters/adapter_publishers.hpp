@@ -32,8 +32,8 @@ class AdapterPublishers
 public:
 
     using Pdo = iit::advrf::Ec_slave_pdo;
-    using Queue = decltype(SharedPubBridge::imu);
-
+    using Queue = decltype(SharedPubBridge::imu); // supposed all queues have the same type, which is true for now
+    
     enum class Channel : std::size_t
     {
         Imu,
