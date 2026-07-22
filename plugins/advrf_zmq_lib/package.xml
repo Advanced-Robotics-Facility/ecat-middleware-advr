@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>advrf_zmq_lib</name>
+  <version>0.1.0</version>
+  <description>Vendors cppzmq and exposes it with the system libzmq library.</description>
+
+  <maintainer email="hugo.pousseur@iit.it">Hugo POUSSEUR</maintainer>
+  <maintainer email="manuel.delucchi@iit.it">Manuel Delucchi</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>cmake</buildtool_depend>
+  <depend>libzmq3-dev</depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>

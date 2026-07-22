@@ -1,0 +1,14 @@
+@PACKAGE_INIT@
+include(CMakeFindDependencyMacro)
+
+set(_advrf_vendor_prefix "${PACKAGE_PREFIX_DIR}")
+
+find_dependency(PkgConfig)
+pkg_check_modules(LIBZMQ REQUIRED libzmq>=4)
+
+find_package(cppzmq REQUIRED
+    PATHS "${_advrf_vendor_prefix}/share/cmake/cppzmq"
+    NO_DEFAULT_PATH
+)
+
+check_required_components(advrf_zmq_lib)

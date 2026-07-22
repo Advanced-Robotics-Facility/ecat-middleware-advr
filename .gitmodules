@@ -22,3 +22,6 @@
 [submodule "plugins/advrf_zenoh_lib/lib/zenoh-cpp"]
 	path = plugins/advrf_zenoh_lib/lib/zenoh-cpp
 	url = https://github.com/eclipse-zenoh/zenoh-cpp.git
+[submodule "plugins/advrf_zmq_lib/lib/cppzmq"]
+	path = plugins/advrf_zmq_lib/lib/cppzmq
+	url = https://github.com/zeromq/cppzmq.git
