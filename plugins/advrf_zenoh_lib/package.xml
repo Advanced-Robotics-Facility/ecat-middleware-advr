@@ -1,19 +1,16 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>advrf_fastdds_plugin</name>
+  <name>advrf_zenoh_lib</name>
   <version>0.1.0</version>
-  <description>Fast DDS plugin for ecat-middleware-advr.</description>
+  <description>Builds zenoh-c and zenoh-cpp from source and exposes a CMake wrapper target.</description>
 
   <maintainer email="hugo.pousseur@iit.it">Hugo POUSSEUR</maintainer>
   <maintainer email="manuel.delucchi@iit.it">Manuel delucchi</maintainer>
   <license>TODO</license>
 
-  <depend>advrf_interfaces_dds</depend>
-  <depend>advrf_interfaces_protobuf</depend>
-  <depend>advrf_middleware_core</depend>
-  <depend>ecat_master_future</depend>
-  <depend>advrf_fastdds_lib</depend>
   <buildtool_depend>cmake</buildtool_depend>
+  <build_depend>rustc</build_depend>
+  <build_depend>cargo</build_depend>
 
   <export>
     <build_type>cmake</build_type>

@@ -1,0 +1,15 @@
+@PACKAGE_INIT@
+# Force usage of zenoh-c/zenoh-cpp installed inside this same prefix.
+set(_advrf_vendor_prefix "${PACKAGE_PREFIX_DIR}")
+
+find_package(zenohc REQUIRED
+    PATHS "${_advrf_vendor_prefix}"
+    NO_DEFAULT_PATH
+)
+
+find_package(zenohcxx REQUIRED
+    PATHS "${_advrf_vendor_prefix}"
+    NO_DEFAULT_PATH
+)
+
+check_required_components(advrf_zenoh_lib)

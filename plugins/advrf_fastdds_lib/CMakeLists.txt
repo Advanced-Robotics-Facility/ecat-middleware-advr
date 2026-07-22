@@ -7,6 +7,7 @@ project(advrf_fastdds_lib
 
 include(ExternalProject)
 include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 set(ADVRF_VENDOR_PREFIX
     "${CMAKE_BINARY_DIR}/vendor_install"
@@ -127,4 +128,23 @@ install(
     DESTINATION
         "share/${PROJECT_NAME}/fastddsgen"
     OPTIONAL
+)
+
+configure_package_config_file(
+  cmake/advrf_fastdds_libConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/advrf_fastdds_libConfig.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+)
+
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/advrf_fastdds_libConfigVersion.cmake
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY SameMajorVersion
+)
+
+install(
+  FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/advrf_fastdds_libConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/advrf_fastdds_libConfigVersion.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )

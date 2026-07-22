@@ -16,3 +16,9 @@
 [submodule "plugins/advrf_cyclonedds_lib/lib/cyclonedds-cxx"]
 	path = plugins/advrf_cyclonedds_lib/lib/cyclonedds-cxx
 	url = https://github.com/eclipse-cyclonedds/cyclonedds-cxx.git
+[submodule "plugins/advrf_zenoh_lib/lib/zenoh-c"]
+	path = plugins/advrf_zenoh_lib/lib/zenoh-c
+	url = https://github.com/eclipse-zenoh/zenoh-c.git
+[submodule "plugins/advrf_zenoh_lib/lib/zenoh-cpp"]
+	path = plugins/advrf_zenoh_lib/lib/zenoh-cpp
+	url = https://github.com/eclipse-zenoh/zenoh-cpp.git

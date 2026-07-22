@@ -5,6 +5,13 @@ project(advrf_fastdds_plugin
     LANGUAGES C CXX
 )
 
+find_package(advrf_fastdds_lib REQUIRED)
+find_package(advrf_interfaces_dds REQUIRED)
+find_package(advrf_middleware_core REQUIRED)
+find_package(advrf_interfaces_protobuf REQUIRED)
+find_package(ecat_master_future REQUIRED)
+find_package(yaml-cpp REQUIRED)
+
 message(STATUS "Configuring FastDDS plugin")
 
 

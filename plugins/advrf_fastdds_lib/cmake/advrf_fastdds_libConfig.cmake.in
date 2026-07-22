@@ -1,0 +1,20 @@
+@PACKAGE_INIT@
+# Force usage of foonathan_memory/Fast-CDR/Fast-DDS installed inside this same prefix.
+set(_advrf_vendor_prefix "${PACKAGE_PREFIX_DIR}")
+
+find_package(foonathan_memory REQUIRED
+    PATHS "${_advrf_vendor_prefix}"
+    NO_DEFAULT_PATH
+)
+
+find_package(fastcdr REQUIRED
+    PATHS "${_advrf_vendor_prefix}"
+    NO_DEFAULT_PATH
+)
+
+find_package(fastdds REQUIRED
+    PATHS "${_advrf_vendor_prefix}"
+    NO_DEFAULT_PATH
+)
+
+check_required_components(advrf_fastdds_lib)
