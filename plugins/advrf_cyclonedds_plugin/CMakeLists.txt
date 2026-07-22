@@ -21,7 +21,7 @@ add_library(advrf_cyclonedds_plugin
     src/service_server.cpp
     src/parameter_client.cpp
     src/parameter_server.cpp
-    src/service_server_cmd.cpp
+    src/dds_adapter_service.cpp
 )
 
 target_compile_features(advrf_cyclonedds_plugin

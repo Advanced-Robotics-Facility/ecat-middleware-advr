@@ -38,16 +38,16 @@ using GripperMsg     = ::advrf_interfaces::msg::dds_::Gripper_;
 ////////////////////////////
 
 template <typename Msg, typename Derived>
-class DdsPublisher {
+class DDSPublisher {
     public:
 
-        explicit DdsPublisher()
+        explicit DDSPublisher()
             : publisher_(dds::core::null)
             , topic_(dds::core::null)
             , writer_(dds::core::null)
         {}
 
-        virtual ~DdsPublisher() = default;
+        virtual ~DDSPublisher() = default;
 
     protected:
 
@@ -98,11 +98,11 @@ class DdsPublisher {
 // Joint State Publisher //
 ///////////////////////////
 
-class JointStatePublisher : public DdsPublisher<JointStateMsg, JointStatePublisher> {
+class JointStatePublisher : public DDSPublisher<JointStateMsg, JointStatePublisher> {
 
 public:
 
-    using Base = DdsPublisher<JointStateMsg, JointStatePublisher>;
+    using Base = DDSPublisher<JointStateMsg, JointStatePublisher>;
     friend Base;
 
     JointStatePublisher() : Base() {}
@@ -159,11 +159,11 @@ public:
 //     Imu Publisher     //
 ///////////////////////////
 
-class ImuPublisher : public DdsPublisher<ImuMsg, ImuPublisher> {
+class ImuPublisher : public DDSPublisher<ImuMsg, ImuPublisher> {
 
 public:
 
-    using Base = DdsPublisher<ImuMsg, ImuPublisher>;
+    using Base = DDSPublisher<ImuMsg, ImuPublisher>;
     friend Base;
 
     ImuPublisher() : Base() {}
@@ -224,11 +224,11 @@ public:
 // Force Torque Publisher //
 ////////////////////////////
 
-class ForceTorquePublisher : public DdsPublisher<ForceTorqueMsg, ForceTorquePublisher> {
+class ForceTorquePublisher : public DDSPublisher<ForceTorqueMsg, ForceTorquePublisher> {
 
 public:
 
-    using Base = DdsPublisher<ForceTorqueMsg, ForceTorquePublisher>;
+    using Base = DDSPublisher<ForceTorqueMsg, ForceTorquePublisher>;
     friend Base;
 
     ForceTorquePublisher() : Base() {}
@@ -283,11 +283,11 @@ public:
 //     Motor Publisher    //
 ////////////////////////////
 
-class MotorPublisher : public DdsPublisher<MotorMsg, MotorPublisher> {
+class MotorPublisher : public DDSPublisher<MotorMsg, MotorPublisher> {
 
 public:
 
-    using Base = DdsPublisher<MotorMsg, MotorPublisher>;
+    using Base = DDSPublisher<MotorMsg, MotorPublisher>;
     friend Base;
 
     MotorPublisher() : Base() {}
@@ -366,11 +366,11 @@ public:
 // Power Board Publisher //
 ///////////////////////////
 
-class PowerBoardPublisher : public DdsPublisher<PowerBoardMsg, PowerBoardPublisher> {
+class PowerBoardPublisher : public DDSPublisher<PowerBoardMsg, PowerBoardPublisher> {
 
 public:
 
-    using Base = DdsPublisher<PowerBoardMsg, PowerBoardPublisher>;
+    using Base = DDSPublisher<PowerBoardMsg, PowerBoardPublisher>;
     friend Base;
 
     PowerBoardPublisher() : Base() {}
@@ -426,11 +426,11 @@ public:
 //     Pump Publisher    //
 ///////////////////////////
 
-class PumpPublisher : public DdsPublisher<PumpMsg, PumpPublisher> {
+class PumpPublisher : public DDSPublisher<PumpMsg, PumpPublisher> {
 
 public:
 
-    using Base = DdsPublisher<PumpMsg, PumpPublisher>;
+    using Base = DDSPublisher<PumpMsg, PumpPublisher>;
     friend Base;
 
     PumpPublisher() : Base() {}
@@ -487,11 +487,11 @@ public:
 //     Valve Publisher    //
 ////////////////////////////
 
-class ValvePublisher : public DdsPublisher<ValveMsg, ValvePublisher> {
+class ValvePublisher : public DDSPublisher<ValveMsg, ValvePublisher> {
 
 public:
 
-    using Base = DdsPublisher<ValveMsg, ValvePublisher>;
+    using Base = DDSPublisher<ValveMsg, ValvePublisher>;
     friend Base;
 
     ValvePublisher() : Base() {}
@@ -559,11 +559,11 @@ public:
 //    Gripper Publisher   //
 ////////////////////////////
 
-class GripperPublisher : public DdsPublisher<GripperMsg, GripperPublisher> {
+class GripperPublisher : public DDSPublisher<GripperMsg, GripperPublisher> {
 
 public:
 
-    using Base = DdsPublisher<GripperMsg, GripperPublisher>;
+    using Base = DDSPublisher<GripperMsg, GripperPublisher>;
     friend Base;
 
     GripperPublisher() : Base() {}

@@ -123,7 +123,8 @@ int main()
     aux.type() = advrf_interfaces::msg::dds_::LED_ON;
     aux.board_id() = 99;
 
-    auto pb = convert::protobuf::from_dds(request);
+    iit::advrf::Repl_cmd pb;
+    convert::protobuf::from_dds(request, pb);
 
     assert(pb.type() == static_cast<iit::advrf::CmdType>(request.type()));
 
