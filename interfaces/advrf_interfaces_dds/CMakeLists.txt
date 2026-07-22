@@ -5,12 +5,28 @@ project(advrf_interfaces_dds
     LANGUAGES CXX
 )
 
-find_package(advrf_cyclonedds_lib REQUIRED)
-find_package(CycloneDDS REQUIRED)
-find_package(CycloneDDS-CXX REQUIRED)
+option(USE_FASTDDS "Use FastDDS instead of CycloneDDS" OFF)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
+
+if(USE_FASTDDS)
+    message(STATUS "[advrf_interfaces_dds] Configuring for FastDDS")
+    find_package(advrf_fastdds_lib REQUIRED)
+    find_package(fastcdr 2 REQUIRED)
+    find_package(fastdds 3 REQUIRED)
+
+    if(NOT ADVRF_FASTDDSGEN_EXECUTABLE OR NOT ADVRF_FASTDDSGEN_JAR)
+        message(FATAL_ERROR
+            "advrf_fastdds_lib did not provide the Fast DDS-Gen runtime"
+        )
+    endif()
+else()
+    message(STATUS "[advrf_interfaces_dds] Configuring for CycloneDDS")
+    find_package(advrf_cyclonedds_lib REQUIRED)
+    find_package(CycloneDDS REQUIRED)
+    find_package(CycloneDDS-CXX REQUIRED)
+endif()
 
 get_filename_component(DDS_IDL_DIR
     "${CMAKE_CURRENT_SOURCE_DIR}/idl"
@@ -29,6 +45,60 @@ set(DDS_INTERFACE_PACKAGES
     rcl_interfaces
     advrf_interfaces
 )
+
+if(USE_FASTDDS)
+    set(FASTDDS_GENERATED_OUTPUTS "")
+
+    file(GLOB_RECURSE FASTDDS_IDL_FILES
+        CONFIGURE_DEPENDS
+        "${DDS_IDL_DIR}/*/msg/*.idl"
+        "${DDS_IDL_DIR}/*/srv/*.idl"
+    )
+
+    foreach(IDL_FILE IN LISTS FASTDDS_IDL_FILES)
+        file(RELATIVE_PATH IDL_RELATIVE "${DDS_IDL_DIR}" "${IDL_FILE}")
+        get_filename_component(IDL_RELATIVE_DIR "${IDL_RELATIVE}" DIRECTORY)
+        get_filename_component(MSG_NAME "${IDL_FILE}" NAME_WE)
+        set(GENERATED_BASE
+            "${DDS_GENERATED_DIR}/${IDL_RELATIVE_DIR}/${MSG_NAME}"
+        )
+
+        list(APPEND FASTDDS_GENERATED_OUTPUTS
+            "${GENERATED_BASE}.hpp"
+            "${GENERATED_BASE}CdrAux.hpp"
+            "${GENERATED_BASE}CdrAux.ipp"
+            "${GENERATED_BASE}PubSubTypes.cxx"
+            "${GENERATED_BASE}PubSubTypes.hpp"
+            "${GENERATED_BASE}TypeObjectSupport.cxx"
+            "${GENERATED_BASE}TypeObjectSupport.hpp"
+        )
+    endforeach()
+
+    add_custom_command(
+        OUTPUT ${FASTDDS_GENERATED_OUTPUTS}
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${DDS_GENERATED_DIR}"
+        COMMAND ${CMAKE_COMMAND}
+            -D "IDL_FILES=${FASTDDS_IDL_FILES}"
+            -D "IDL_DIR=${DDS_IDL_DIR}"
+            -D "OUTPUT_DIR=${DDS_GENERATED_DIR}"
+            -D "FASTDDSGEN_EXECUTABLE=${ADVRF_FASTDDSGEN_EXECUTABLE}"
+            -D "FASTDDSGEN_JAR=${ADVRF_FASTDDSGEN_JAR}"
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_fastddsgen.cmake"
+        DEPENDS
+            ${FASTDDS_IDL_FILES}
+            "${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_fastddsgen.cmake"
+            "${ADVRF_FASTDDSGEN_JAR}"
+        COMMENT "FastDDSGen: generating IDL sources"
+        VERBATIM
+    )
+
+    set_source_files_properties(${FASTDDS_GENERATED_OUTPUTS}
+        PROPERTIES GENERATED TRUE
+    )
+    add_custom_target(fastdds_idl_generate
+        DEPENDS ${FASTDDS_GENERATED_OUTPUTS}
+    )
+endif()
 
 add_library(advrf_interfaces_dds INTERFACE)
 foreach(package IN LISTS DDS_INTERFACE_PACKAGES)
@@ -66,55 +136,92 @@ foreach(package IN LISTS DDS_INTERFACE_PACKAGES)
         message(STATUS "    ${rel}")
     endforeach()
 
-    idlcxx_generate(
-        TARGET ${package}_idl
-        BASE_DIR "${DDS_IDL_DIR}"
-        FILES ${package_idls_real}
-        OUTPUT_DIR "${DDS_GENERATED_DIR}"
-        WARNINGS no-implicit-extensibility
-    )
+    if(USE_FASTDDS)
+        set(ALL_GEN_SOURCES "")
 
-    get_target_property(package_sources ${package}_idl INTERFACE_SOURCES)
+        foreach(IDL_FILE IN LISTS package_idls_real)
+            file(RELATIVE_PATH IDL_RELATIVE "${DDS_IDL_DIR}" "${IDL_FILE}")
+            get_filename_component(IDL_RELATIVE_DIR "${IDL_RELATIVE}" DIRECTORY)
+            get_filename_component(MSG_NAME "${IDL_FILE}" NAME_WE)
+            set(GENERATED_BASE
+                "${DDS_GENERATED_DIR}/${IDL_RELATIVE_DIR}/${MSG_NAME}"
+            )
+            list(APPEND ALL_GEN_SOURCES
+                "${GENERATED_BASE}PubSubTypes.cxx"
+                "${GENERATED_BASE}TypeObjectSupport.cxx"
+            )
+        endforeach()
 
-    if(NOT package_sources)
-        message(FATAL_ERROR "No generated sources for package '${package}'.")
-    endif()
+        add_library(${package} STATIC ${ALL_GEN_SOURCES})
+        add_dependencies(${package} fastdds_idl_generate)
 
-    set_target_properties(${package}_idl
-        PROPERTIES
-            INTERFACE_SOURCES ""
-    )
+        add_library(advrf::${package} ALIAS ${package})
 
-    set_source_files_properties(${package_sources}
-        PROPERTIES
-            GENERATED TRUE
-    )
+        target_compile_features(${package} PUBLIC cxx_std_17)
 
-    add_library(${package} STATIC
-        ${package_sources}
-    )
+        target_include_directories(${package}
+            PUBLIC
+                $<BUILD_INTERFACE:${DDS_GENERATED_DIR}>
+                $<BUILD_INTERFACE:${DDS_IDL_DIR}>
+                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+        )
 
-    add_library(advrf::${package} ALIAS ${package})
+        target_compile_definitions(${package} PUBLIC USE_FASTDDS)
+        target_link_libraries(${package} PUBLIC fastdds fastcdr)
 
-    target_compile_features(${package}
-        PUBLIC
-            cxx_std_17
-    )
+    else()
 
-    target_include_directories(${package}
-        PUBLIC
-            $<BUILD_INTERFACE:${DDS_GENERATED_DIR}>
-            $<BUILD_INTERFACE:${DDS_IDL_DIR}>
-            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    )
+        idlcxx_generate(
+            TARGET ${package}_idl
+            BASE_DIR "${DDS_IDL_DIR}"
+            FILES ${package_idls_real}
+            OUTPUT_DIR "${DDS_GENERATED_DIR}"
+            WARNINGS no-implicit-extensibility
+        )
 
-    target_link_libraries(${package}
-        PUBLIC
-            CycloneDDS-CXX::ddscxx
-    )
+        get_target_property(package_sources ${package}_idl INTERFACE_SOURCES)
 
-    if(TARGET ${package}_idl_generate)
-        add_dependencies(${package} ${package}_idl_generate)
+        if(NOT package_sources)
+            message(FATAL_ERROR "No generated sources for package '${package}'.")
+        endif()
+
+        set_target_properties(${package}_idl
+            PROPERTIES
+                INTERFACE_SOURCES ""
+        )
+
+        set_source_files_properties(${package_sources}
+            PROPERTIES
+                GENERATED TRUE
+        )
+
+        add_library(${package} STATIC
+            ${package_sources}
+        )
+
+        add_library(advrf::${package} ALIAS ${package})
+
+        target_compile_features(${package}
+            PUBLIC
+                cxx_std_17
+        )
+
+        target_include_directories(${package}
+            PUBLIC
+                $<BUILD_INTERFACE:${DDS_GENERATED_DIR}>
+                $<BUILD_INTERFACE:${DDS_IDL_DIR}>
+                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+        )
+
+        target_link_libraries(${package}
+            PUBLIC
+                CycloneDDS-CXX::ddscxx
+        )
+
+        if(TARGET ${package}_idl_generate)
+            add_dependencies(${package} ${package}_idl_generate)
+        endif()
+
     endif()
 
     install(

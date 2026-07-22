@@ -1,9 +1,10 @@
 @PACKAGE_INIT@
-# Force usage of foonathan_memory/Fast-CDR/Fast-DDS installed inside this same prefix.
+include(CMakeFindDependencyMacro)
+
 set(_advrf_vendor_prefix "${PACKAGE_PREFIX_DIR}")
 
-find_package(foonathan_memory REQUIRED
-    PATHS "${_advrf_vendor_prefix}"
+find_package(foonathan_memory_vendor REQUIRED
+    PATHS "${_advrf_vendor_prefix}/share/foonathan_memory_vendor/cmake"
     NO_DEFAULT_PATH
 )
 
@@ -13,8 +14,15 @@ find_package(fastcdr REQUIRED
 )
 
 find_package(fastdds REQUIRED
-    PATHS "${_advrf_vendor_prefix}"
+    PATHS "${_advrf_vendor_prefix}/share/fastdds/cmake"
     NO_DEFAULT_PATH
 )
+
+find_dependency(Java 1.8 COMPONENTS Runtime)
+
+set_and_check(ADVRF_FASTDDSGEN_JAR
+    "${_advrf_vendor_prefix}/share/advrf_fastdds_lib/fastddsgen/fastddsgen.jar"
+)
+set(ADVRF_FASTDDSGEN_EXECUTABLE "${Java_JAVA_EXECUTABLE}")
 
 check_required_components(advrf_fastdds_lib)
