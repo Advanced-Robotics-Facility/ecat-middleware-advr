@@ -240,6 +240,21 @@ foreach(package IN LISTS DDS_INTERFACE_PACKAGES)
 
 endforeach()
 
+if(USE_FASTDDS)
+    # Fast DDS-Gen emits calls into the generated support code of included
+    # IDLs. Express those relationships so consumers of a package library get
+    # all required serialization and TypeObject symbols transitively.
+    target_link_libraries(std_msgs PUBLIC builtin_interfaces)
+    target_link_libraries(sensor_msgs PUBLIC std_msgs)
+    target_link_libraries(advrf_interfaces
+        PUBLIC
+            builtin_interfaces
+            std_msgs
+            geometry_msgs
+            rcl_interfaces
+    )
+endif()
+
 install(
     TARGETS advrf_interfaces_dds
     EXPORT advrf_interfaces_ddsTargets

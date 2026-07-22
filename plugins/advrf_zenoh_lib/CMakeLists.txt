@@ -13,11 +13,7 @@ find_program(CARGO_EXECUTABLE cargo)
 find_program(RUSTC_EXECUTABLE rustc)
 
 if(NOT CARGO_EXECUTABLE OR NOT RUSTC_EXECUTABLE)
-  message(FATAL_ERROR
-    "advrf_zenoh_lib requires a Rust toolchain (cargo/rustc) to build zenoh-c.\n"
-    "Install it with:\n"
-    "  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh\n"
-    "or, if already installed, make sure it's on PATH (e.g. 'rustup update').")
+  message(FATAL_ERROR "advrf_zenoh_lib requires a Rust toolchain (cargo/rustc) to build zenoh-c.\n")
 endif()
 
 set(ADVRF_VENDOR_PREFIX
