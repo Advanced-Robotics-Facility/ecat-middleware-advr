@@ -34,7 +34,7 @@ target_link_libraries(ecat_plugin_fastdds
         fastcdr
 )
 
-option(BUILD_EXAMPLES "Build Fast DDS examples" ON)
+option(BUILD_EXAMPLES "Build Fast DDS examples" OFF)
 
 if(BUILD_EXAMPLES)
     add_subdirectory(examples)

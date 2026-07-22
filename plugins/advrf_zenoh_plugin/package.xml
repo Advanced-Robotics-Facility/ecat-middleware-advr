@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>advrf_zenoh_plugin</name>
+  <version>0.1.0</version>
+  <description>Zenoh plugin for ecat-middleware-advr.</description>
+
+  <maintainer email="hugo.pousseur@iit.it">Hugo POUSSEUR</maintainer>
+  <maintainer email="manuel.delucchi@iit.it">Manuel Delucchi</maintainer>
+  <license>TODO</license>
+
+  <depend>advrf_interfaces_protobuf</depend>
+  <depend>advrf_middleware_core</depend>
+  <depend>ecat_master_future</depend>
+  <depend>advrf_zenoh_lib</depend>
+  <buildtool_depend>cmake</buildtool_depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>
