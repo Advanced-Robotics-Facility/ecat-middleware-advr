@@ -8,22 +8,24 @@
 #include <ecat_master_future/shm_utils.hpp>
 
 #include "advrf_middleware_core/utils/channel.hpp"
+#include "advrf_middleware_core/utils/log.hpp"
 
 class PublisherShmConnection
 {
 public:
     using Queue = decltype(SharedPubBridge::imu);
 
-    bool connect()
+    bool connect(const std::string& shm_name)
     {
         while (true)
         {
             shm_ = std::make_unique<SharedMemoryClient>(
-                SHM_NAME,
+                shm_name.c_str(),
                 sizeof(SharedPubBridge));
 
             if (shm_->is_valid())
                 break;
+            LOG_DEBUG("Wait connection shared memory, {}", shm_name);
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
         bridge_ = shm_->get<SharedPubBridge>();
@@ -81,6 +83,13 @@ public:
     const SharedPubBridge& bridge() const
     {
         return *bridge_;
+    }
+
+    void close()
+    {
+        declare_not_ready();
+        bridge_ = nullptr;
+        shm_.reset();
     }
 
 private:

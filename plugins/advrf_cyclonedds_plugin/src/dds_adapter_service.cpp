@@ -1,4 +1,4 @@
-#include "advrf_cyclonedds_plugin/service/dds_adapter_service.hpp"
+#include "advrf_cyclonedds_plugin/adapters/dds_adapter_service.hpp"
 
 DDSAdapterService::DDSAdapterService(const config::ConfigTopics& config_topics,
                                     dds::domain::DomainParticipant& participant)

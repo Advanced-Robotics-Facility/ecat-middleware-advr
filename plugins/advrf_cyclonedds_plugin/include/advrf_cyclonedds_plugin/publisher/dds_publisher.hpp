@@ -12,7 +12,7 @@
 #include <builtin_interfaces/msg/Time.hpp>
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 
-using TimeMsg        = ::builtin_interfaces::msg::dds_::Time_;
+using TimeMsg = ::builtin_interfaces::msg::dds_::Time_;
 
 template <typename Msg, typename Derived>
 class DDSPublisher {

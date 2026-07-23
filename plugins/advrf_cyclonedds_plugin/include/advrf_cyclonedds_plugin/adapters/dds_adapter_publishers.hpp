@@ -1,11 +1,10 @@
 #pragma once
 
 #include <dds/dds.hpp>
-#include "advrf_cyclonedds_plugin/publisher/dds_adapter_publisher.hpp"
+#include "advrf_cyclonedds_plugin/adapters/dds_adapter_publisher.hpp"
 
 #include <advrf_middleware_core/adapters/adapter_publishers.hpp>
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
-
 
 using AdapterPublishers=middleware_adapter::message::AdapterPublishers;
 using ICallback=middleware_adapter::message::AdapterPublishers::ICallback;
@@ -17,18 +16,20 @@ public:
 
     template<typename Pub>
     void register_publisher(const std::string& robot_name,
-                            const std::vector<Channel>& channels)
+                            const std::vector<Channel>& channels,
+                            const std::vector<uint32_t>& ids_allowed = {})
     {
         auto pub = std::make_unique<Pub>();
-
         if (!pub->init(robot_name, dp_))
             throw std::runtime_error("Failed to initialize publisher");
 
-        subscribe(pub.get(), channels);
+        subscribe(pub.get(), channels, ids_allowed);
         pdo_publishers_.push_back(std::move(pub));
     }
 
     dds::domain::DomainParticipant& participant() { return dp_; }
+
+    // TODO [Hugo]: fit ids allowed to cfg
     bool init(const RobotConfig& cfg) override {
         dp_ = dds::domain::DomainParticipant(cfg.domain_id);
         register_publisher<ImuPublisher>(
@@ -37,7 +38,11 @@ public:
 
         register_publisher<JointStatePublisher>(
             cfg.robot_name,
-            {Channel::Motor, Channel::Gripper});
+            {Channel::Motor, Channel::Gripper},
+            {2, 3, 4, 
+                          5, 6, 7, 8, 
+                          9, 10, 11, 12, 
+                          13, 14, 15});
 
         register_publisher<MotorsPublisher>(
             cfg.robot_name,

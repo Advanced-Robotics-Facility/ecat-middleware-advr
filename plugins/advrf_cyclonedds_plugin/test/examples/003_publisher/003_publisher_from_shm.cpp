@@ -7,8 +7,7 @@
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/pdo_utils.hpp>
 
-// #include "advrf_cyclonedds_plugin/publisher.hpp"
-#include "advrf_cyclonedds_plugin/publisher/dds_adapter_publishers.hpp"
+#include "advrf_cyclonedds_plugin/adapters/dds_adapter_publishers.hpp"
 
 namespace {
 volatile std::sig_atomic_t keep_running = 1;
@@ -33,7 +32,7 @@ int main(int argc, char** argv)
     LOG_INFO("Connecting to shared memory: {}", SHM_NAME);
 
     DDSAdapterPublishers dds_adapter;
-    dds_adapter.shm().connect();
+    dds_adapter.shm().connect(SHM_NAME);
     if (!dds_adapter.init(*cfg)) {
         LOG_ERROR("Failed to bind to target DDS channels.");
         return 1;

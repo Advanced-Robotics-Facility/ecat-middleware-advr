@@ -11,18 +11,26 @@
 #include <ecat_master_future/shm_utils.hpp>
 
 
-inline std::unique_ptr<SharedMemoryClient> wait_for_shared_memory()
-{
-    while (true) {
-        auto shm = std::make_unique<SharedMemoryClient>(SHM_NAME, sizeof(SharedPubBridge));
-        LOG_DEBUG("wait connection");
-        if (shm->is_valid())
-            return shm;
+#include <string>
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+inline int get_ecat_id(const std::string& component_name)
+{
+    size_t pos = component_name.rfind('_');
+
+    if (pos == std::string::npos || pos + 1 >= component_name.size()){
+        LOG_ERROR("Format ecat name not correct, {}", component_name);
+        return -1;
     }
 
-    return nullptr;
+    int out = -1;
+    try{
+         out = std::stoi(component_name.substr(pos + 1));
+    }
+    catch (...){
+        LOG_ERROR("Failed to convert ecat id from string, {}", component_name.substr(pos + 1));
+        return -1;
+    }
+    return out;
 }
 
 namespace middleware_adapter::message {
@@ -48,6 +56,7 @@ public:
     {
         ICallback* callback;
         std::vector<Channel> channels;
+        std::vector<uint32_t> ids_allowed;
     };
 
 
@@ -71,14 +80,10 @@ public:
         for (auto& sub : subscriptions_)
         {
             sub.callback->on_entry();
-
             for (auto channel : sub.channels)
             {
-                process_one_queue(
-                    shm_.resolve(channel),
-                    sub.callback);
+                process_one_queue(shm_.resolve(channel),sub.callback, sub.ids_allowed);
             }
-
             sub.callback->on_exit();
         }
     }
@@ -89,9 +94,11 @@ protected:
         subscriptions_.push_back(subscription);
     }
 
-    void subscribe(ICallback* subscription, std::vector<Channel> channels)
+    void subscribe(ICallback* subscription, std::vector<Channel> channels, std::vector<uint32_t> ids_allowed = {})
     {
-        subscriptions_.push_back({subscription, std::move(channels)});
+        subscriptions_.push_back({subscription, 
+                                    std::move(channels), 
+                                    std::move(ids_allowed)});
     }
 
     PublisherShmConnection shm_;
@@ -99,7 +106,7 @@ protected:
 private:
 
     template<typename Queue>
-    void process_one_queue(Queue& queue, ICallback* callback)
+    void process_one_queue(Queue& queue, ICallback* callback, const std::vector<uint32_t>& ids_allowed = {})
     {
         ProtoSlot frame;
         while (queue.try_pop(frame)) {
@@ -111,6 +118,19 @@ private:
             {
                 continue;
             }
+
+            if(ids_allowed.size() > 0) {
+                int ecat_id = get_ecat_id(pdo.header().str_id());
+                if (ecat_id < 0) {
+                    LOG_ERROR("Format error for PDO frame with ID: {}", pdo.header().str_id());
+                    continue;
+                }
+                if (std::find(ids_allowed.begin(), ids_allowed.end(), static_cast<uint32_t>(ecat_id)) == ids_allowed.end()) {
+                    //LOG_DEBUG("Skipping PDO frame with ID: {} (not in allowed list)", pdo.header().str_id());
+                    continue;
+                }
+            }
+
             callback->on_pdo(pdo);
         }
     }
