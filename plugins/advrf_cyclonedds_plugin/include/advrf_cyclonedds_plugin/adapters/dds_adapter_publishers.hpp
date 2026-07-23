@@ -23,17 +23,17 @@ public:
         dp_ = dds::domain::DomainParticipant(cfg.domain_id);
         register_callback<ImuPublisher>(
                 {Channel::Imu}, 
-                {})
+                {1})
             .init(cfg.robot_name, dp_);
 
         register_callback<JointStatePublisher>(
                 {Channel::Motor, Channel::Gripper}, 
-                {})
+                {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15})
             .init(cfg.robot_name, dp_);
 
         register_callback<MotorsPublisher>(
                 {Channel::Motor},
-                {})
+                {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12})
             .init(cfg.robot_name, dp_);
 
         register_callback<PowerBoardPublisher>(
@@ -45,7 +45,7 @@ public:
                 {Channel::Pump}, 
                 {})
             .init(cfg.robot_name, dp_);
-
+            
         register_callback<ForceTorquePublisher>(
                 {Channel::ForceTorque}, 
                 {})
@@ -54,10 +54,8 @@ public:
         return true;
     }
 
-private:
-    dds::domain::DomainParticipant dp_{dds::core::null};
-    std::vector<std::unique_ptr<ICallback>> pdo_publishers_;
-    
+    private:
+        dds::domain::DomainParticipant dp_{dds::core::null};
 };
 
 

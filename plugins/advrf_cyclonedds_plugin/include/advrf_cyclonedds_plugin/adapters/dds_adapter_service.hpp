@@ -27,7 +27,7 @@ public:
     DDSAdapterService(const config::ConfigTopics& config_topics,
                      dds::domain::DomainParticipant& participant);
     
-    void spin_once() { server_.spin_once(); }
+    void spin_once() override { server_.spin_once(); }
     void spin(std::chrono::milliseconds period = std::chrono::milliseconds(10)) {
         server_.spin(period);
     }

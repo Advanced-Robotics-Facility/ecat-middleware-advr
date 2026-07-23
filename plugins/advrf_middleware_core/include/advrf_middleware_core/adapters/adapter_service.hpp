@@ -1,5 +1,6 @@
 #pragma once
 
+#include "advrf_middleware_core/adapters/adapter_base.hpp"
 #include "advrf_middleware_core/utils/log.hpp"
 #include "advrf_middleware_core/shared_memory/shm_connection_repl.hpp"
 
@@ -8,9 +9,9 @@
 #include <ecat_master_future/shm_shared_types.hpp>
 #include <ecat_master_future/shm_utils.hpp>
 
-namespace middleware_adapter::service {
+namespace middleware_adapter::service   {   
 
-class AdapterServiceServer
+class AdapterServiceServer : public AdapterBase
 {
 public:
 

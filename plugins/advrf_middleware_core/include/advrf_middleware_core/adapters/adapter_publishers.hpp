@@ -1,7 +1,10 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 
+#include "advrf_middleware_core/adapters/adapter_base.hpp"
 #include "advrf_middleware_core/robot_config.hpp"
 #include "advrf_middleware_core/utils/log.hpp"
 #include "advrf_middleware_core/pdo_utils.hpp"
@@ -31,13 +34,20 @@ inline int get_ecat_id(const std::string& component_name)
     return out;
 }
 
-namespace middleware_adapter::message {
+namespace middleware_adapter::message  {
 
-class AdapterPublishers
+class AdapterPublishers : public AdapterBase
 {
 public:
 
     using Pdo = iit::advrf::Ec_slave_pdo;
+
+    struct CachedPdo
+    {
+        uint32_t ecat_id;
+        Pdo pdo;
+    };
+    using Cache = std::unordered_map<Channel, std::vector<CachedPdo>>;
     using Queue = decltype(SharedPubBridge::imu); // supposed all queues have the same type, which is true for now
 
     class ICallback
@@ -55,8 +65,11 @@ public:
         ICallback* callback;
         std::vector<Channel> channels;
         std::vector<uint32_t> ids_allowed;
-    };
 
+        private:
+            friend class AdapterPublishers;
+            std::unordered_set<uint32_t> ids_allowed_set;
+    };
 
     AdapterPublishers() = default;
     virtual ~AdapterPublishers() = default;
@@ -73,30 +86,70 @@ public:
         return shm_;
     }
 
-    void spin_once()
+    void spin_once() override
     {
+        std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+        cache_.clear();
+        fill_cache(cache_);
         for (auto& sub : subscriptions_)
         {
+            std::unordered_set<uint32_t> ids_seen;
             sub.callback->on_entry();
             for (auto channel : sub.channels)
             {
-                process_one_queue(shm_.resolve(channel),sub.callback, sub.ids_allowed);
+                auto it = cache_.find(channel);
+                if (it != cache_.end())
+                {
+                    process_cache(
+                        it->second,
+                        sub.callback,
+                        sub.ids_allowed_set,
+                        ids_seen);
+                }
             }
-            sub.callback->on_exit();
+
+            if (ids_seen == sub.ids_allowed_set || true)
+            {
+                sub.callback->on_exit();
+            }  
         }
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        std::chrono::duration<double, std::milli> elapsed = end - now;
+        // LOG_DEBUG("AdapterPublishers spin_once elapsed time: {} ms", elapsed.count());
     }
 
 protected:
     void subscribe(Subscription subscription)
     {
-        subscriptions_.push_back(subscription);
+        for (auto id : subscription.ids_allowed)
+        {
+            if (!subscription.ids_allowed_set.insert(id).second)
+            {
+                LOG_ERROR("Duplicate configured ECAT ID {}", id);
+            }
+        }
+
+        subscriptions_.push_back(std::move(subscription));
     }
 
-    void subscribe(ICallback* subscription, std::vector<Channel> channels, std::vector<uint32_t> ids_allowed = {})
+    void subscribe(ICallback* subscription,
+                std::vector<Channel> channels,
+                std::vector<uint32_t> ids_allowed = {})
     {
-        subscriptions_.push_back({subscription, 
-                                    std::move(channels), 
-                                    std::move(ids_allowed)});
+        Subscription sub;
+        sub.callback = subscription;
+        sub.channels = std::move(channels);
+        sub.ids_allowed = std::move(ids_allowed);
+
+        for (auto id : sub.ids_allowed)
+        {
+            if (!sub.ids_allowed_set.insert(id).second)
+            {
+                LOG_ERROR("Duplicate configured ECAT ID {}", id);
+            }
+        }
+
+        subscriptions_.push_back(std::move(sub));
     }
 
     template<typename CallbackObject>
@@ -113,52 +166,78 @@ protected:
 private:
     std::vector<std::shared_ptr<ICallback>> callbacks_;
 
-    template<typename Queue>
-    void process_one_queue(Queue& queue, ICallback* callback, const std::vector<uint32_t>& ids_allowed = {})
+    void fill_cache(Cache& cache)
     {
-        ProtoSlot frame;
-        while (queue.try_pop(frame)) {
-            Pdo pdo;
-            if (!pdo_utils::parse_frame(
-                    frame.data,
-                    static_cast<ssize_t>(frame.size),
-                    pdo))
+        for (auto& [_, v] : cache_)
+            v.clear();
+        for (auto channel : all_channels_)
+        {
+            auto& queue = shm_.resolve(channel);
+            ProtoSlot frame;
+            while (queue.try_pop(frame))
+            {
+                Pdo pdo;
+                if (!pdo_utils::parse_frame(
+                        frame.data,
+                        static_cast<ssize_t>(frame.size),
+                        pdo))
+                {
+                    continue;
+                }
+
+                int ecat_id = get_ecat_id(pdo.header().str_id());
+                if (ecat_id < 0)
+                {
+                    LOG_ERROR("Format error for PDO frame with ID {}", pdo.header().str_id());
+                    continue;
+                }
+
+                cache[channel].push_back(
+                {
+                    static_cast<uint32_t>(ecat_id),
+                    std::move(pdo)
+                });
+            }
+        }
+    }
+
+    void process_cache(
+        const std::vector<CachedPdo>& pdos,
+        ICallback* callback,
+        const std::unordered_set<uint32_t>& ids_allowed,
+        std::unordered_set<uint32_t>& ids_seen)
+    {
+        for (const auto& frame : pdos)
+        {
+            const auto id = frame.ecat_id;
+
+            if (!ids_allowed.empty() &&
+                ids_allowed.find(id) == ids_allowed.end())
             {
                 continue;
             }
 
-            if(ids_allowed.size() > 0) {
-                int ecat_id = get_ecat_id(pdo.header().str_id());
-                if (ecat_id < 0) {
-                    LOG_ERROR("Format error for PDO frame with ID: {}", pdo.header().str_id());
-                    continue;
-                }
-                if (std::find(ids_allowed.begin(), ids_allowed.end(), static_cast<uint32_t>(ecat_id)) == ids_allowed.end()) {
-                    //LOG_DEBUG("Skipping PDO frame with ID: {} (not in allowed list)", pdo.header().str_id());
-                    continue;
-                }
+            if (!ids_seen.insert(id).second)
+            {
+                //LOG_ERROR("Duplicate PDO frame for ECAT ID {}", id);
+                continue;
             }
 
-            callback->on_pdo(pdo);
+            callback->on_pdo(frame.pdo);
         }
     }
 
-    template<typename... Queues>
-    void process_queues(ICallback* callback, Queues&... queues)
-    {
-        if (!callback) {
-            LOG_ERROR("Callback not setup");
-            return;
-        }
-
-        callback->on_entry();
-        (process_one_queue(queues, callback), ...);
-        callback->on_exit();
-}
-
+    std::unordered_set<Channel> all_channels_ = {
+        Channel::Imu,
+        Channel::Motor,
+        Channel::Gripper,
+        Channel::Pump,
+        Channel::PowerBoard,
+        Channel::ForceTorque
+    };
     std::vector<Subscription> subscriptions_;
-
     ShmProtoHelper proto_helper_;
+    Cache cache_;
 };
 
 }
