@@ -44,7 +44,7 @@ add_test(
 )
 
 target_compile_definitions(004_service_repl_server PRIVATE
-    ROBOT_CONFIG_DIR="${ecat_master_future_CONFIG_DIR}/robot.yaml"
+    ROBOT_CONFIG_DIR="${advrf_middleware_core_CONFIG_DIR}/robot.yaml"
 )
 
 

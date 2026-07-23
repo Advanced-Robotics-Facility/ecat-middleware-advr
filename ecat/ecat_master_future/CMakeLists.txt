@@ -64,7 +64,7 @@ if(BUILD_ECAT_MASTER_FUTURE_TOOLS)
     )
 
     target_compile_definitions(ecat_master_future_producer PRIVATE
-        ROBOT_CONFIG_DIR="${CMAKE_CURRENT_SOURCE_DIR}/config/robot.yaml"
+        ROBOT_CONFIG_DIR="${advrf_middleware_core_CONFIG_DIR}/robot.yaml"
     )
 
     target_compile_features(ecat_master_future_producer
@@ -110,11 +110,6 @@ install(
         "${CMAKE_CURRENT_BINARY_DIR}/ecat_master_futureConfig.cmake"
         "${CMAKE_CURRENT_BINARY_DIR}/ecat_master_futureConfigVersion.cmake"
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-)
-
-install(
-    DIRECTORY config/
-    DESTINATION share/${PROJECT_NAME}/config
 )
 
 configure_package_config_file(

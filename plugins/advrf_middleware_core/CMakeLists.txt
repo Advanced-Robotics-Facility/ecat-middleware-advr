@@ -7,6 +7,7 @@ project(advrf_middleware_core
 
 find_package(advrf_interfaces_protobuf REQUIRED)
 find_package(spdlog REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -28,6 +29,7 @@ target_link_libraries(advrf_middleware_core
     INTERFACE
         advrf_interfaces_protobuf
         spdlog::spdlog
+        yaml-cpp::yaml-cpp
 )
 
 install(
@@ -38,6 +40,11 @@ install(
 install(
     DIRECTORY include/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(
+    DIRECTORY config/
+    DESTINATION share/${PROJECT_NAME}/config
 )
 
 install(

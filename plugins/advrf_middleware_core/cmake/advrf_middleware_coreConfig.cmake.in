@@ -4,6 +4,19 @@ include(CMakeFindDependencyMacro)
 
 find_dependency(advrf_interfaces_protobuf)
 find_dependency(spdlog)
+find_dependency(yaml-cpp)
 
 include("${CMAKE_CURRENT_LIST_DIR}/advrf_middleware_coreTargets.cmake")
 check_required_components(advrf_middleware_core)
+
+get_filename_component(
+    advrf_middleware_core_PREFIX_DIR
+    "${CMAKE_CURRENT_LIST_DIR}/../../.."
+    ABSOLUTE
+)
+
+set(advrf_middleware_core_SHARE_DIR
+    "${advrf_middleware_core_PREFIX_DIR}/share/advrf_middleware_core")
+
+set(advrf_middleware_core_CONFIG_DIR
+    "${advrf_middleware_core_SHARE_DIR}/config")
