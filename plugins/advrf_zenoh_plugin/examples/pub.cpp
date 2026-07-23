@@ -1,13 +1,21 @@
+#include <atomic>
 #include <chrono>
 #include <cstdint>
 #include <csignal>
-#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <thread>
 #include <vector>
 
 #include <zenoh.hxx>
+
+#include <fastcdr/Cdr.h>
+#include <fastcdr/FastBuffer.h>
+
+#include "ecat_master_future/shm_utils.hpp"
+#include "ecat_master_future/shm_shared_types.hpp"
+
+#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 
 namespace
 {
@@ -18,50 +26,113 @@ void stop(int)
     running = 0;
 }
 
-// CDR-encode a single std_msgs/String field:
-// 4-byte encapsulation header + uint32 length (incl. null term) + bytes + null term, padded to 4.
-std::vector<uint8_t> cdr_string(const std::string& s)
+struct ImuSample
 {
-    std::vector<uint8_t> b = {0x00, 0x01, 0x00, 0x00};
-    uint32_t len = static_cast<uint32_t>(s.size()) + 1;
-    for (int i = 0; i < 4; ++i)
-        b.push_back((len >> (8 * i)) & 0xFF);
-    b.insert(b.end(), s.begin(), s.end());
-    b.push_back(0x00);
-    while (b.size() % 4)
-        b.push_back(0x00);
-    return b;
-}
+    int32_t stamp_sec;
+    uint32_t stamp_nanosec;
+    std::string frame_id;
+    double qx, qy, qz, qw;
+    double wx, wy, wz;
+    double ax, ay, az;
+};
+
+std::vector<uint8_t> cdr_imu(const ImuSample& s)
+{
+    eprosima::fastcdr::FastBuffer buffer;
+    eprosima::fastcdr::Cdr cdr(buffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
+                                eprosima::fastcdr::CdrVersion::XCDRv1);
+
+    cdr.serialize_encapsulation();
+
+    // std_msgs/Header
+    cdr << s.stamp_sec;
+    cdr << s.stamp_nanosec;
+    cdr << s.frame_id;
+
+    // geometry_msgs/Quaternion orientation
+    cdr << s.qx << s.qy << s.qz << s.qw;
+
+    // geometry_msgs/Vector3 angular_velocity
+    cdr << s.wx << s.wy << s.wz;
+
+    // geometry_msgs/Vector3 linear_acceleration
+    cdr << s.ax << s.ay << s.az;
+
+    const auto* data = reinterpret_cast<const uint8_t*>(buffer.getBuffer());
+    return std::vector<uint8_t>(data, data + cdr.get_serialized_data_length());
 }
 
-int main(int argc, char** argv)
+ImuSample to_imu_sample(const iit::advrf::Ec_slave_pdo& pdo)
+{
+    const auto& hdr = pdo.header();
+    const auto& imu = pdo.imuvn_rx_pdo();
+
+    ImuSample s{};
+    s.stamp_sec = hdr.stamp().sec();
+    s.stamp_nanosec = static_cast<uint32_t>(hdr.stamp().nsec());
+    s.frame_id = hdr.str_id();
+
+    s.qx = imu.x_quat();
+    s.qy = imu.y_quat();
+    s.qz = imu.z_quat();
+    s.qw = imu.w_quat();
+
+    s.wx = imu.x_rate();
+    s.wy = imu.y_rate();
+    s.wz = imu.z_rate();
+
+    s.ax = imu.x_acc();
+    s.ay = imu.y_acc();
+    s.az = imu.z_acc();
+
+    return s;
+}
+} 
+
+int main()
 {
     using namespace std::chrono_literals;
 
-    const std::string key = argc > 1 ? argv[1] : "advrf/example/simple";
-    const std::string payload = argc > 2 ? argv[2] : "Hello from advrf_zenoh_pub";
+    const std::string key = "advrf/robot/imu";
 
     std::signal(SIGINT, stop);
     std::signal(SIGTERM, stop);
 
+    // Open SHM
+    SharedMemoryClient shm(SHM_NAME, sizeof(SharedPubBridge));
+    if (!shm.is_valid()) {
+        std::cerr << "Failed to attach to shared memory segment. Is the producer running?\n";
+        return 1;
+    }
+    auto* bridge = shm.get<SharedPubBridge>();
+
+    while (running && !bridge->mw_ready.load()) {
+        std::this_thread::sleep_for(50ms);
+    }
+    if (!running) return 0;
+
     try
     {
-        auto session = zenoh::Session::open(std::move(zenoh::Config::create_default()));
+        auto session = zenoh::Session::open(zenoh::Config::create_default());
         auto publisher = session.declare_publisher(zenoh::KeyExpr(key));
 
-        std::cout << "Publishing on '" << key << "'. Press Ctrl-C to stop.\n";
+        ShmProtoHelper proto_helper;
+        iit::advrf::Ec_slave_pdo pdo;
 
-        std::uint64_t sequence = 0;
         while (running) {
-            const std::string message = "[" + std::to_string(sequence++) + "] " + payload;
-            std::cout << "Publishing: " << message << '\n';
-            publisher.put(zenoh::Bytes(cdr_string(message)));
-            std::this_thread::sleep_for(1s);
+            proto_helper.drain(bridge->imu, pdo, [&](const iit::advrf::Ec_slave_pdo& msg) {
+                const ImuSample sample = to_imu_sample(msg);
+                publisher.put(zenoh::Bytes(cdr_imu(sample)));
+                std::cout << "Published IMU sample [" << sample.frame_id << "] stamp="
+                           << sample.stamp_sec << "." << sample.stamp_nanosec << '\n';
+            });
+
+            std::this_thread::sleep_for(1ms);
         }
     }
     catch (const zenoh::ZException& error)
     {
-        std::cerr << "Zenoh publisher error: " << error.what() << '\n';
+        std::cerr << "Zenoh IMU bridge error: " << error.what() << '\n';
         return 1;
     }
 

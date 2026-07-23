@@ -25,3 +25,6 @@
 [submodule "plugins/advrf_zmq_lib/lib/cppzmq"]
 	path = plugins/advrf_zmq_lib/lib/cppzmq
 	url = https://github.com/zeromq/cppzmq.git
+[submodule "plugins/advrf_zenoh_lib/lib/Fast-CDR"]
+	path = plugins/advrf_zenoh_lib/lib/Fast-CDR
+	url = https://github.com/eProsima/Fast-CDR.git

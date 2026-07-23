@@ -8,6 +8,9 @@
 
 #include <zenoh.hxx>
 
+#include <fastcdr/Cdr.h>
+#include <fastcdr/FastBuffer.h>
+
 namespace
 {
 volatile std::sig_atomic_t running = 1;
@@ -17,55 +20,68 @@ void stop(int)
     running = 0;
 }
 
-std::string decode_cdr_string(const zenoh::Bytes& payload)
+void decode_and_print_imu(const zenoh::Bytes& payload)
 {
-    const auto bytes = payload.as_vector();
-    if (bytes.size() < 9 || bytes[0] != 0x00 || bytes[1] != 0x01)
+    auto bytes = payload.as_vector();
+
+    eprosima::fastcdr::FastBuffer buffer(
+        reinterpret_cast<char*>(bytes.data()), bytes.size());
+    eprosima::fastcdr::Cdr cdr(buffer);
+
+    try
     {
-        return payload.as_string();
+        cdr.read_encapsulation();
+
+        int32_t stamp_sec;
+        uint32_t stamp_nanosec;
+        std::string frame_id;
+        cdr >> stamp_sec;
+        cdr >> stamp_nanosec;
+        cdr >> frame_id;
+
+        double qx, qy, qz, qw;
+        cdr >> qx >> qy >> qz >> qw;
+
+        double wx, wy, wz;
+        cdr >> wx >> wy >> wz;
+
+        double ax, ay, az;
+        cdr >> ax >> ay >> az;
+
+        std::cout << "IMU [" << frame_id << "] stamp=" << stamp_sec << "."
+                   << stamp_nanosec
+                   << " quat=(" << qx << ", " << qy << ", " << qz << ", " << qw << ")"
+                   << " gyro=(" << wx << ", " << wy << ", " << wz << ")"
+                   << " accel=(" << ax << ", " << ay << ", " << az << ")\n";
     }
-
-    const std::uint32_t length =
-        static_cast<std::uint32_t>(bytes[4]) |
-        (static_cast<std::uint32_t>(bytes[5]) << 8) |
-        (static_cast<std::uint32_t>(bytes[6]) << 16) |
-        (static_cast<std::uint32_t>(bytes[7]) << 24);
-
-    if (length == 0 || 8U + length > bytes.size() || bytes[8U + length - 1U] != 0)
+    catch (const eprosima::fastcdr::exception::Exception& e)
     {
-        return payload.as_string();
+        std::cerr << "<failed to decode IMU sample: " << e.what() << ">\n";
     }
-
-    return std::string(
-        reinterpret_cast<const char*>(bytes.data() + 8),
-        length - 1U);
 }
-} // namespace
+}
 
-int main(int argc, char** argv)
+int main()
 {
     using namespace std::chrono_literals;
 
-    const std::string key = argc > 1 ? argv[1] : "advrf/example/simple";
+    const std::string key = "advrf/robot/imu";
 
     std::signal(SIGINT, stop);
     std::signal(SIGTERM, stop);
 
     try
     {
-        auto config = zenoh::Config::create_default();
-        auto session = zenoh::Session::open(std::move(config));
+        auto session = zenoh::Session::open(zenoh::Config::create_default());
         auto subscriber = session.declare_subscriber(
             zenoh::KeyExpr(key),
             [](const zenoh::Sample& sample)
             {
-                std::cout << "Received '"
-                          << sample.get_keyexpr().as_string_view()
-                          << "': " << decode_cdr_string(sample.get_payload()) << '\n';
+                decode_and_print_imu(sample.get_payload());
             },
             zenoh::closures::none);
 
-        std::cout << "Subscribed to '" << key << "'. Press Ctrl-C to stop.\n";
+        std::cout << "Subscribed to IMU topic '" << key << "'. Press Ctrl-C to stop.\n";
         while (running)
         {
             std::this_thread::sleep_for(200ms);
@@ -73,7 +89,7 @@ int main(int argc, char** argv)
     }
     catch (const zenoh::ZException& error)
     {
-        std::cerr << "Zenoh subscriber error: " << error.what() << '\n';
+        std::cerr << "Zenoh IMU subscriber error: " << error.what() << '\n';
         return 1;
     }
 

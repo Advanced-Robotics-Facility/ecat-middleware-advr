@@ -5,7 +5,6 @@
 #include <csignal>
 #include <new>
 #include <string>
-#include <vector>
 
 #include "ecat_master_future/shm_utils.hpp" 
 #include "ecat_master_future/shm_shared_types.hpp" 

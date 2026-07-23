@@ -28,9 +28,10 @@ target_link_libraries(ecat_plugin_zenoh
         advrf_interfaces_protobuf
         ecat_master_future
         zenohcxx::zenohc
+        fastcdr
 )
 
-option(BUILD_EXAMPLES "Build Zenoh examples" OFF)
+option(BUILD_EXAMPLES "Build Zenoh examples" ON)
 
 if(BUILD_EXAMPLES)
     add_subdirectory(examples)

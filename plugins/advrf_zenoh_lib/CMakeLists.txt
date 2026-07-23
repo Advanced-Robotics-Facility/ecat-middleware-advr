@@ -55,11 +55,24 @@ ExternalProject_Add(zenoh_cpp_vendor
         -DZENOHCXX_ZENOHPICO=OFF
 )
 
+ExternalProject_Add(fastcdr_vendor
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/Fast-CDR
+
+    DOWNLOAD_COMMAND ""
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
+
+    CMAKE_ARGS
+        -DCMAKE_INSTALL_PREFIX=${ADVRF_VENDOR_PREFIX}
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+)
+
 add_custom_target(advrf_zenoh_vendor
     ALL
     DEPENDS
         zenoh_c_vendor
         zenoh_cpp_vendor
+        fastcdr_vendor
 )
 
 install(

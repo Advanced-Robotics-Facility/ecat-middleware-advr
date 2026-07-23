@@ -12,6 +12,7 @@
   <depend>advrf_middleware_core</depend>
   <depend>ecat_master_future</depend>
   <depend>advrf_zenoh_lib</depend>
+
   <buildtool_depend>cmake</buildtool_depend>
 
   <export>

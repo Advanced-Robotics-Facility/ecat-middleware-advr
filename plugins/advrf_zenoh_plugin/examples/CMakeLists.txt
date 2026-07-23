@@ -12,9 +12,13 @@ target_compile_features(advrf_zenoh_sub PRIVATE cxx_std_17)
 target_link_libraries(advrf_zenoh_pub
     PRIVATE
         zenohcxx::zenohc
+        fastcdr
+        ecat_master_future
 )
 
 target_link_libraries(advrf_zenoh_sub
     PRIVATE
         zenohcxx::zenohc
+        fastcdr
+        ecat_master_future
 )

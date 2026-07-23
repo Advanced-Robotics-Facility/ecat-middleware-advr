@@ -12,4 +12,9 @@ find_package(zenohcxx REQUIRED
     NO_DEFAULT_PATH
 )
 
+find_package(fastcdr REQUIRED
+    PATHS "${_advrf_vendor_prefix}"
+    NO_DEFAULT_PATH
+)
+
 check_required_components(advrf_zenoh_lib)
