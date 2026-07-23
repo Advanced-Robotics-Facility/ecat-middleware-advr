@@ -9,5 +9,6 @@ enum class Channel : std::size_t
         Gripper,
         Pump,
         PowerBoard,
+        ForceTorque,
         Count
     };

@@ -2,13 +2,13 @@
 #include <cstdint>
 #include <string>
 
+// protobuf service
 #include <advrf_interfaces_protobuf/repl_cmd.pb.h>
-#include <advrf_interfaces/srv/ReplCmd.hpp>
-// #include "advrf_cyclonedds_plugin/service/shm_data.hpp"
-
-// get all ecat pdo types
+// protobuf messages
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
-
+// DDS service
+#include <advrf_interfaces/srv/ReplCmd.hpp>
+// DDS messages
 #include <builtin_interfaces/msg/Time.hpp>
 #include <std_msgs/msg/Header.hpp>
 #include <sensor_msgs/msg/JointState.hpp>
@@ -18,6 +18,7 @@
 #include <advrf_interfaces/msg/Pump.hpp>
 #include <advrf_interfaces/msg/Gripper.hpp>
 #include <advrf_interfaces/msg/PowerBoard.hpp>
+#include <advrf_interfaces/msg/ForceTorque.hpp>
 
 namespace convert::protobuf {
     template<typename DDS_TYPE, typename PROTOBUF_TYPE>
@@ -464,6 +465,23 @@ namespace convert::dds {
         ddsmsg.rtt()            = static_cast<uint32_t>(pb.rtt());
         ddsmsg.op_idx_ack()     = pb.op_idx_ack();
         ddsmsg.aux()            = pb.aux();
+    }
+
+    inline void from_protobuf(const iit::advrf::FT6_rx_pdo& pb, advrf_interfaces::msg::dds_::ForceTorque_& ddsmsg)
+    {
+        auto& wrench = ddsmsg.wrench();
+        wrench.force().x() = pb.force_x();
+        wrench.force().y() = pb.force_y();
+        wrench.force().z() = pb.force_z();
+
+        wrench.torque().x() = pb.torque_x();
+        wrench.torque().y() = pb.torque_y();
+        wrench.torque().z() = pb.torque_z();
+
+        ddsmsg.fault()                 = pb.fault();
+        ddsmsg.rtt()                   = pb.rtt();
+        ddsmsg.op_idx_ack()            = pb.op_idx_ack();
+        ddsmsg.aux()                   = pb.aux();
     }
 
 };

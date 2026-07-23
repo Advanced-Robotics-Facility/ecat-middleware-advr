@@ -6,17 +6,14 @@
 
 #include "advrf_cyclonedds_plugin/config/config_topics.hpp"
 #include "advrf_cyclonedds_plugin/service/service_server.hpp"
+#include "advrf_cyclonedds_plugin/converter.hpp"
 
 #include <ecat_master_future/shm_utils.hpp>
 #include <ecat_master_future/shm_shared_types.hpp>
 #include <advrf_interfaces_protobuf/repl_cmd.pb.h>
 #include <advrf_interfaces/srv/ReplCmd.hpp>
-#include <ecat_master_future/shm_utils.hpp>
-#include <ecat_master_future/shm_shared_types.hpp>
 #include <advrf_middleware_core/utils/log.hpp>
 #include <advrf_middleware_core/adapters/adapter_service.hpp>
-
-#include <advrf_cyclonedds_plugin/converter.hpp>
 
 using RequestDDS = advrf_interfaces::srv::dds_::ReplCmd_Request_;
 using ResponseDDS = advrf_interfaces::srv::dds_::ReplCmd_Response_;

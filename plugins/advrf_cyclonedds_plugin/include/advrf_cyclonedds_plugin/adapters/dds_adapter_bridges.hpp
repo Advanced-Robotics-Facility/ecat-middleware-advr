@@ -1,12 +1,11 @@
 #pragma once
 
-#include <array>
 
 #include "advrf_cyclonedds_plugin/publisher/dds_publisher.hpp"
 #include <advrf_cyclonedds_plugin/converter.hpp>
 
 template <typename Msg, typename Derived>
-class DDSAdapterPublisher
+class DDSAdapterBridgePublisher
     : public DDSPublisher<Msg, Derived>
     , public middleware_adapter::message::AdapterPublishers::ICallback
 {
@@ -14,8 +13,8 @@ public:
     using Base = DDSPublisher<Msg, Derived>;
     using Pdo  = iit::advrf::Ec_slave_pdo;
 
-    DDSAdapterPublisher() = default;
-    ~DDSAdapterPublisher() override = default;
+    DDSAdapterBridgePublisher() = default;
+    ~DDSAdapterBridgePublisher() override = default;
 
     bool init(const std::string& robot_name,
               dds::domain::DomainParticipant& participant,
@@ -78,7 +77,7 @@ private:
 
 #include <advrf_interfaces/msg/Imu.hpp>
 using ImuMsg = ::advrf_interfaces::msg::dds_::Imu_;
-class ImuPublisher : public DDSAdapterPublisher<ImuMsg, ImuPublisher> {
+class ImuPublisher : public DDSAdapterBridgePublisher<ImuMsg, ImuPublisher> {
 public:
     inline static constexpr std::string_view endpoint = "imu";
 
@@ -102,7 +101,7 @@ public:
 
 #include <sensor_msgs/msg/JointState.hpp>
 using JointStateMsg = ::sensor_msgs::msg::dds_::JointState_;
-class JointStatePublisher : public DDSAdapterPublisher<JointStateMsg, JointStatePublisher> {
+class JointStatePublisher : public DDSAdapterBridgePublisher<JointStateMsg, JointStatePublisher> {
 public:
     inline static constexpr std::string_view endpoint = "joints";
     
@@ -139,7 +138,7 @@ public:
 
 #include <advrf_interfaces/msg/Motor.hpp>
 using MotorMsg = ::advrf_interfaces::msg::dds_::Motor_;
-class MotorsPublisher : public DDSAdapterPublisher<MotorMsg, MotorsPublisher> {
+class MotorsPublisher : public DDSAdapterBridgePublisher<MotorMsg, MotorsPublisher> {
 public:
     inline static constexpr std::string_view endpoint = "motors";
 
@@ -173,7 +172,7 @@ public:
 
 #include <advrf_interfaces/msg/PowerBoard.hpp>
 using PowerBoardMsg = ::advrf_interfaces::msg::dds_::PowerBoard_;
-class PowerBoardPublisher : public DDSAdapterPublisher<PowerBoardMsg, PowerBoardPublisher> {
+class PowerBoardPublisher : public DDSAdapterBridgePublisher<PowerBoardMsg, PowerBoardPublisher> {
 public:
     inline static constexpr std::string_view endpoint = "power_boards";
 
@@ -201,7 +200,7 @@ public:
 
 #include <advrf_interfaces/msg/Pump.hpp>
 using PumpMsg = ::advrf_interfaces::msg::dds_::Pump_;
-class PumpPublisher : public DDSAdapterPublisher<PumpMsg, PumpPublisher> {
+class PumpPublisher : public DDSAdapterBridgePublisher<PumpMsg, PumpPublisher> {
 public:
     inline static constexpr std::string_view endpoint = "pumps";
 
@@ -215,6 +214,34 @@ public:
                 break;
             default:
                 LOG_WARN("Unexpected PDO type for PumpPublisher: {}", static_cast<int>(pdo.type()));
+                return false; // Exit early if the PDO type is not handled
+        }
+        
+        std_msgs::msg::dds_::Header_ header;
+        convert::dds::from_protobuf(pdo, header);
+        message().header() = header;
+      
+        return true;
+    }
+};  
+
+
+#include <advrf_interfaces/msg/ForceTorque.hpp>
+using ForceTorqueMsg = ::advrf_interfaces::msg::dds_::ForceTorque_;
+class ForceTorquePublisher : public DDSAdapterBridgePublisher<ForceTorqueMsg, ForceTorquePublisher> {
+public:
+    inline static constexpr std::string_view endpoint = "force_torques";
+
+    ForceTorquePublisher() = default;
+    ~ForceTorquePublisher() override = default;
+
+    bool consume(const iit::advrf::Ec_slave_pdo& pdo) override {
+        switch (pdo.type()) {
+            case iit::advrf::Ec_slave_pdo::RX_FT6:
+                convert::dds::from_protobuf(pdo.ft6_rx_pdo(), message());
+                break;
+            default:
+                LOG_WARN("Unexpected PDO type for ForceTorquePublisher: {}", static_cast<int>(pdo.type()));
                 return false; // Exit early if the PDO type is not handled
         }
         

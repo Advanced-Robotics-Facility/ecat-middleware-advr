@@ -38,14 +38,11 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    dds_adapter.shm().declare_ready();
     while (keep_running && dds_adapter.shm().is_ok()) {
         dds_adapter.spin_once();
         std::this_thread::sleep_for(std::chrono::microseconds(100));
     }
 
     LOG_INFO("Disconnected from shared memory pipeline. Shutting down.");
-    dds_adapter.shm().declare_not_ready();
-
     return 0;
 }

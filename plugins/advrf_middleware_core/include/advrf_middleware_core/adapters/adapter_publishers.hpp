@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "advrf_middleware_core/robot_config.hpp"
 #include "advrf_middleware_core/utils/log.hpp"
 #include "advrf_middleware_core/pdo_utils.hpp"
@@ -10,13 +12,9 @@
 #include <ecat_master_future/shm_shared_types.hpp>
 #include <ecat_master_future/shm_utils.hpp>
 
-
-#include <string>
-
 inline int get_ecat_id(const std::string& component_name)
 {
     size_t pos = component_name.rfind('_');
-
     if (pos == std::string::npos || pos + 1 >= component_name.size()){
         LOG_ERROR("Format ecat name not correct, {}", component_name);
         return -1;
@@ -101,9 +99,19 @@ protected:
                                     std::move(ids_allowed)});
     }
 
+    template<typename CallbackObject>
+    CallbackObject& register_callback(std::vector<Channel> channels, std::vector<uint32_t> ids_allowed = {})
+    {
+        auto pub = std::make_shared<CallbackObject>();
+        subscribe(pub.get(), std::move(channels), std::move(ids_allowed));
+        callbacks_.push_back(pub);
+        return *(pub);
+    }
+
     PublisherShmConnection shm_;
 
 private:
+    std::vector<std::shared_ptr<ICallback>> callbacks_;
 
     template<typename Queue>
     void process_one_queue(Queue& queue, ICallback* callback, const std::vector<uint32_t>& ids_allowed = {})

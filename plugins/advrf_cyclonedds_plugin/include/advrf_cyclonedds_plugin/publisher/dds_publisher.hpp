@@ -1,18 +1,9 @@
 #pragma once
 
 #include <string>
-#include <cstdint>
 #include <dds/dds.hpp>
 
-#include <advrf_middleware_core/msg.hpp>
-#include <advrf_middleware_core/robot_config.hpp>
 #include <advrf_middleware_core/utils/log.hpp>
-#include <advrf_middleware_core/adapters/adapter_publishers.hpp>
-
-#include <builtin_interfaces/msg/Time.hpp>
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
-
-using TimeMsg = ::builtin_interfaces::msg::dds_::Time_;
 
 template <typename Msg, typename Derived>
 class DDSPublisher {
