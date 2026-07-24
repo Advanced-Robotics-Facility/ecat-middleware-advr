@@ -1,6 +1,6 @@
 #pragma once
 
-#include <array>
+#include <cstddef>
 
 enum class Channel : std::size_t
     {

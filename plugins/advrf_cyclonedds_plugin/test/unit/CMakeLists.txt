@@ -1,4 +1,4 @@
-include( )
+include(CTest)
 
 function(plugin_test TEST_NAME TEST_SOURCE)
     add_executable(${TEST_NAME}
@@ -32,3 +32,9 @@ plugin_test(
     003_converter_001_fromdds
     003_converter/003_converter_001_fromdds.cpp
 )
+
+plugin_test(
+    004_adapters
+    004_adapters/004_adapters.cpp
+)
+

@@ -5,14 +5,14 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <type_traits>
 #include <vector>
 
 #include "advrf_middleware_core/adapters/adapter_base.hpp"
-#include "advrf_middleware_core/utils/pdo_utils.hpp"
 #include "advrf_middleware_core/shared_memory/shm_connection_publishers.hpp"
 #include "advrf_middleware_core/utils/channel.hpp"
 #include "advrf_middleware_core/utils/log.hpp"
+#include "advrf_middleware_core/utils/pdo_utils.hpp"
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <ecat_master_future/shm_shared_types.hpp>
@@ -34,6 +34,7 @@ inline int get_ecat_id(const std::string& component_name)
         LOG_ERROR(
             "Failed to convert ecat id from string, {}",
             component_name.substr(pos + 1));
+
         return -1;
     }
 }
@@ -47,6 +48,8 @@ public:
     using EcatId = std::uint32_t;
 
     static constexpr std::size_t MaxEcatIds = 256;
+    static constexpr std::size_t ChannelCount =
+        static_cast<std::size_t>(Channel::Count);
 
     struct CachedPdo
     {
@@ -54,7 +57,13 @@ public:
         Pdo pdo;
     };
 
-    using Cache = std::unordered_map<Channel, std::vector<CachedPdo>>;
+    struct ChannelCache
+    {
+        std::vector<CachedPdo> storage;
+        std::size_t valid_count = 0;
+    };
+
+    using Cache = std::array<ChannelCache, ChannelCount>;
     using IdMask = std::bitset<MaxEcatIds>;
     using Queue = decltype(SharedPubBridge::imu);
 
@@ -81,9 +90,10 @@ public:
         bool accept_all_ids = true;
     };
 
-    AdapterPublishers(){
+    AdapterPublishers()
+    {
         reserve_cache();
-    };
+    }
 
     ~AdapterPublishers() override = default;
 
@@ -111,7 +121,9 @@ protected:
         std::vector<Channel> channels,
         const std::vector<EcatId>& ids_allowed = {})
     {
-        static_assert(std::is_base_of_v<IPublisher, PublisherType>, "PublisherType must derive from IPublisher");
+        static_assert(
+            std::is_base_of_v<IPublisher, PublisherType>,
+            "PublisherType must derive from IPublisher");
 
         auto publisher = std::make_unique<PublisherType>();
         auto* publisher_ptr = publisher.get();
@@ -127,6 +139,7 @@ protected:
                     "Configured ECAT ID {} exceeds maximum supported ID {}",
                     id,
                     MaxEcatIds - 1);
+
                 continue;
             }
 
@@ -144,38 +157,20 @@ protected:
         return *publisher_ptr;
     }
 
-    void dispatch(){
-         for (auto& subscription : subscriptions_) {
-            subscription.ids_seen.reset();
-            subscription.publisher->begin_cycle();
+    // API unit test
 
-            for (const Channel channel : subscription.channels) {
-                const auto cache_it = cache_.find(channel);
-
-                if (cache_it == cache_.end()) {
-                    continue;
-                }
-
-                dispatch_cache(cache_it->second, subscription);
-            }
-            
-            const bool valid = subscription.ids_seen == subscription.ids_allowed;
-            subscription.publisher->end_cycle(valid);
-        }
+    ChannelCache& mutable_channel_cache(Channel channel) noexcept
+    {
+        return cache_[channel_index(channel)];
     }
 
-    void reserve_cache()
+    void dispatch_cached_data()
     {
-        cache_[Channel::Imu].reserve(2);
-        cache_[Channel::Motor].reserve(32);
-        cache_[Channel::Gripper].reserve(8);
-        cache_[Channel::Pump].reserve(2);
-        cache_[Channel::PowerBoard].reserve(2);
-        cache_[Channel::ForceTorque].reserve(8);
+        dispatch();
     }
 
 private:
-    inline static constexpr std::array<Channel, static_cast<int>(Channel::Count)> all_channels_ {
+    inline static constexpr std::array<Channel, ChannelCount> all_channels_{
         Channel::Imu,
         Channel::Motor,
         Channel::Gripper,
@@ -184,67 +179,118 @@ private:
         Channel::ForceTorque
     };
 
-    std::vector<Subscription> subscriptions_;
     std::vector<std::unique_ptr<IPublisher>> publishers_;
+    std::vector<Subscription> subscriptions_;
 
     ShmProtoHelper proto_helper_;
     Cache cache_;
 
+    static constexpr std::size_t channel_index(Channel channel) noexcept
+    {
+        return static_cast<std::size_t>(channel);
+    }
+
+    ChannelCache& channel_cache(Channel channel) noexcept
+    {
+        return cache_[channel_index(channel)];
+    }
+
+    const ChannelCache& channel_cache(Channel channel) const noexcept
+    {
+        return cache_[channel_index(channel)];
+    }
+
+    void reserve_cache()
+    {
+        channel_cache(Channel::Imu).storage.reserve(2);
+        channel_cache(Channel::Motor).storage.reserve(32);
+        channel_cache(Channel::Gripper).storage.reserve(8);
+        channel_cache(Channel::Pump).storage.reserve(2);
+        channel_cache(Channel::PowerBoard).storage.reserve(2);
+        channel_cache(Channel::ForceTorque).storage.reserve(8);
+    }
+
     void fill_cache()
     {
-    for (const Channel channel : all_channels_) {
-        auto& queue = shm_.resolve(channel);
-        auto& output = cache_[channel];
+        for (const Channel channel : all_channels_) {
+            auto& queue = shm_.resolve(channel);
+            auto& cache = channel_cache(channel);
 
-        std::size_t valid_count = 0;
-        ProtoSlot frame;
+            cache.valid_count = 0;
 
-        while (queue.try_pop(frame)) {
-            if (valid_count == output.size()) {
-                output.emplace_back();
+            ProtoSlot frame;
+
+            while (queue.try_pop(frame)) {
+                if (cache.valid_count == cache.storage.size()) {
+                    cache.storage.emplace_back();
+                }
+
+                auto& cached = cache.storage[cache.valid_count];
+
+                cached.pdo.Clear();
+
+                if (!pdo_utils::parse_frame(
+                        frame.data,
+                        static_cast<ssize_t>(frame.size),
+                        cached.pdo)) {
+                    continue;
+                }
+
+                const int parsed_id =
+                    get_ecat_id(cached.pdo.header().str_id());
+
+                if (parsed_id < 0) {
+                    LOG_ERROR(
+                        "Format error for PDO frame with ID {}",
+                        cached.pdo.header().str_id());
+
+                    continue;
+                }
+
+                const auto id = static_cast<EcatId>(parsed_id);
+
+                if (id >= MaxEcatIds) {
+                    LOG_ERROR(
+                        "Received ECAT ID {} exceeds maximum supported ID {}",
+                        id,
+                        MaxEcatIds - 1);
+
+                    continue;
+                }
+
+                cached.ecat_id = id;
+                ++cache.valid_count;
             }
-
-            auto& cached = output[valid_count];
-
-            cached.pdo.Clear();
-
-            if (!pdo_utils::parse_frame(
-                    frame.data,
-                    static_cast<ssize_t>(frame.size),
-                    cached.pdo)) {
-                continue;
-            }
-
-            const int parsed_id =
-                get_ecat_id(cached.pdo.header().str_id());
-
-            if (parsed_id < 0) {
-                LOG_ERROR(
-                    "Format error for PDO frame with ID {}",
-                    cached.pdo.header().str_id());
-                continue;
-            }
-
-            const auto id = static_cast<EcatId>(parsed_id);
-
-            if (id >= MaxEcatIds) {
-                LOG_ERROR(
-                    "Received ECAT ID {} exceeds maximum supported ID {}",
-                    id,
-                    MaxEcatIds - 1);
-                continue;
-            }
-
-            cached.ecat_id = id;
-            ++valid_count;
         }
-        output.resize(valid_count);
     }
-}
 
-    static void dispatch_cache(const std::vector<CachedPdo>& pdos, Subscription& subscription)
+    void dispatch()
     {
-        for (const auto& frame : pdos) {
+        for (auto& subscription : subscriptions_) {
+            subscription.ids_seen.reset();
+            subscription.publisher->begin_cycle();
+
+            for (const Channel channel : subscription.channels) {
+                dispatch_cache(
+                    channel_cache(channel),
+                    subscription);
+            }
+
+            const bool valid =
+                subscription.accept_all_ids
+                    ? subscription.ids_seen.any()
+                    : subscription.ids_seen == subscription.ids_allowed;
+
+            subscription.publisher->end_cycle(valid);
+        }
+    }
+
+    static void dispatch_cache(
+        const ChannelCache& cache,
+        Subscription& subscription)
+    {
+        for (std::size_t i = 0; i < cache.valid_count; ++i) {
+            const auto& frame = cache.storage[i];
             const EcatId id = frame.ecat_id;
 
             if (!subscription.accept_all_ids &&

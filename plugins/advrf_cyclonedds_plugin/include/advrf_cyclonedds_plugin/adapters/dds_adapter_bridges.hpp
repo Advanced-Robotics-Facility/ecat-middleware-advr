@@ -3,13 +3,12 @@
 #include "advrf_cyclonedds_plugin/publisher/dds_publisher.hpp"
 #include <advrf_cyclonedds_plugin/converter.hpp>
 
-template <typename Msg, typename Derived>
+template <typename Msg>
 class DDSAdapterBridgePublisher
-    : public DDSPublisher<Msg, Derived>
+    : public DDSPublisher<Msg, DDSAdapterBridgePublisher<Msg>>
     , public middleware_adapter::message::AdapterPublishers::IPublisher
 {
 public:
-    using Base = DDSPublisher<Msg, Derived>;
     using Pdo  = iit::advrf::Ec_slave_pdo;
 
     DDSAdapterBridgePublisher() = default;
@@ -19,7 +18,7 @@ public:
               dds::domain::DomainParticipant& participant)
     {
         topic_name_ = topic_name;
-        return Base::init_dds(topic_name_, participant);
+        return this->init_dds(topic_name_, participant);
     }
 
     const std::string& topic_name() const
@@ -34,14 +33,14 @@ public:
 
     void consume(const Pdo& pdo) override
     {
-        if(static_cast<Derived*>(this)->process(pdo)) {
+        if(process(pdo)) {
             has_update_ = true;
         }
     }
 
     void end_cycle(bool valid) override
     {
-        if(!valid) {return;}
+        if(!valid || !has_update_) {return;}
 
         try {
             this->writer_.write(message_);
@@ -51,9 +50,10 @@ public:
         }
     }
 
+protected:
+
     virtual bool process(const Pdo& pdo) = 0;
 
-protected:
     Msg& message(){
         return message_;
     }
@@ -72,11 +72,9 @@ private:
 
 #include <advrf_interfaces/msg/Imu.hpp>
 using ImuMsg = ::advrf_interfaces::msg::dds_::Imu_;
-class ImuPublisher : public DDSAdapterBridgePublisher<ImuMsg, ImuPublisher> {
-public:
+class ImuPublisher : public DDSAdapterBridgePublisher<ImuMsg> {
 
-    ImuPublisher() = default;
-
+protected:
     bool process(const iit::advrf::Ec_slave_pdo& pdo) override {
         switch (pdo.type()) {
             case iit::advrf::Ec_slave_pdo::RX_IMU_VN:
@@ -86,21 +84,17 @@ public:
                 LOG_WARN("Unexpected PDO type for ImuPublisher: {}", static_cast<int>(pdo.type()));
                 return false; // Exit early if the PDO type is not handled
         }
-        std_msgs::msg::dds_::Header_ header;
-        convert::dds::from_protobuf(pdo, header);
-        message().header() = header;
+        convert::dds::from_protobuf(pdo, message().header());
         return true;
     }
 };  
 
 #include <sensor_msgs/msg/JointState.hpp>
 using JointStateMsg = ::sensor_msgs::msg::dds_::JointState_;
-class JointStatePublisher : public DDSAdapterBridgePublisher<JointStateMsg, JointStatePublisher> {
-public:
-    
-    JointStatePublisher() = default;
-    ~JointStatePublisher() override = default;
+class JointStatePublisher : public DDSAdapterBridgePublisher<JointStateMsg> {
 
+
+protected:
     bool process(const iit::advrf::Ec_slave_pdo& pdo) override {
         switch (pdo.type()) {
             case iit::advrf::Ec_slave_pdo::RX_CIA402:
@@ -120,10 +114,7 @@ public:
                 return false; // Exit early if the PDO type is not handled
         }
         
-        std_msgs::msg::dds_::Header_ header;
-        convert::dds::from_protobuf(pdo, header);
-        message().header() = header;
-      
+        convert::dds::from_protobuf(pdo, message().header());
         return true;
     }
 };  
@@ -131,12 +122,10 @@ public:
 
 #include <advrf_interfaces/msg/Motor.hpp>
 using MotorMsg = ::advrf_interfaces::msg::dds_::Motor_;
-class MotorsPublisher : public DDSAdapterBridgePublisher<MotorMsg, MotorsPublisher> {
-public:
+class MotorsPublisher : public DDSAdapterBridgePublisher<MotorMsg> {
 
-    MotorsPublisher() = default;
-    ~MotorsPublisher() override = default;
 
+protected:
     bool process(const iit::advrf::Ec_slave_pdo& pdo) override {
         switch (pdo.type()) {
             case iit::advrf::Ec_slave_pdo::RX_CIA402:
@@ -153,10 +142,7 @@ public:
                 return false; // Exit early if the PDO type is not handled
         }
         
-        std_msgs::msg::dds_::Header_ header;
-        convert::dds::from_protobuf(pdo, header);
-        message().header() = header;
-      
+        convert::dds::from_protobuf(pdo, message().header());
         return true;
     }
 };  
@@ -164,12 +150,10 @@ public:
 
 #include <advrf_interfaces/msg/PowerBoard.hpp>
 using PowerBoardMsg = ::advrf_interfaces::msg::dds_::PowerBoard_;
-class PowerBoardPublisher : public DDSAdapterBridgePublisher<PowerBoardMsg, PowerBoardPublisher> {
-public:
+class PowerBoardPublisher : public DDSAdapterBridgePublisher<PowerBoardMsg> {
 
-    PowerBoardPublisher() = default;
-    ~PowerBoardPublisher() override = default;
 
+protected:
     bool process(const iit::advrf::Ec_slave_pdo& pdo) override {
         switch (pdo.type()) {
             case iit::advrf::Ec_slave_pdo::RX_POW_F28M36:
@@ -180,10 +164,7 @@ public:
                 return false; // Exit early if the PDO type is not handled
         }
         
-        std_msgs::msg::dds_::Header_ header;
-        convert::dds::from_protobuf(pdo, header);
-        message().header() = header;
-      
+        convert::dds::from_protobuf(pdo, message().header());
         return true;
     }
 };  
@@ -191,12 +172,10 @@ public:
 
 #include <advrf_interfaces/msg/Pump.hpp>
 using PumpMsg = ::advrf_interfaces::msg::dds_::Pump_;
-class PumpPublisher : public DDSAdapterBridgePublisher<PumpMsg, PumpPublisher> {
-public:
+class PumpPublisher : public DDSAdapterBridgePublisher<PumpMsg> {
 
-    PumpPublisher() = default;
-    ~PumpPublisher() override = default;
 
+protected:
     bool process(const iit::advrf::Ec_slave_pdo& pdo) override {
         switch (pdo.type()) {
             case iit::advrf::Ec_slave_pdo::RX_HYQ_HPU:
@@ -207,10 +186,7 @@ public:
                 return false; // Exit early if the PDO type is not handled
         }
         
-        std_msgs::msg::dds_::Header_ header;
-        convert::dds::from_protobuf(pdo, header);
-        message().header() = header;
-      
+        convert::dds::from_protobuf(pdo, message().header());
         return true;
     }
 };  
@@ -218,12 +194,9 @@ public:
 
 #include <advrf_interfaces/msg/ForceTorque.hpp>
 using ForceTorqueMsg = ::advrf_interfaces::msg::dds_::ForceTorque_;
-class ForceTorquePublisher : public DDSAdapterBridgePublisher<ForceTorqueMsg, ForceTorquePublisher> {
-public:
+class ForceTorquePublisher : public DDSAdapterBridgePublisher<ForceTorqueMsg> {
 
-    ForceTorquePublisher() = default;
-    ~ForceTorquePublisher() override = default;
-
+protected:
     bool process(const iit::advrf::Ec_slave_pdo& pdo) override {
         switch (pdo.type()) {
             case iit::advrf::Ec_slave_pdo::RX_FT6:
@@ -234,10 +207,7 @@ public:
                 return false; // Exit early if the PDO type is not handled
         }
         
-        std_msgs::msg::dds_::Header_ header;
-        convert::dds::from_protobuf(pdo, header);
-        message().header() = header;
-      
+        convert::dds::from_protobuf(pdo, message().header());
         return true;
     }
 };  
