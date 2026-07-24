@@ -39,20 +39,31 @@ void decode_and_print_imu(const zenoh::Bytes& payload)
         cdr >> stamp_nanosec;
         cdr >> frame_id;
 
-        double qx, qy, qz, qw;
-        cdr >> qx >> qy >> qz >> qw;
+        double ax, ay, az;
+        cdr >> ax >> ay >> az;
 
         double wx, wy, wz;
         cdr >> wx >> wy >> wz;
 
-        double ax, ay, az;
-        cdr >> ax >> ay >> az;
+        double qx, qy, qz, qw;
+        cdr >> qx >> qy >> qz >> qw;
+
+        uint32_t imu_ts;
+        uint32_t temperature;
+        uint32_t digital_in;
+        uint32_t fault;
+        uint32_t rtt;  
+        cdr >> imu_ts;
+        cdr >> temperature;
+        cdr >> digital_in;
+        cdr >> fault;
+        cdr >> rtt;
 
         std::cout << "IMU [" << frame_id << "] stamp=" << stamp_sec << "."
                    << stamp_nanosec
-                   << " quat=(" << qx << ", " << qy << ", " << qz << ", " << qw << ")"
+                   << " accel=(" << ax << ", " << ay << ", " << az << ")"
                    << " gyro=(" << wx << ", " << wy << ", " << wz << ")"
-                   << " accel=(" << ax << ", " << ay << ", " << az << ")\n";
+                   << " quat=(" << qx << ", " << qy << ", " << qz << ", " << qw << ")\n";
     }
     catch (const eprosima::fastcdr::exception::Exception& e)
     {

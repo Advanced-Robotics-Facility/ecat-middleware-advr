@@ -1,24 +1,2 @@
-add_executable(advrf_zenoh_pub
-    pub.cpp
-)
-
-add_executable(advrf_zenoh_sub
-    sub.cpp
-)
-
-target_compile_features(advrf_zenoh_pub PRIVATE cxx_std_17)
-target_compile_features(advrf_zenoh_sub PRIVATE cxx_std_17)
-
-target_link_libraries(advrf_zenoh_pub
-    PRIVATE
-        zenohcxx::zenohc
-        fastcdr
-        ecat_master_future
-)
-
-target_link_libraries(advrf_zenoh_sub
-    PRIVATE
-        zenohcxx::zenohc
-        fastcdr
-        ecat_master_future
-)
+add_subdirectory(001_protobuf)
+add_subdirectory(002_cdr)

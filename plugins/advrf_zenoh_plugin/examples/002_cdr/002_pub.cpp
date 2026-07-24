@@ -31,9 +31,14 @@ struct ImuSample
     int32_t stamp_sec;
     uint32_t stamp_nanosec;
     std::string frame_id;
-    double qx, qy, qz, qw;
-    double wx, wy, wz;
     double ax, ay, az;
+    double wx, wy, wz;
+    double qx, qy, qz, qw;
+    uint32_t imu_ts;
+    uint32_t temperature;
+    uint32_t digital_in;
+    uint32_t fault;
+    uint32_t rtt; 
 };
 
 std::vector<uint8_t> cdr_imu(const ImuSample& s)
@@ -49,14 +54,20 @@ std::vector<uint8_t> cdr_imu(const ImuSample& s)
     cdr << s.stamp_nanosec;
     cdr << s.frame_id;
 
-    // geometry_msgs/Quaternion orientation
-    cdr << s.qx << s.qy << s.qz << s.qw;
+    // geometry_msgs/Vector3 linear_acceleration
+    cdr << s.ax << s.ay << s.az;
 
     // geometry_msgs/Vector3 angular_velocity
     cdr << s.wx << s.wy << s.wz;
 
-    // geometry_msgs/Vector3 linear_acceleration
-    cdr << s.ax << s.ay << s.az;
+    // geometry_msgs/Quaternion orientation
+    cdr << s.qx << s.qy << s.qz << s.qw;
+
+    cdr << s.imu_ts;
+    cdr << s.temperature;
+    cdr << s.digital_in;
+    cdr << s.fault;
+    cdr << s.rtt;
 
     const auto* data = reinterpret_cast<const uint8_t*>(buffer.getBuffer());
     return std::vector<uint8_t>(data, data + cdr.get_serialized_data_length());
@@ -72,18 +83,24 @@ ImuSample to_imu_sample(const iit::advrf::Ec_slave_pdo& pdo)
     s.stamp_nanosec = static_cast<uint32_t>(hdr.stamp().nsec());
     s.frame_id = hdr.str_id();
 
-    s.qx = imu.x_quat();
-    s.qy = imu.y_quat();
-    s.qz = imu.z_quat();
-    s.qw = imu.w_quat();
+    s.ax = imu.x_acc();
+    s.ay = imu.y_acc();
+    s.az = imu.z_acc();
 
     s.wx = imu.x_rate();
     s.wy = imu.y_rate();
     s.wz = imu.z_rate();
 
-    s.ax = imu.x_acc();
-    s.ay = imu.y_acc();
-    s.az = imu.z_acc();
+    s.qx = imu.x_quat();
+    s.qy = imu.y_quat();
+    s.qz = imu.z_quat();
+    s.qw = imu.w_quat();
+
+    s.imu_ts = imu.imu_ts();
+    s.temperature = imu.temperature();
+    s.digital_in = imu.digital_in();
+    s.fault = imu.fault();
+    s.rtt = imu.rtt();
 
     return s;
 }
@@ -113,6 +130,15 @@ int main()
 
     try
     {
+        /* Note:
+            I you want to change endpoint:
+                auto config = zenoh::Config::create_default();
+                config.insert_json5(
+                    "connect/endpoints",
+                    "[\"tcp/localhost:7447\"]"
+                );
+                auto session = zenoh::Session::open(std::move(config));
+        */
         auto session = zenoh::Session::open(zenoh::Config::create_default());
         auto publisher = session.declare_publisher(zenoh::KeyExpr(key));
 
