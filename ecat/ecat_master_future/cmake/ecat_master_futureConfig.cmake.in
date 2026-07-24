@@ -3,6 +3,7 @@
 include("${CMAKE_CURRENT_LIST_DIR}/ecat_master_futureTargets.cmake")
 
 check_required_components(ecat_master_future)
+find_dependency(advrf_middleware_core)
 
 set(ecat_master_future_SHARE_DIR
     "${PACKAGE_PREFIX_DIR}/share/ecat_master_future")

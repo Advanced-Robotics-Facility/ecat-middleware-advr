@@ -1,4 +1,4 @@
-include(CTest)
+include( )
 
 function(plugin_test TEST_NAME TEST_SOURCE)
     add_executable(${TEST_NAME}

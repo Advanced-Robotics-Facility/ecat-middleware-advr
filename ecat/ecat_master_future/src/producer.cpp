@@ -12,7 +12,7 @@
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_interfaces_protobuf/repl_cmd.pb.h>
-#include <advrf_middleware_core/robot_config.hpp>
+#include <advrf_middleware_core/config/robot_config.hpp>
 
 namespace {
 volatile std::sig_atomic_t keep_running = 1;

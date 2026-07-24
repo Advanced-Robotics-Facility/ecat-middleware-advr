@@ -5,7 +5,8 @@
 #include <ecat_master_future/shm_utils.hpp> 
 #include <ecat_master_future/shm_shared_types.hpp>
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
-#include <advrf_middleware_core/pdo_utils.hpp>
+#include <advrf_middleware_core/utils/pdo_utils.hpp>
+#include <advrf_middleware_core/config/robot_config.hpp>
 
 #include "advrf_cyclonedds_plugin/adapters/dds_adapter_publishers.hpp"
 

@@ -1,13 +1,12 @@
 #pragma once
 
-
 #include "advrf_cyclonedds_plugin/publisher/dds_publisher.hpp"
 #include <advrf_cyclonedds_plugin/converter.hpp>
 
 template <typename Msg, typename Derived>
 class DDSAdapterBridgePublisher
     : public DDSPublisher<Msg, Derived>
-    , public middleware_adapter::message::AdapterPublishers::ICallback
+    , public middleware_adapter::message::AdapterPublishers::IPublisher
 {
 public:
     using Base = DDSPublisher<Msg, Derived>;
@@ -28,21 +27,21 @@ public:
         return topic_name_;
     }
 
-    void on_entry() override{
+    void begin_cycle() override{
         message_ = Msg{};
         has_update_ = false;
     }
 
-    void on_pdo(const Pdo& pdo) override
+    void consume(const Pdo& pdo) override
     {
-        if(static_cast<Derived*>(this)->consume(pdo)) {
+        if(static_cast<Derived*>(this)->process(pdo)) {
             has_update_ = true;
         }
     }
 
-    void on_exit() override
+    void end_cycle(bool valid) override
     {
-        if(!has_update_) {return;}
+        if(!valid) {return;}
 
         try {
             this->writer_.write(message_);
@@ -52,7 +51,7 @@ public:
         }
     }
 
-    virtual bool consume(const Pdo& pdo) = 0;
+    virtual bool process(const Pdo& pdo) = 0;
 
 protected:
     Msg& message(){
@@ -78,7 +77,7 @@ public:
 
     ImuPublisher() = default;
 
-    bool consume(const iit::advrf::Ec_slave_pdo& pdo) override {
+    bool process(const iit::advrf::Ec_slave_pdo& pdo) override {
         switch (pdo.type()) {
             case iit::advrf::Ec_slave_pdo::RX_IMU_VN:
                 convert::dds::from_protobuf(pdo.imuvn_rx_pdo(), message());
@@ -102,7 +101,7 @@ public:
     JointStatePublisher() = default;
     ~JointStatePublisher() override = default;
 
-    bool consume(const iit::advrf::Ec_slave_pdo& pdo) override {
+    bool process(const iit::advrf::Ec_slave_pdo& pdo) override {
         switch (pdo.type()) {
             case iit::advrf::Ec_slave_pdo::RX_CIA402:
                 convert::dds::from_protobuf(pdo.cia402_rx_pdo(), message());
@@ -138,7 +137,7 @@ public:
     MotorsPublisher() = default;
     ~MotorsPublisher() override = default;
 
-    bool consume(const iit::advrf::Ec_slave_pdo& pdo) override {
+    bool process(const iit::advrf::Ec_slave_pdo& pdo) override {
         switch (pdo.type()) {
             case iit::advrf::Ec_slave_pdo::RX_CIA402:
                 convert::dds::from_protobuf(pdo.cia402_rx_pdo(), message());
@@ -171,7 +170,7 @@ public:
     PowerBoardPublisher() = default;
     ~PowerBoardPublisher() override = default;
 
-    bool consume(const iit::advrf::Ec_slave_pdo& pdo) override {
+    bool process(const iit::advrf::Ec_slave_pdo& pdo) override {
         switch (pdo.type()) {
             case iit::advrf::Ec_slave_pdo::RX_POW_F28M36:
                 convert::dds::from_protobuf(pdo.powf28m36_rx_pdo(), message());
@@ -198,7 +197,7 @@ public:
     PumpPublisher() = default;
     ~PumpPublisher() override = default;
 
-    bool consume(const iit::advrf::Ec_slave_pdo& pdo) override {
+    bool process(const iit::advrf::Ec_slave_pdo& pdo) override {
         switch (pdo.type()) {
             case iit::advrf::Ec_slave_pdo::RX_HYQ_HPU:
                 convert::dds::from_protobuf(pdo.hyqhpu_rx_pdo(), message());
@@ -225,7 +224,7 @@ public:
     ForceTorquePublisher() = default;
     ~ForceTorquePublisher() override = default;
 
-    bool consume(const iit::advrf::Ec_slave_pdo& pdo) override {
+    bool process(const iit::advrf::Ec_slave_pdo& pdo) override {
         switch (pdo.type()) {
             case iit::advrf::Ec_slave_pdo::RX_FT6:
                 convert::dds::from_protobuf(pdo.ft6_rx_pdo(), message());
