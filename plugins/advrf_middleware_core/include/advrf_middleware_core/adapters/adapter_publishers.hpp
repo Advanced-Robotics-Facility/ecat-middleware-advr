@@ -45,7 +45,7 @@ public:
     struct CachedPdo
     {
         uint32_t ecat_id;
-        Pdo pdo;
+        std::shared_ptr<const Pdo> pdo;
     };
     using Cache = std::unordered_map<Channel, std::vector<CachedPdo>>;
     using Queue = decltype(SharedPubBridge::imu); // supposed all queues have the same type, which is true for now
@@ -69,6 +69,7 @@ public:
         private:
             friend class AdapterPublishers;
             std::unordered_set<uint32_t> ids_allowed_set;
+            std::unordered_set<uint32_t> ids_seen;
     };
 
     AdapterPublishers() = default;
@@ -89,11 +90,10 @@ public:
     void spin_once() override
     {
         std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
-        cache_.clear();
         fill_cache(cache_);
         for (auto& sub : subscriptions_)
         {
-            std::unordered_set<uint32_t> ids_seen;
+            sub.ids_seen.clear();
             sub.callback->on_entry();
             for (auto channel : sub.channels)
             {
@@ -104,11 +104,11 @@ public:
                         it->second,
                         sub.callback,
                         sub.ids_allowed_set,
-                        ids_seen);
+                        sub.ids_seen);
                 }
             }
 
-            if (ids_seen == sub.ids_allowed_set || true)
+            if (sub.ids_seen == sub.ids_allowed_set || true)
             {
                 sub.callback->on_exit();
             }  
@@ -155,16 +155,19 @@ protected:
     template<typename CallbackObject>
     CallbackObject& register_callback(std::vector<Channel> channels, std::vector<uint32_t> ids_allowed = {})
     {
-        auto pub = std::make_shared<CallbackObject>();
-        subscribe(pub.get(), std::move(channels), std::move(ids_allowed));
-        callbacks_.push_back(pub);
-        return *(pub);
+        auto cb = std::make_unique<CallbackObject>();
+        auto* ptr = cb.get();
+
+        subscribe(ptr, std::move(channels), std::move(ids_allowed));
+        callbacks_.push_back(std::move(cb));
+
+        return *ptr;
     }
 
     PublisherShmConnection shm_;
 
 private:
-    std::vector<std::shared_ptr<ICallback>> callbacks_;
+    std::vector<std::unique_ptr<ICallback>> callbacks_;
 
     void fill_cache(Cache& cache)
     {
@@ -176,26 +179,27 @@ private:
             ProtoSlot frame;
             while (queue.try_pop(frame))
             {
-                Pdo pdo;
+                auto pb = std::make_shared<Pdo>();
+
                 if (!pdo_utils::parse_frame(
                         frame.data,
                         static_cast<ssize_t>(frame.size),
-                        pdo))
+                        *pb))
                 {
                     continue;
                 }
 
-                int ecat_id = get_ecat_id(pdo.header().str_id());
+                int ecat_id = get_ecat_id(pb->header().str_id());
                 if (ecat_id < 0)
                 {
-                    LOG_ERROR("Format error for PDO frame with ID {}", pdo.header().str_id());
+                    LOG_ERROR("Format error for PDO frame with ID {}", pb->header().str_id());
                     continue;
                 }
 
                 cache[channel].push_back(
                 {
                     static_cast<uint32_t>(ecat_id),
-                    std::move(pdo)
+                    pb
                 });
             }
         }
@@ -223,7 +227,7 @@ private:
                 continue;
             }
 
-            callback->on_pdo(frame.pdo);
+            callback->on_pdo(*frame.pdo);
         }
     }
 

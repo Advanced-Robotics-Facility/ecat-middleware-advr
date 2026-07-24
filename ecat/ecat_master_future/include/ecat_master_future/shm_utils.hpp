@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <iostream>
 
 class SharedMemory {
     protected:
@@ -73,13 +74,17 @@ class SharedMemoryClient : public SharedMemory {
         {
             // Open existing shared memory object and map it into the caller's address space
             int fd = shm_open(name_, O_RDWR, 0666);
-            if (fd < 0) 
+            if (fd < 0) {
+                std::cerr << std::system_category().message(errno) << '\n';
                 return;
+            }
 
             ptr_ = mmap(nullptr, size_, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
             close(fd);
-            if (ptr_ == MAP_FAILED) 
+            if (ptr_ == MAP_FAILED) {
+                std::cerr << "Failed to map shared memory: " << name_ << std::endl;
                 ptr_ = nullptr;
+            }
         }
 
         ~SharedMemoryClient() override {

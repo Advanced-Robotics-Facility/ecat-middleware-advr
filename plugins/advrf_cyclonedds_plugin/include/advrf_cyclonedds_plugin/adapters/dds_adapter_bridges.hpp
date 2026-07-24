@@ -16,14 +16,10 @@ public:
     DDSAdapterBridgePublisher() = default;
     ~DDSAdapterBridgePublisher() override = default;
 
-    bool init(const std::string& robot_name,
-              dds::domain::DomainParticipant& participant,
-              const std::string& topic_override = "")
+    bool init(const std::string& topic_name,
+              dds::domain::DomainParticipant& participant)
     {
-        topic_name_ = topic_override.empty()
-            ? "rt/advrf/" + robot_name + "/" + std::string{Derived::endpoint}
-            : topic_override;
-
+        topic_name_ = topic_name;
         return Base::init_dds(topic_name_, participant);
     }
 
@@ -79,7 +75,6 @@ private:
 using ImuMsg = ::advrf_interfaces::msg::dds_::Imu_;
 class ImuPublisher : public DDSAdapterBridgePublisher<ImuMsg, ImuPublisher> {
 public:
-    inline static constexpr std::string_view endpoint = "imu";
 
     ImuPublisher() = default;
 
@@ -103,7 +98,6 @@ public:
 using JointStateMsg = ::sensor_msgs::msg::dds_::JointState_;
 class JointStatePublisher : public DDSAdapterBridgePublisher<JointStateMsg, JointStatePublisher> {
 public:
-    inline static constexpr std::string_view endpoint = "joints";
     
     JointStatePublisher() = default;
     ~JointStatePublisher() override = default;
@@ -140,7 +134,6 @@ public:
 using MotorMsg = ::advrf_interfaces::msg::dds_::Motor_;
 class MotorsPublisher : public DDSAdapterBridgePublisher<MotorMsg, MotorsPublisher> {
 public:
-    inline static constexpr std::string_view endpoint = "motors";
 
     MotorsPublisher() = default;
     ~MotorsPublisher() override = default;
@@ -174,7 +167,6 @@ public:
 using PowerBoardMsg = ::advrf_interfaces::msg::dds_::PowerBoard_;
 class PowerBoardPublisher : public DDSAdapterBridgePublisher<PowerBoardMsg, PowerBoardPublisher> {
 public:
-    inline static constexpr std::string_view endpoint = "power_boards";
 
     PowerBoardPublisher() = default;
     ~PowerBoardPublisher() override = default;
@@ -202,7 +194,6 @@ public:
 using PumpMsg = ::advrf_interfaces::msg::dds_::Pump_;
 class PumpPublisher : public DDSAdapterBridgePublisher<PumpMsg, PumpPublisher> {
 public:
-    inline static constexpr std::string_view endpoint = "pumps";
 
     PumpPublisher() = default;
     ~PumpPublisher() override = default;
@@ -230,7 +221,6 @@ public:
 using ForceTorqueMsg = ::advrf_interfaces::msg::dds_::ForceTorque_;
 class ForceTorquePublisher : public DDSAdapterBridgePublisher<ForceTorqueMsg, ForceTorquePublisher> {
 public:
-    inline static constexpr std::string_view endpoint = "force_torques";
 
     ForceTorquePublisher() = default;
     ~ForceTorquePublisher() override = default;

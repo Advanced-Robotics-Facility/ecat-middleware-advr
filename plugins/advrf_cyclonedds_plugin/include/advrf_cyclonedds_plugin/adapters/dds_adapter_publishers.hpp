@@ -4,6 +4,7 @@
 
 #include <advrf_middleware_core/adapters/adapter_publishers.hpp>
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
+#include <advrf_cyclonedds_plugin/config/config_topics.hpp>
 
 #include "advrf_cyclonedds_plugin/adapters/dds_adapter_bridges.hpp"
 
@@ -16,46 +17,42 @@ public:
     DDSAdapterPublishers() = default;
     ~DDSAdapterPublishers() override = default;
 
-    dds::domain::DomainParticipant& participant() { return dp_; }
-
     // TODO [Hugo]: fit ids allowed to cfg
-    bool init(const RobotConfig& cfg) override {
-        dp_ = dds::domain::DomainParticipant(cfg.domain_id);
+    bool init(const config::ConfigTopics& config_topics, dds::domain::DomainParticipant& dp) {
         register_callback<ImuPublisher>(
                 {Channel::Imu}, 
                 {1})
-            .init(cfg.robot_name, dp_);
+            .init(config_topics.state.imu(), dp);
 
         register_callback<JointStatePublisher>(
                 {Channel::Motor, Channel::Gripper}, 
                 {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15})
-            .init(cfg.robot_name, dp_);
+            .init(config_topics.state.joint_state(), dp);
 
         register_callback<MotorsPublisher>(
                 {Channel::Motor},
                 {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12})
-            .init(cfg.robot_name, dp_);
+            .init(config_topics.state.motors(), dp);
 
         register_callback<PowerBoardPublisher>(
                 {Channel::PowerBoard},
                 {})
-            .init(cfg.robot_name, dp_);
+            .init(config_topics.state.power_board(), dp);
 
         register_callback<PumpPublisher>(
                 {Channel::Pump}, 
                 {})
-            .init(cfg.robot_name, dp_);
+            .init(config_topics.state.pump(), dp);
             
         register_callback<ForceTorquePublisher>(
                 {Channel::ForceTorque}, 
                 {})
-            .init(cfg.robot_name, dp_);
+            .init(config_topics.state.force_torque(), dp);
 
         return true;
     }
 
     private:
-        dds::domain::DomainParticipant dp_{dds::core::null};
 };
 
 
