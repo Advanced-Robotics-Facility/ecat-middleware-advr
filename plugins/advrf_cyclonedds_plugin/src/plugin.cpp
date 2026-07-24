@@ -17,8 +17,7 @@ int main(int argc, char** argv)
     auto config = config::ConfigTopics({"advrf", "robot"});
 
     // service
-    std::shared_ptr<DDSAdapterService> dds_adapter_service = std::make_shared<DDSAdapterService>();
-    dds_adapter_service->init(config, dds_participant);    
+    std::shared_ptr<DDSAdapterService> dds_adapter_service = std::make_shared<DDSAdapterService>(config, dds_participant);
     dds_adapter_service->shm().connect(SHM_REPL_NAME);
 
     // publishers

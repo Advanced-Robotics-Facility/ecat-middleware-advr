@@ -29,11 +29,12 @@ int main(int argc, char** argv)
     if (!cfg) return 1;
 
     clock_utils::init();
-    LOG_INFO("Connecting to shared memory: {}", SHM_NAME);
-
     DDSAdapterPublishers dds_adapter;
     dds_adapter.shm().connect(SHM_NAME);
-    if (!dds_adapter.init(*cfg)) {
+
+    auto config = config::ConfigTopics({"advrf", "robot"});
+    auto domain_participant = dds::domain::DomainParticipant(cfg->domain_id);
+    if (!dds_adapter.init(config, domain_participant)) {
         LOG_ERROR("Failed to bind to target DDS channels.");
         return 1;
     }

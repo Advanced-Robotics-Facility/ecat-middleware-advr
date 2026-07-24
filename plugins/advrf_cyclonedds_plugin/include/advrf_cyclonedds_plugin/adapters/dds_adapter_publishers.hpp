@@ -27,17 +27,17 @@ public:
         register_callback<JointStatePublisher>(
                 {Channel::Motor, Channel::Gripper}, 
                 {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15})
-            .init(config_topics.state.joint_state(), dp);
+            .init(config_topics.state.jointState(), dp);
 
         register_callback<MotorsPublisher>(
                 {Channel::Motor},
                 {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12})
-            .init(config_topics.state.motors(), dp);
+            .init(config_topics.state.motor(), dp);
 
         register_callback<PowerBoardPublisher>(
                 {Channel::PowerBoard},
                 {})
-            .init(config_topics.state.power_board(), dp);
+            .init(config_topics.state.powerBoard(), dp);
 
         register_callback<PumpPublisher>(
                 {Channel::Pump}, 
@@ -47,7 +47,7 @@ public:
         register_callback<ForceTorquePublisher>(
                 {Channel::ForceTorque}, 
                 {})
-            .init(config_topics.state.force_torque(), dp);
+            .init(config_topics.state.forceTorque(), dp);
 
         return true;
     }

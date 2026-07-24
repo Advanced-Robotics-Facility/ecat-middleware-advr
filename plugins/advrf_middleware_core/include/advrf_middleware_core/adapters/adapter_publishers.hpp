@@ -75,7 +75,7 @@ public:
     AdapterPublishers() = default;
     virtual ~AdapterPublishers() = default;
 
-    virtual bool init(const RobotConfig& cfg) = 0;
+    // virtual bool init(const RobotConfig& cfg) = 0;
 
     PublisherShmConnection& shm()
     {
@@ -173,6 +173,8 @@ private:
     {
         for (auto& [_, v] : cache_)
             v.clear();
+
+        int i = 0;
         for (auto channel : all_channels_)
         {
             auto& queue = shm_.resolve(channel);
@@ -201,8 +203,12 @@ private:
                     static_cast<uint32_t>(ecat_id),
                     pb
                 });
+
+                i++;
             }
+
         }
+        LOG_INFO("number element en cache {}", i);
     }
 
     void process_cache(
