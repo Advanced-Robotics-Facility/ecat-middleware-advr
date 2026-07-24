@@ -35,10 +35,8 @@ int main(int argc, char** argv)
     
     auto dds_participant = dds::domain::DomainParticipant(cfg->domain_id);
     auto config = config::ConfigTopics({"advrf", "robot"});
-
     DDSAdapterService dds_adapter_service(config, dds_participant);
         
-    config::ConfigTopics repl_topics({"advrf", "robot"});
     dds_adapter_service.shm().connect(SHM_REPL_NAME);
 
     while (keep_running) {

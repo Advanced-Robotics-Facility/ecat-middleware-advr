@@ -89,7 +89,6 @@ public:
 
     void spin_once() override
     {
-        std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
         fill_cache(cache_);
         for (auto& sub : subscriptions_)
         {
@@ -113,9 +112,6 @@ public:
                 sub.callback->on_exit();
             }  
         }
-        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-        std::chrono::duration<double, std::milli> elapsed = end - now;
-        // LOG_DEBUG("AdapterPublishers spin_once elapsed time: {} ms", elapsed.count());
     }
 
 protected:
@@ -182,6 +178,7 @@ private:
             while (queue.try_pop(frame))
             {
                 auto pb = std::make_shared<Pdo>();
+                i++;
 
                 if (!pdo_utils::parse_frame(
                         frame.data,
@@ -203,8 +200,6 @@ private:
                     static_cast<uint32_t>(ecat_id),
                     pb
                 });
-
-                i++;
             }
 
         }
@@ -229,7 +224,6 @@ private:
 
             if (!ids_seen.insert(id).second)
             {
-                //LOG_ERROR("Duplicate PDO frame for ECAT ID {}", id);
                 continue;
             }
 
