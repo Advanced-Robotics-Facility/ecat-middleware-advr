@@ -5,7 +5,7 @@
 
 #include <advrf_middleware_core/utils/log.hpp>
 
-template <typename Msg, typename Derived>
+template <typename Msg>
 class DDSPublisher {
     public:
 
@@ -22,7 +22,7 @@ class DDSPublisher {
             try {
                 topic_ = dds::topic::Topic<Msg>(participant, topic_name);
                 publisher_ = dds::pub::Publisher(participant);
-                dds::pub::qos::DataWriterQos qos = static_cast<Derived*>(this)->writer_qos();
+                dds::pub::qos::DataWriterQos qos = writer_qos();
                 writer_ = dds::pub::DataWriter<Msg>(publisher_, topic_, qos);
                 return true;
             } 
@@ -36,6 +36,15 @@ class DDSPublisher {
             return dds::pub::qos::DataWriterQos()
                 << dds::core::policy::Reliability::BestEffort()
                 << dds::core::policy::History::KeepLast(1);
+        }
+
+        void publish(const Msg& msg) {
+            try {
+                writer_.write(msg);
+            } 
+            catch (const dds::core::Exception& e) {
+                LOG_ERROR("DDS Pub Write Error: {}", e.what());
+            }
         }
 
     protected:

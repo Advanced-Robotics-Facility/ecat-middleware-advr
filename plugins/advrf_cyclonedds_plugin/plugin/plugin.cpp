@@ -7,6 +7,7 @@
 #include <advrf_middleware_core/utils/log.hpp>
 
 #include "advrf_cyclonedds_plugin/adapters/dds_adapter_publishers.hpp"
+#include "advrf_cyclonedds_plugin/adapters/dds_adapter_subscribers.hpp"
 #include "advrf_cyclonedds_plugin/adapters/dds_adapter_service.hpp"
 
 namespace
@@ -80,6 +81,10 @@ int main(int argc, char **argv)
     auto dds_adapter_publishers = std::make_shared<DDSAdapterPublishers>();
     dds_adapter_publishers->shm().connect(SHM_NAME);
 
+    // subscribers
+    auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>(config, dds_participant);
+    dds_adapter_subscribers->shm().connect(SHM_SUB_NAME);
+
     if (!dds_adapter_publishers->init(config, dds_participant))
     {
         LOG_ERROR("Failed to bind to target DDS channels.");
@@ -95,6 +100,12 @@ int main(int argc, char **argv)
         dds_adapter_publishers,
         period_from_rate(options.rate_publishers)
     });
+
+    plugin_exec.register_adapter({
+        dds_adapter_subscribers,
+        period_from_rate(options.rate_service)
+    });
+
 
     LOG_INFO("Publisher rate: {} Hz", options.rate_publishers);
     LOG_INFO("Service rate: {} Hz", options.rate_service);

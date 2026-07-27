@@ -153,6 +153,15 @@ int main(int argc, char** argv)
     auto* repl_bridge = repl_shm.get<SharedReplBridge>();
     new (repl_bridge) SharedReplBridge{};
 
+    // SUB SHM
+    SharedMemoryOwner sub_shm(SHM_SUB_NAME, sizeof(SharedSubBridge));
+    if (!sub_shm.is_valid()) {
+        std::cerr << "Failed to allocate or map shared memory segment." << '\n';
+        return 1;
+    }
+    auto* sub_bridge = sub_shm.get<SharedSubBridge>();
+    new (sub_bridge) SharedSubBridge{};
+
     // Dynamic Discovery Generation Loop
     uint32_t slave_idx = 0;
     

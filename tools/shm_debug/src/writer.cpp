@@ -6,7 +6,7 @@
 #include <iostream>
 #include <thread>
 
-int main()
+int main(int argc, char** argv)
 {
     SharedMemoryOpenOrCreate shm(SHM_NAME, sizeof(SharedPubBridge));
 

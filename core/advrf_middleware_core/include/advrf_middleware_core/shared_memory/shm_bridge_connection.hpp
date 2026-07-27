@@ -28,7 +28,7 @@ public:
             if (shm_->is_valid())
                 break;
 
-            LOG_DEBUG("Waiting shared memory {}", shm_name);
+            LOG_WARN("Waiting shared memory {}", shm_name);
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 

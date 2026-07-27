@@ -57,15 +57,22 @@ namespace topics
 struct TopicsState : public TopicNamespace
 {
     using TopicNamespace::TopicNamespace;
-
-    std::string jointState()  const { return rt("joints"); }
-    std::string imu()         const { return rt("imu"); }
-    std::string forceTorque() const { return rt("force_torque"); }
-    std::string motor()       const { return rt("motor"); }
-    std::string powerBoard()  const { return rt("power_board"); }
-    std::string pump()        const { return rt("pump"); }
-    std::string valve()       const { return rt("valve"); }
+    std::string jointState()  const { return rt("state/joints"); }
+    std::string imu()         const { return rt("state/imu"); }
+    std::string forceTorque() const { return rt("state/force_torque"); }
+    std::string motor()       const { return rt("state/motor"); }
+    std::string powerBoard()  const { return rt("state/power_board"); }
+    std::string pump()        const { return rt("state/pump"); }
+    std::string valve()       const { return rt("state/valve"); }
 };
+
+
+struct TopicsCommand  : public TopicNamespace
+{
+    using TopicNamespace::TopicNamespace;
+    std::string jointCmd()  const { return rt("cmd/joints"); }
+};
+
 
 struct TopicsReplCmd : public TopicNamespace
 {
@@ -109,12 +116,14 @@ struct ConfigTopics
 {
     explicit ConfigTopics(std::vector<std::string> ns)
         : state(ns),
+          command(ns),
           parameters(ns),
           srv(ns),
           replCmd(ns)
     {}
 
     topics::TopicsState state;
+    topics::TopicsCommand command;
     topics::TopicsParameters parameters;
     topics::TopicsServices srv;
     topics::TopicsReplCmd replCmd;

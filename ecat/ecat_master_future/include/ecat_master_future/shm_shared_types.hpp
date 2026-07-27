@@ -7,6 +7,7 @@
 
 static constexpr const char* SHM_NAME = "/ecat_master_pub";
 static constexpr const char* SHM_REPL_NAME = "/ecat_master_repl";
+static constexpr const char* SHM_SUB_NAME = "/ecat_master_sub";
 
 template<typename T, size_t N>
 struct SPSCQueue {
@@ -109,6 +110,13 @@ struct SharedReplBridge {
     SPSCQueue<ProtoSlot, 16> request;
     // EcatMaster -> Middleware (Repl_info)
     SPSCQueue<ProtoSlot, 16> reply;
+
+    alignas(64) std::atomic<bool> mw_ready{false};
+    alignas(64) std::atomic<bool> rt_ready{false};
+};
+
+struct SharedSubBridge {
+    SPSCQueue<ProtoSlot, 16> motors_pdo;
 
     alignas(64) std::atomic<bool> mw_ready{false};
     alignas(64) std::atomic<bool> rt_ready{false};

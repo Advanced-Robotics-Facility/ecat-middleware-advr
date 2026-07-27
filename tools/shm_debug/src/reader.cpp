@@ -1,43 +1,50 @@
 #include <ecat_master_future/shm_shared_types.hpp>
 #include <ecat_master_future/shm_utils.hpp>
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
+#include <advrf_interfaces_protobuf/repl_cmd.pb.h>
 
 #include <chrono>
 #include <iostream>
 #include <thread>
 
-int main()
+template <typename Bridge, typename Prototype>
+class ReadBridge
 {
-    SharedMemoryOpenOrCreate shm(SHM_NAME, sizeof(SharedPubBridge));
-
-    if (!shm.is_valid()) {
-        std::cerr << "Failed to open/create shared memory.\n";
-        return 1;
-    }
-
-    auto* bridge = static_cast<SharedPubBridge*>(shm.raw_ptr());
-
-    if (shm.created()) {
-        new (bridge) SharedPubBridge();
-        std::cout << "Created shared memory.\n";
-    }
-
-    ShmProtoHelper proto;
-    iit::advrf::Ec_slave_pdo cmd;
-
-    while (true) {
-
-        proto.parse_latest(bridge->motor, cmd);
-
-        std::cout << "\033[2J\033[H"; // Clear terminal (optional)
-
-        if (cmd.has_cia402_tx_pdo()) {
-            const auto& tx = cmd.cia402_tx_pdo();
-            std::cout << "target_pos: " << tx.target_pos() << '\n';
+    public:
+        ReadBridge(const std::string& shm_name)
+            : shm_(shm_name.c_str(), sizeof(Bridge))
+        {
+            shm_name_ = shm_name;
+            if (!shm_.is_valid()) {
+                std::cerr << "Failed to open shared memory segment." << '\n';
+                std::exit(1);
+            }   
+            bridge_ = static_cast<Bridge*>(shm_.raw_ptr());
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
+        Prototype read_latest() {
+            Prototype proto;
+            proto_helper_.parse_latest(bridge_->motors_pdo, proto);
+            return proto;
+        }
 
+        void start() {
+            while (true) {
+                std::cout << "SHM NAME: " << shm_name_ << std::endl;
+                read_latest().PrintDebugString();
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
+        }
+
+    protected:
+        ShmProtoHelper proto_helper_;
+        SharedMemoryOpenOrCreate shm_;
+        Bridge* bridge_;
+        std::string shm_name_;
+};
+
+int main(int argc, char** argv)
+{
+    ReadBridge<SharedSubBridge, iit::advrf::Motors_PDO_cmd> (SHM_SUB_NAME).start();
     return 0;
 }
