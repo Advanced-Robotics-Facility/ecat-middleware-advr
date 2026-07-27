@@ -45,18 +45,13 @@ int main()
         auto publisher = session.declare_publisher(zenoh::KeyExpr(key));
 
         ShmProtoHelper proto_helper;
-        iit::advrf::Ec_slave_pdo pdo;
 
         while (running) {
-            proto_helper.drain(bridge->imu, pdo, [&](const iit::advrf::Ec_slave_pdo& msg) {
-                std::string bytes;
-                if (!msg.SerializeToString(&bytes)) {
-                    std::cerr << "Failed to serialize IMU pdo\n";
-                    return;
-                }
-                publisher.put(zenoh::Bytes(std::vector<uint8_t>(bytes.begin(), bytes.end())));
-                std::cout << "Published IMU sample [" << msg.header().str_id()
-                           << "] idx=" << msg.header().index() << '\n';
+            proto_helper.drain_raw(bridge->imu, [&](const uint8_t* data, size_t size) {
+                std::vector<uint8_t> payload(data, data + size);
+
+                publisher.put(zenoh::Bytes(std::move(payload)));
+                std::cout << "Published raw IMU protobuf, size=" << size << " bytes\n";
             });
 
             std::this_thread::sleep_for(1ms);

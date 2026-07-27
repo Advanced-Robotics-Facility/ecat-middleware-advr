@@ -147,6 +147,20 @@ struct ShmProtoHelper {
         }
     }
 
+    // Drain serialized protobuf payloads without deserializing (used for Zenoh)
+    template<size_t N, typename Fn>
+    void drain_raw(SPSCQueue<ProtoSlot, N>& queue, Fn&& on_frame) {
+        while (queue.try_pop(slot)) {
+            uint32_t payload_size = 0;
+            if (!frame_payload_size(slot, payload_size))
+                continue;
+            on_frame(
+                slot.data + PROTO_FRAME_HEADER_BYTES,
+                static_cast<size_t>(payload_size)
+            );
+        }
+    }
+
     // Drain the queue but keep only latest (for RT usage)
     template<size_t N, typename Proto>
     bool parse_latest(SPSCQueue<ProtoSlot, N>& queue, Proto& msg) {
