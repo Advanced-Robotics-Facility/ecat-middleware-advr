@@ -31,6 +31,8 @@ target_include_directories(ecat_master_future
 
 target_link_libraries(ecat_master_future
     PUBLIC
+        yaml-cpp
+    PRIVATE
         advrf_interfaces_protobuf
         advrf_middleware_core
 )
@@ -55,7 +57,7 @@ install(
 )
 
 install(
-    DIRECTORY config/
+    DIRECTORY config
     DESTINATION share/${PROJECT_NAME}
 )
 
@@ -79,10 +81,11 @@ if(BUILD_ECAT_MASTER_FUTURE_TOOLS)
     )
 
     target_link_libraries(ecat_master_future_producer
-        PRIVATE
+        PUBLIC
             ecat_master_future
+        PRIVATE
             advrf_interfaces_protobuf
-            yaml-cpp::yaml-cpp
+            advrf_middleware_core
     )
 
     install(
@@ -101,7 +104,7 @@ install(
 configure_package_config_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/ecat_master_futureConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/ecat_master_futureConfig.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}/
 )
 
 write_basic_package_version_file(

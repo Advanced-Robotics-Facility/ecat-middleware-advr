@@ -5,6 +5,8 @@ project(advrf_interfaces_dds
     LANGUAGES CXX
 )
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 find_package(advrf_cyclonedds_lib REQUIRED)
 find_package(CycloneDDS REQUIRED)
 find_package(CycloneDDS-CXX REQUIRED)
@@ -140,7 +142,7 @@ install(
 
 install(
     DIRECTORY "${DDS_GENERATED_DIR}/"
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/"
     FILES_MATCHING
         PATTERN "*.hpp"
         PATTERN "*.h"

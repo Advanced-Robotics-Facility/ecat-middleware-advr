@@ -5,11 +5,6 @@ project(advrf_cyclonedds_plugin
     LANGUAGES CXX
 )
 
-add_compile_options(
-    $<$<CONFIG:Release>:-O3>
-    $<$<CONFIG:RelWithDebInfo>:-O3>
-)
-
 find_package(advrf_cyclonedds_lib REQUIRED)
 find_package(advrf_interfaces_dds REQUIRED)
 find_package(advrf_middleware_core REQUIRED)
@@ -23,12 +18,15 @@ message(STATUS "ecat_master_future_CONFIG_DIR = ${ecat_master_future_CONFIG_DIR}
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-add_library(advrf_cyclonedds_plugin
+add_library(advrf_cyclonedds_plugin SHARED
+    src/converter.cpp
+    src/dds_adapter_publishers.cpp
+    src/dds_adapter_bridges.cpp
+    src/dds_adapter_service.cpp
     src/parameter_make_get.cpp
     src/service_server.cpp
     src/parameter_client.cpp
     src/parameter_server.cpp
-    src/dds_adapter_service.cpp
 )
 
 target_compile_features(advrf_cyclonedds_plugin
@@ -43,10 +41,11 @@ target_include_directories(advrf_cyclonedds_plugin
 )
 
 target_link_libraries(advrf_cyclonedds_plugin
-    PUBLIC
+    PUBLIC    
         advrf_middleware_core
         advrf_interfaces_dds
         advrf_interfaces_protobuf
+    PRIVATE
         ecat_master_future
         CycloneDDS-CXX::ddscxx
         spdlog::spdlog
@@ -112,31 +111,9 @@ if(BUILD_TEST_EXAMPLES)
     add_subdirectory(test/examples)    
 endif()
 
-
-## Exec Plugin
-
-
-add_executable(cyclonedds_plugin
-    src/plugin.cpp
-)
-
-target_compile_features(cyclonedds_plugin
-    PRIVATE
-        cxx_std_17
-)
-
-target_link_libraries(cyclonedds_plugin
-    PRIVATE
-        advrf_cyclonedds_plugin
-        yaml-cpp::yaml-cpp
-)
+option(BUILD_PLUGIN "Build plugin" ON)
+if(BUILD_PLUGIN)
+    add_subdirectory(plugin/)    
+endif()
 
 
-target_compile_definitions(cyclonedds_plugin PRIVATE
-    ROBOT_CONFIG_DIR="${ecat_master_future_CONFIG_DIR}/robot.yaml"
-)
-
-install(
-    TARGETS cyclonedds_plugin
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)

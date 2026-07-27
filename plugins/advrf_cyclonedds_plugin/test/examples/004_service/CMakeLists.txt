@@ -10,6 +10,9 @@ target_compile_features(004_service_repl_client
 target_link_libraries(004_service_repl_client
     PRIVATE
         advrf_cyclonedds_plugin
+        advrf_interfaces_dds
+        advrf_middleware_core
+        ecat_master_future
 )
 
 
@@ -32,6 +35,9 @@ target_compile_features(004_service_repl_server
 target_link_libraries(004_service_repl_server
     PRIVATE
         advrf_cyclonedds_plugin
+        advrf_interfaces_dds
+        advrf_middleware_core
+        ecat_master_future
         yaml-cpp::yaml-cpp
 )
 

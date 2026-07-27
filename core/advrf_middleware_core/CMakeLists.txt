@@ -5,11 +5,12 @@ project(advrf_middleware_core
     LANGUAGES CXX
 )
 
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
 find_package(advrf_interfaces_protobuf REQUIRED)
 find_package(spdlog REQUIRED)
 
-include(GNUInstallDirs)
-include(CMakePackageConfigHelpers)
 
 add_library(advrf_middleware_core INTERFACE)
 
@@ -30,14 +31,18 @@ target_link_libraries(advrf_middleware_core
         spdlog::spdlog
 )
 
+
 install(
     TARGETS advrf_middleware_core
     EXPORT advrf_middleware_coreTargets
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 install(
-    DIRECTORY include/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/
+    DESTINATION
+        ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 install(
@@ -46,8 +51,9 @@ install(
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
+
 configure_package_config_file(
-    cmake/advrf_middleware_coreConfig.cmake.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/advrf_middleware_coreConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/advrf_middleware_coreConfig.cmake
     INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
@@ -62,5 +68,6 @@ install(
     FILES
         ${CMAKE_CURRENT_BINARY_DIR}/advrf_middleware_coreConfig.cmake
         ${CMAKE_CURRENT_BINARY_DIR}/advrf_middleware_coreConfigVersion.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+    DESTINATION
+        ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
