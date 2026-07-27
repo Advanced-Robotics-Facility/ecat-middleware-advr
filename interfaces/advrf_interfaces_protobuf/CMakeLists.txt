@@ -5,10 +5,10 @@ project(advrf_interfaces_protobuf
     LANGUAGES CXX
 )
 
-find_package(Protobuf REQUIRED)
-
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
+
+find_package(Protobuf REQUIRED)
 
 set(PROTO_FILES
     msg/time.proto
@@ -25,15 +25,13 @@ set(PROTO_FILES
     msg/repl_cmd.proto
 )
 
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILES})
-
-add_library(advrf_interfaces_protobuf STATIC
-    ${PROTO_SRCS}
-    ${PROTO_HDRS}
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS
+    ${PROTO_FILES}
 )
 
-set_target_properties(advrf_interfaces_protobuf PROPERTIES
-    POSITION_INDEPENDENT_CODE ON
+add_library(advrf_interfaces_protobuf SHARED
+    ${PROTO_SRCS}
+    ${PROTO_HDRS}
 )
 
 target_compile_features(advrf_interfaces_protobuf
@@ -43,11 +41,7 @@ target_compile_features(advrf_interfaces_protobuf
 
 target_include_directories(advrf_interfaces_protobuf
     PUBLIC
-        # build/<pkg>/ecat_pdo.pb.h
-        # => include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/..>
-
-        # install/include/advrf_interfaces_protobuf/ecat_pdo.pb.h
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
@@ -55,6 +49,8 @@ target_link_libraries(advrf_interfaces_protobuf
     PUBLIC
         protobuf::libprotobuf
 )
+
+
 
 install(
     TARGETS advrf_interfaces_protobuf
@@ -66,15 +62,19 @@ install(
 )
 
 install(
-    DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/advrf_interfaces_protobuf
+    DIRECTORY
+        ${CMAKE_CURRENT_BINARY_DIR}/
+    DESTINATION
+        ${CMAKE_INSTALL_INCLUDEDIR}/advrf_interfaces_protobuf
     FILES_MATCHING
         PATTERN "*.pb.h"
 )
 
 install(
-    FILES ${PROTO_FILES}
-    DESTINATION share/${PROJECT_NAME}/proto
+    FILES
+        ${PROTO_FILES}
+    DESTINATION
+        share/${PROJECT_NAME}/proto
 )
 
 install(
@@ -83,8 +83,10 @@ install(
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
+
+
 configure_package_config_file(
-    cmake/advrf_interfaces_protobufConfig.cmake.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/advrf_interfaces_protobufConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/advrf_interfaces_protobufConfig.cmake
     INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
@@ -99,5 +101,6 @@ install(
     FILES
         ${CMAKE_CURRENT_BINARY_DIR}/advrf_interfaces_protobufConfig.cmake
         ${CMAKE_CURRENT_BINARY_DIR}/advrf_interfaces_protobufConfigVersion.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+    DESTINATION
+        ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )

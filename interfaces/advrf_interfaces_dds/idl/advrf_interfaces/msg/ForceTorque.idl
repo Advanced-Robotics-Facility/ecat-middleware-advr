@@ -6,7 +6,7 @@ module advrf_interfaces {
         module dds_ {
             struct ForceTorque_ {
                 std_msgs::msg::dds_::Header_ header;
-                
+
                 geometry_msgs::msg::dds_::Wrench_ wrench;
 
                 uint32 fault;

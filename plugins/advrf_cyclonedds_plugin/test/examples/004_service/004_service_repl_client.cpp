@@ -1,4 +1,3 @@
-#include <iostream>
 #include <dds/dds.hpp>
 
 #include <advrf_interfaces/srv/ReplCmd.hpp>
@@ -6,7 +5,6 @@
 
 #include "advrf_cyclonedds_plugin/service/service_client.hpp"
 #include "advrf_cyclonedds_plugin/config/config_topics.hpp"
-
 
 using RequestDDS = advrf_interfaces::srv::dds_::ReplCmd_Request_;
 using ResponseDDS = advrf_interfaces::srv::dds_::ReplCmd_Response_;

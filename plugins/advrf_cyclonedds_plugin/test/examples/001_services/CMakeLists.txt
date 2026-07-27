@@ -5,6 +5,9 @@ add_executable(001_services_sdo_get_request_server
 target_link_libraries(001_services_sdo_get_request_server
     PRIVATE
         advrf_cyclonedds_plugin
+        advrf_middleware_core
+        advrf_interfaces_dds
+        ecat_master_future
 )
 
 install(
@@ -19,6 +22,9 @@ add_executable(001_services_sdo_get_request_client
 target_link_libraries(001_services_sdo_get_request_client
     PRIVATE
         advrf_cyclonedds_plugin
+        advrf_middleware_core
+        advrf_interfaces_dds
+        ecat_master_future
 )
 
 install(
@@ -34,6 +40,9 @@ add_executable(001_services_cmd_server
 target_link_libraries(001_services_cmd_server
     PRIVATE
         advrf_cyclonedds_plugin
+        advrf_middleware_core
+        advrf_interfaces_dds
+        ecat_master_future
 )
 
 install(

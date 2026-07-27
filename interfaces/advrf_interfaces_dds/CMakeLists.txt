@@ -5,6 +5,8 @@ project(advrf_interfaces_dds
     LANGUAGES CXX
 )
 
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 option(USE_FASTDDS "Use FastDDS instead of CycloneDDS" OFF)
 
 include(GNUInstallDirs)
@@ -262,7 +264,7 @@ install(
 
 install(
     DIRECTORY "${DDS_GENERATED_DIR}/"
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/"
     FILES_MATCHING
         PATTERN "*.hpp"
         PATTERN "*.h"

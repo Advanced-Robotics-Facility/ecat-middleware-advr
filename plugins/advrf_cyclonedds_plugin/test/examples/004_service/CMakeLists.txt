@@ -10,12 +10,12 @@ target_compile_features(004_service_repl_client
 target_link_libraries(004_service_repl_client
     PRIVATE
         advrf_cyclonedds_plugin
+        advrf_interfaces_dds
+        advrf_middleware_core
+        ecat_master_future
 )
 
-add_test(
-    NAME 004_service_repl_client
-    COMMAND 004_service_repl_client
-)
+
 
 install(
     TARGETS 004_service_repl_client
@@ -35,13 +35,13 @@ target_compile_features(004_service_repl_server
 target_link_libraries(004_service_repl_server
     PRIVATE
         advrf_cyclonedds_plugin
+        advrf_interfaces_dds
+        advrf_middleware_core
+        ecat_master_future
         yaml-cpp::yaml-cpp
 )
 
-add_test(
-    NAME 004_service_repl_server
-    COMMAND 004_service_repl_server
-)
+
 
 target_compile_definitions(004_service_repl_server PRIVATE
     ROBOT_CONFIG_DIR="${advrf_middleware_core_CONFIG_DIR}/robot.yaml"

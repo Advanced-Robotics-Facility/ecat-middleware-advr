@@ -11,7 +11,7 @@
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_interfaces_protobuf/repl_cmd.pb.h>
-#include <advrf_middleware_core/robot_config.hpp>
+#include <advrf_middleware_core/config/robot_config.hpp>
 
 namespace {
 volatile std::sig_atomic_t keep_running = 1;
@@ -43,7 +43,7 @@ iit::advrf::Ec_slave_pdo make_imu_pdo(double t, uint64_t sample_index, int imu_i
 {
     iit::advrf::Ec_slave_pdo pdo;
     pdo.set_type(iit::advrf::Ec_slave_pdo::RX_IMU_VN);
-    populate_pdo_header(pdo, "imu" + std::to_string(imu_id), sample_index);
+    populate_pdo_header(pdo, "imu_" + std::to_string(imu_id), sample_index);
 
     auto* imu_payload = pdo.mutable_imuvn_rx_pdo();
 
@@ -141,6 +141,8 @@ int main(int argc, char** argv)
     }
     auto* bridge = shm.get<SharedPubBridge>();
     new (bridge) SharedPubBridge{};
+
+    std::cout << "[Producer] Initializing shared memory segment: " << SHM_REPL_NAME << '\n';
 
     // REPL SHM
     SharedMemoryOwner repl_shm(SHM_REPL_NAME, sizeof(SharedReplBridge));

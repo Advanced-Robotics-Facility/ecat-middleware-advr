@@ -32,6 +32,8 @@ target_include_directories(ecat_master_future
 
 
 target_link_libraries(ecat_master_future
+    PRIVATE
+        yaml-cpp::yaml-cpp
     PUBLIC
         advrf_interfaces_protobuf
         advrf_middleware_core

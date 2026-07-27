@@ -7,9 +7,11 @@ function(plugin_test TEST_NAME TEST_SOURCE)
 
     target_link_libraries(${TEST_NAME}
         PRIVATE
-            advrf_cyclonedds_plugin
+            advrf_middleware_core
             advrf_interfaces_dds
+            advrf_cyclonedds_plugin
             advrf_interfaces_protobuf
+            ecat_master_future
     )
 
     add_test(
@@ -32,3 +34,9 @@ plugin_test(
     003_converter_001_fromdds
     003_converter/003_converter_001_fromdds.cpp
 )
+
+plugin_test(
+    004_adapters
+    004_adapters/004_adapters.cpp
+)
+

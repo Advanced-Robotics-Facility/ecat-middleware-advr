@@ -12,16 +12,21 @@ find_package(advrf_interfaces_protobuf REQUIRED)
 find_package(ecat_master_future REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
+message(STATUS "ecat_master_future_DIR = ${ecat_master_future_DIR}")
+message(STATUS "ecat_master_future_CONFIG_DIR = ${ecat_master_future_CONFIG_DIR}")
+
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-add_library(advrf_cyclonedds_plugin
-    src/main.cpp
+add_library(advrf_cyclonedds_plugin SHARED
+    src/converter.cpp
+    src/dds_adapter_publishers.cpp
+    src/dds_adapter_bridges.cpp
+    src/dds_adapter_service.cpp
     src/parameter_make_get.cpp
     src/service_server.cpp
     src/parameter_client.cpp
     src/parameter_server.cpp
-    src/service_server_cmd.cpp
 )
 
 target_compile_features(advrf_cyclonedds_plugin
@@ -36,10 +41,11 @@ target_include_directories(advrf_cyclonedds_plugin
 )
 
 target_link_libraries(advrf_cyclonedds_plugin
-    PUBLIC
+    PUBLIC    
         advrf_middleware_core
         advrf_interfaces_dds
         advrf_interfaces_protobuf
+    PRIVATE
         ecat_master_future
         CycloneDDS-CXX::ddscxx
         spdlog::spdlog
@@ -104,3 +110,10 @@ endif()
 if(BUILD_TEST_EXAMPLES)
     add_subdirectory(test/examples)    
 endif()
+
+option(BUILD_PLUGIN "Build plugin" ON)
+if(BUILD_PLUGIN)
+    add_subdirectory(plugin/)    
+endif()
+
+
