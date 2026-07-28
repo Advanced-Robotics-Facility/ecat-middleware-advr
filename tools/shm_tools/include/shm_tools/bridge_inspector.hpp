@@ -258,11 +258,12 @@ void BridgeInspector<Bridge>::display(
 
     for (const auto& queue : queues_)
     {
+        if (!should_display(queue.name, options))
+            continue;
 
         ++displayed_queues;
 
         const auto it = messages.find(queue.name);
-
         const MessageList* list = nullptr;
         std::size_t count = 0;
 
@@ -421,7 +422,6 @@ void BridgeInspector<Bridge>::display_progress(
     const InspectorOptions& options) const
 {
     print_header("Bridge Progress");
-
     std::size_t total = 0;
 
     for (const auto& queue : queues_)

@@ -30,9 +30,9 @@ Usage:
 
 Bridges
 
-    pub
-    sub
-    repl
+    pub-bridge
+    sub-bridge
+    repl-bridge
 
 Options
 
