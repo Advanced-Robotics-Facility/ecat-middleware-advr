@@ -8,7 +8,7 @@ DDSAdapterSubscribers::DDSAdapterSubscribers(const config::ConfigTopics& config_
             try {
                 MessageProtobuf pb_msg;
                 convert::protobuf::from_dds(msg, pb_msg);
-                this->forward_ctrl_cmd(pb_msg);
+                this->forward(pb_msg);
             } catch (const std::exception& e) {
                 LOG_ERROR("Error processing DDS message: {}", e.what());
             }

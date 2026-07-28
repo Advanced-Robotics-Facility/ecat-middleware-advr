@@ -13,6 +13,7 @@ template<typename T, size_t N>
 struct SPSCQueue {
     static_assert((N & (N - 1)) == 0);
     static constexpr size_t MASK = N - 1;
+    static constexpr std::size_t capacity = N;
 
     // alignas(64): puts head and tail on two separate cache lines
     alignas(64) std::atomic<size_t> head{0};  // Producer only
@@ -131,7 +132,7 @@ struct SharedReplBridge {
 };
 
 struct SharedSubBridge {
-    SPSCQueue<ProtoSlot, 16> motors_pdo;
+    SPSCQueue<ProtoSlot, 16> request;
 
     alignas(64) std::atomic<bool> mw_ready{false};
     alignas(64) std::atomic<bool> rt_ready{false};

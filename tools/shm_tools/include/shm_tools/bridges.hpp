@@ -57,10 +57,10 @@ public:
 
 protected:
 
-    void declare() override
+     void declare() override
     {
-        register_queue<iit::advrf::Motors_PDO_cmd>(
-            "motors_pdo",
-            bridge_->motors_pdo);
+        register_queue<iit::advrf::Repl_cmd>(
+            "request",
+            bridge_->request);
     }
 };

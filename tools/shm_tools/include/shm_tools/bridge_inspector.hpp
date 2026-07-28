@@ -10,9 +10,11 @@
 #include <iomanip>
 #include <iostream>
 #include <thread>
+#include <yaml-cpp/yaml.h>
 
 #include <ecat_master_future/shm_shared_types.hpp>
 #include <ecat_master_future/shm_utils.hpp>
+#include <shm_tools/monitor.hpp>
 
 #include <google/protobuf/message.h>
 #include <google/protobuf/util/json_util.h>
@@ -24,6 +26,8 @@ struct InspectorOptions
     bool stats{false};
     bool once{false};
     bool history{false};
+    bool yaml{false};
+    bool progress{false};
 
     int rate{10};
 
@@ -57,13 +61,16 @@ protected:
     ShmProtoHelper proto_helper_;
 
 private:
+    mutable Console console_;
 
     struct QueueDescriptor
     {
         std::string name;
         std::string proto_name;
+        std::size_t capacity;
 
         std::function<void(MessageMap&, const InspectorOptions&)> reader;
+        std::function<std::size_t()> size;
     };
 
     struct QueueStats
@@ -101,6 +108,12 @@ private:
     void display_json(const MessageMap& messages,
                   const InspectorOptions& options) const;
 
+    void display_yaml(const MessageMap& messages,
+                    const InspectorOptions& options) const;
+
+    void display_progress(const MessageMap& messages,
+                          const InspectorOptions& options) const;
+
     void display_stats(const InspectorOptions& options) const;
 };
 
@@ -132,6 +145,7 @@ void BridgeInspector<Bridge>::register_queue(const std::string& name, Queue& que
     {
         name,
         Proto::descriptor()->full_name(),
+        Queue::capacity,    
 
         [this, name, &queue]
         (MessageMap& messages,
@@ -159,6 +173,10 @@ void BridgeInspector<Bridge>::register_queue(const std::string& name, Queue& que
             {
                 messages[name].push_back(std::move(msg));
             }
+        },
+         [&queue]()
+        {
+            return queue.size();
         }
     });
 }
@@ -170,7 +188,11 @@ BridgeInspector<Bridge>::read(const InspectorOptions& options)
     MessageMap messages;
 
     for (const auto& queue : queues_)
+    {
+        if (!should_display(queue.name, options))
+                continue;
         queue.reader(messages, options);
+    }
 
     return messages;
 }
@@ -184,7 +206,6 @@ void BridgeInspector<Bridge>::update_stats(
     for (const auto& [name, list] : messages)
     {
         auto& stats = stats_[name];
-
         if (!stats.initialized)
         {
             stats.initialized = true;
@@ -214,26 +235,16 @@ void BridgeInspector<Bridge>::clear_screen()
 }
 
 template<typename Bridge>
-void BridgeInspector<Bridge>::print_header(
-    const std::string& title) const
+void BridgeInspector<Bridge>::print_header(const std::string& title) const
 {
-    clear_screen();
-
-    std::cout
-        << "============================================================\n"
-        << " " << title << '\n'
-        << "============================================================\n";
-
-    std::cout
-        << "Shared Memory      : "
-        << shm_name_
-        << '\n';
-
-    std::cout
-        << "Registered Queues  : "
-        << queues_.size()
-        << "\n\n";
+    console_.clear();
+    console_.title(title);
+    console_.field("Shared memory", shm_name_);
+    console_.field("Queues", queues_.size());
+    console_.blank();
 }
+
+
 
 template<typename Bridge>
 void BridgeInspector<Bridge>::display(
@@ -241,11 +252,14 @@ void BridgeInspector<Bridge>::display(
     const InspectorOptions& options) const
 {
     print_header("Bridge Inspector");
-    std::size_t total = 0;
+
+    std::size_t displayed_queues = 0;
+    std::size_t total_messages = 0;
+
     for (const auto& queue : queues_)
     {
-        if (!should_display(queue.name, options))
-            continue;
+
+        ++displayed_queues;
 
         const auto it = messages.find(queue.name);
 
@@ -258,46 +272,47 @@ void BridgeInspector<Bridge>::display(
             count = list->size();
         }
 
-        total += count;
+        total_messages += count;
+        console_.section(queue.name);
+        console_.field("Type", queue.proto_name);
+        console_.field("Mode", options.history ? "History" : "Latest");
+        console_.field("Messages", count);
 
-        std::cout
-            << std::left
-            << std::setw(20) << queue.name
-            << std::setw(45) << queue.proto_name
-            << count << " msg\n";
-
-        if (!options.verbose || list == nullptr)
+        if (!options.verbose)
+        {
+            console_.blank();
             continue;
+        }
 
-        std::size_t index = 0;
+        if (count == 0)
+        {
+            console_.field("Status", "Empty");
+            console_.blank();
+            continue;
+        }
 
-        for (const auto& msg : *list)
+        console_.blank();
+        for (std::size_t i = 0; i < list->size(); ++i)
         {
             if (options.history)
             {
-                std::cout
-                    << "---------------- Message "
-                    << index++
-                    << " ----------------\n";
-            }
-            else
-            {
-                std::cout
-                    << "------------------------------------------------------------\n";
+                console_.section(queue.name + "/Message #" + std::to_string(i));
             }
 
-            msg->PrintDebugString();
+            (*list)[i]->PrintDebugString();
+
+            if (i + 1 != list->size())
+                console_.blank();
         }
 
-        std::cout << '\n';
+        console_.blank();
     }
 
-    std::cout
-        << "============================================================\n"
-        << "Total messages : "
-        << total
-        << '\n';
+    console_.separator('=');
+    console_.field("Queues", displayed_queues);
+    console_.field("Messages", total_messages);
 }
+    
 
 template<typename Bridge>
 void BridgeInspector<Bridge>::display_json(
@@ -314,6 +329,29 @@ void BridgeInspector<Bridge>::display_json(
                 *msg,
                 &json);
             std::cout << json << "\n\n";
+        }
+    }
+}
+
+template<typename Bridge>
+void BridgeInspector<Bridge>::display_yaml(
+    const MessageMap& messages,
+    const InspectorOptions& options) const
+{
+    for (const auto& [name, list] : messages)
+    {
+        std::cout << name << '\n';
+        for (const auto& msg : list)
+        {
+            std::string json;
+            google::protobuf::util::MessageToJsonString(*msg, &json);
+            YAML::Node node = YAML::Load(json);
+            YAML::Emitter out;
+            out.SetIndent(4);
+            out.SetMapFormat(YAML::Block);
+            out.SetSeqFormat(YAML::Block);
+            out << node;
+            console_.print_indented(out.c_str(), 4);
         }
     }
 }
@@ -378,6 +416,39 @@ void BridgeInspector<Bridge>::display_stats(
 }
 
 template<typename Bridge>
+void BridgeInspector<Bridge>::display_progress(
+    const MessageMap& messages,
+    const InspectorOptions& options) const
+{
+    print_header("Bridge Progress");
+
+    std::size_t total = 0;
+
+    for (const auto& queue : queues_)
+    {
+   
+        const auto buffered = queue.size();
+        total += buffered;
+
+        std::cout
+            << std::left
+            << std::setw(24) << queue.name
+            << '['
+            << Console::progress_bar(buffered, queue.capacity, 32)
+            << "] "
+            << std::setw(3) << buffered
+            << '/'
+            << queue.capacity
+            << '\n';
+    }
+
+    std::cout << '\n';
+
+    console_.separator('=');
+    console_.field("Buffered messages", total);
+}
+
+template<typename Bridge>
 void BridgeInspector<Bridge>::run(
     const InspectorOptions& options)
 {
@@ -391,7 +462,6 @@ void BridgeInspector<Bridge>::run(
     do
     {
         auto messages = read(options);
-
         update_stats(messages);
 
         if (options.stats)
@@ -401,6 +471,14 @@ void BridgeInspector<Bridge>::run(
         else if (options.json)
         {
             display_json(messages, options);
+        }
+        else if (options.yaml)
+        {
+            display_yaml(messages, options);
+        }
+        else if (options.progress)
+        {
+            display_progress(messages, options);
         }
         else
         {

@@ -43,17 +43,28 @@ public:
         const auto timeout = std::chrono::milliseconds(1000);
         const auto deadline = std::chrono::steady_clock::now() + timeout;
 
+        iit::advrf::Cmd_reply reply_tmp;
         while (std::chrono::steady_clock::now() < deadline) {
             if (shm_.pop_reply(frame)) {
                 uint32_t payload_size = 0;
                 if (ShmProtoHelper::frame_payload_size(frame, payload_size) &&
-                    reply.ParseFromArray(frame.data + PROTO_FRAME_HEADER_BYTES,
+                    reply_tmp.ParseFromArray(frame.data + PROTO_FRAME_HEADER_BYTES,
                                         static_cast<int>(payload_size))) {
-                    return reply;
+
+                    if(reply_tmp.request_id().guid() == request.request_id().guid() &&
+                       reply_tmp.request_id().seq() == request.request_id().seq())
+                    {
+                        reply_tmp.set_type(iit::advrf::Cmd_reply::ACK);
+                        return reply_tmp;
+                    }
                 }
             }
             std::this_thread::sleep_for(std::chrono::microseconds(200));
         }
+
+        LOG_ERROR("timeout waiting for reply from shm");
+        reply.set_type(iit::advrf::Cmd_reply::NACK);
+        reply.set_msg("Timeout waiting for reply from shm");
         return reply;
     }
 

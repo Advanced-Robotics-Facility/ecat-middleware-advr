@@ -19,8 +19,9 @@ inline void assert_float_eq(T actual, U expected)
 
 int main()
 {
-    advrf_interfaces::srv::dds_::ReplCmd_Request_ request;
-    request.type() = advrf_interfaces::srv::dds_::CTRL_CMD;
+   
+    advrf_interfaces::msg::dds_::ReplCmd_Content_ request;
+    request.type() = advrf_interfaces::msg::dds_::ReplCmdType::CTRL_CMD;
 
     // Header
     request.header().frame_id() = "base_link";
@@ -123,8 +124,12 @@ int main()
     aux.type() = advrf_interfaces::msg::dds_::LED_ON;
     aux.board_id() = 99;
 
+    // Create Request
+    advrf_interfaces::srv::dds_::ReplCmd_Request_ request_proto;
+    request_proto.request() = request;
+
     iit::advrf::Repl_cmd pb;
-    convert::protobuf::from_dds(request, pb);
+    convert::protobuf::from_dds(request_proto, pb);
 
     assert(pb.type() == static_cast<iit::advrf::CmdType>(request.type()));
 

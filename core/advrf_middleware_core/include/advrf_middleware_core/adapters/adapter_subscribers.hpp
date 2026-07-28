@@ -19,13 +19,14 @@ public:
     AdapterSubscribers(){}
     ~AdapterSubscribers() override = default;
 
-    void forward_ctrl_cmd(const iit::advrf::Motors_PDO_cmd& cmd){
-        LOG_INFO("Forwarding control command..., size: {}", cmd.motors_pdo().size());
-        for(auto it = cmd.motors_pdo().begin(); it != cmd.motors_pdo().end(); ++it){
-            LOG_INFO("Recevied message: {}", 
-                it->motor_id());
+    void forward(const iit::advrf::Repl_cmd_vector& cmd){
+        for(auto it = cmd.requests().begin(); it != cmd.requests().end(); ++it){
+             shm_.push_request(*it);
         }
-        shm_.push_motors_pdo(cmd);
+    }
+
+    void forward(const iit::advrf::Repl_cmd& cmd){
+        shm_.push_request(cmd);
     }
 
     SubscriberShmConnection& shm() noexcept

@@ -46,14 +46,14 @@ Options
 
 Examples
 
-    bridge_inspector pub
-    bridge_inspector pub --once
-    bridge_inspector pub --history
-    bridge_inspector pub --history --key imu
-    bridge_inspector pub --rate 100
-    bridge_inspector pub --key imu
-    bridge_inspector pub --key imu --key motor
-    bridge_inspector repl --json
+    bridge_inspector pub-bridge
+    bridge_inspector pub-bridge --once
+    bridge_inspector pub-bridge --history
+    bridge_inspector pub-bridge --history --key imu
+    bridge_inspector pub-bridge --rate 100
+    bridge_inspector pub-bridge --key imu
+    bridge_inspector pub-bridge --key imu --key motor
+    bridge_inspector repl-bridge --json
 
 )";
 }
@@ -70,11 +70,11 @@ inline CLIArguments parse_arguments(int argc, char** argv)
 
     std::string bridge = argv[1];
 
-    if (bridge == "pub")
+    if (bridge == "pub-bridge")
         args.bridge = BridgeType::Pub;
-    else if (bridge == "sub")
+    else if (bridge == "sub-bridge")
         args.bridge = BridgeType::Sub;
-    else if (bridge == "repl")
+    else if (bridge == "repl-bridge")
         args.bridge = BridgeType::Repl;
     else
     {
@@ -89,7 +89,9 @@ inline CLIArguments parse_arguments(int argc, char** argv)
         {"once",    no_argument,       nullptr, 'o'},
         {"quiet",   no_argument,       nullptr, 'q'},
         {"json",    no_argument,       nullptr, 'j'},
+        {"yaml",    no_argument,       nullptr, 'y'},
         {"stats",   no_argument,       nullptr, 's'},
+        {"progress",   no_argument,       nullptr, 'p'},
         {"history", no_argument,       nullptr, 'h'},
         {"rate",    required_argument, nullptr, 'r'},
         {"key",     required_argument, nullptr, 'k'},
@@ -133,6 +135,14 @@ inline CLIArguments parse_arguments(int argc, char** argv)
 
         case 'k':
             args.options.filter.emplace_back(optarg);
+            break;
+
+        case 'y':
+            args.options.yaml = true;
+            break;
+
+        case 'p':
+            args.options.progress = true;
             break;
 
         default:

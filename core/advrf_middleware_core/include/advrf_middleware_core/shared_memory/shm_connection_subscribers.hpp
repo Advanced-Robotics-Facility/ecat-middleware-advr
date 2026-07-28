@@ -20,9 +20,9 @@ public:
         bridge_->mw_ready.store(ready);
     }
 
-    bool push_motors_pdo(const iit::advrf::Motors_PDO_cmd& motors_pdo)
+    bool push_request(const iit::advrf::Repl_cmd& request)
     {
-        return proto_helper_.push(bridge_->motors_pdo, motors_pdo);
+        return proto_helper_.push(bridge_->request, request);
     }
 
 private:

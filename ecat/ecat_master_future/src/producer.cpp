@@ -223,7 +223,9 @@ int main(int argc, char** argv)
     while (keep_running) {
         
         repl_proto_helper.drain(repl_bridge->request, cmd_msg, [&](const iit::advrf::Repl_cmd& cmd) {
+      
             iit::advrf::Cmd_reply reply;
+            reply.mutable_request_id()->CopyFrom(cmd.request_id());
             reply.set_type(iit::advrf::Cmd_reply::ACK);
             reply.set_cmd_type(cmd.type());
             reply.set_msg("test ack received");
