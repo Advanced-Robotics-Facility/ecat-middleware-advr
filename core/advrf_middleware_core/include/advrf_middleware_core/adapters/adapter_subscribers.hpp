@@ -39,6 +39,11 @@ public:
         return shm_;
     }
 
+    bool start() override
+    {
+        return shm_.connect(SHM_SUB_NAME);
+    }
+
 protected:
     SubscriberShmConnection shm_;
 

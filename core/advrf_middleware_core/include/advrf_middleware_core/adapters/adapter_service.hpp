@@ -79,6 +79,10 @@ public:
         return shm_;
     }
 
+    bool start() override
+    {
+        return shm_.connect(SHM_REPL_NAME);
+    }
 
 protected:
     ReplShmConnection shm_;

@@ -53,14 +53,16 @@ public:
 
     struct CachedPdo
     {
+        bool valid = false;
+        bool updated_this_cycle = false;
         EcatId ecat_id = 0;
         Pdo pdo;
     };
 
     struct ChannelCache
     {
-        std::vector<CachedPdo> storage;
-        std::size_t valid_count = 0;
+        std::array<CachedPdo, MaxEcatIds> entries;
+        std::vector<EcatId> active_ids;
     };
 
     using Cache = std::array<ChannelCache, ChannelCount>;
@@ -90,10 +92,7 @@ public:
         bool accept_all_ids = true;
     };
 
-    AdapterPublishers()
-    {
-        reserve_cache();
-    }
+    AdapterPublishers(){}
 
     ~AdapterPublishers() override = default;
 
@@ -111,6 +110,11 @@ public:
     {
         fill_cache();
         dispatch();
+    }
+
+    bool start() override
+    {
+        return shm_.connect(SHM_NAME);
     }
 
 protected:
@@ -200,66 +204,50 @@ private:
         return cache_[channel_index(channel)];
     }
 
-    void reserve_cache()
-    {
-        channel_cache(Channel::Imu).storage.reserve(2);
-        channel_cache(Channel::Motor).storage.reserve(32);
-        channel_cache(Channel::Gripper).storage.reserve(8);
-        channel_cache(Channel::Pump).storage.reserve(2);
-        channel_cache(Channel::PowerBoard).storage.reserve(2);
-        channel_cache(Channel::ForceTorque).storage.reserve(8);
-    }
-
     void fill_cache()
     {
         for (const Channel channel : all_channels_) {
             auto& queue = shm_.resolve(channel);
             auto& cache = channel_cache(channel);
 
-            cache.valid_count = 0;
+            // Reset cycle flags
+            for (auto& entry : cache.entries){
+                entry.updated_this_cycle = false;
+            }
+
 
             ProtoSlot frame;
 
             while (queue.try_pop(frame)) {
-                if (cache.valid_count == cache.storage.size()) {
-                    cache.storage.emplace_back();
-                }
 
-                auto& cached = cache.storage[cache.valid_count];
-
-                cached.pdo.Clear();
+                Pdo pdo;
 
                 if (!pdo_utils::parse_frame(
                         frame.data,
                         static_cast<ssize_t>(frame.size),
-                        cached.pdo)) {
+                        pdo)) {
                     continue;
                 }
 
-                const int parsed_id =
-                    get_ecat_id(cached.pdo.header().str_id());
+                const int parsed_id = get_ecat_id(pdo.header().str_id());
 
                 if (parsed_id < 0) {
                     LOG_ERROR(
                         "Format error for PDO frame with ID {}",
-                        cached.pdo.header().str_id());
-
+                        pdo.header().str_id());
                     continue;
                 }
 
                 const auto id = static_cast<EcatId>(parsed_id);
-
-                if (id >= MaxEcatIds) {
-                    LOG_ERROR(
-                        "Received ECAT ID {} exceeds maximum supported ID {}",
-                        id,
-                        MaxEcatIds - 1);
-
-                    continue;
+                auto& entry = cache.entries[id];
+                if (!entry.valid) {
+                    cache.active_ids.push_back(id);
                 }
 
-                cached.ecat_id = id;
-                ++cache.valid_count;
+                entry.valid = true;
+                entry.updated_this_cycle = true;
+                entry.ecat_id = id;
+                entry.pdo = std::move(pdo);
             }
         }
     }
@@ -289,21 +277,19 @@ private:
         const ChannelCache& cache,
         Subscription& subscription)
     {
-        for (std::size_t i = 0; i < cache.valid_count; ++i) {
-            const auto& frame = cache.storage[i];
-            const EcatId id = frame.ecat_id;
+        for (EcatId id : cache.active_ids) {
+
+            const auto& entry = cache.entries[id];
 
             if (!subscription.accept_all_ids &&
-                !subscription.ids_allowed.test(id)) {
+                !subscription.ids_allowed.test(id))
                 continue;
-            }
 
-            if (subscription.ids_seen.test(id)) {
+            if (subscription.ids_seen.test(id))
                 continue;
-            }
 
             subscription.ids_seen.set(id);
-            subscription.publisher->consume(frame.pdo);
+            subscription.publisher->consume(entry.pdo);
         }
     }
 };

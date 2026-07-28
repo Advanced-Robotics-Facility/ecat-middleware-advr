@@ -44,6 +44,11 @@ public:
         {
             if (auto adapter = process.adapter.lock())
             {
+                if(!adapter->start()) {
+                    LOG_ERROR("Adapter failed to start.");
+                    return;
+                }
+
                 threads_.emplace_back([adapter, period = process.period_microseconds]()
                 {
                     auto next = std::chrono::steady_clock::now();
