@@ -39,37 +39,6 @@ void populate_pdo_header(iit::advrf::Ec_slave_pdo& pdo, const std::string& id, u
     stamp->set_nsec(static_cast<int32_t>(now_ns % 1'000'000'000ULL));
 }
 
-iit::advrf::Ec_slave_pdo make_imu_pdo(double t, uint64_t sample_index, int imu_id)
-{
-    iit::advrf::Ec_slave_pdo pdo;
-    pdo.set_type(iit::advrf::Ec_slave_pdo::RX_IMU_VN);
-    populate_pdo_header(pdo, "imu_" + std::to_string(imu_id), sample_index);
-
-    auto* imu_payload = pdo.mutable_imuvn_rx_pdo();
-
-    imu_payload->set_x_rate(static_cast<float>(0.10 * std::sin(t)));
-    imu_payload->set_y_rate(static_cast<float>(0.20 * std::cos(t)));
-    imu_payload->set_z_rate(static_cast<float>(0.05 * std::sin(t * 0.5)));
-
-    imu_payload->set_x_acc(static_cast<float>(0.15 * std::sin(t * 0.7)));
-    imu_payload->set_y_acc(static_cast<float>(0.10 * std::cos(t * 0.4)));
-    imu_payload->set_z_acc(static_cast<float>(9.81 + 0.5 * std::sin(t)));
-
-    const double yaw = 0.25 * std::sin(t * 0.2);
-    imu_payload->set_x_quat(0.0f);
-    imu_payload->set_y_quat(0.0f);
-    imu_payload->set_z_quat(static_cast<float>(std::sin(yaw * 0.5)));
-    imu_payload->set_w_quat(static_cast<float>(std::cos(yaw * 0.5)));
-
-    imu_payload->set_temperature(static_cast<uint32_t>(35 + (sample_index % 4)));
-    imu_payload->set_imu_ts(static_cast<uint32_t>(sample_index));
-    imu_payload->set_digital_in(static_cast<uint32_t>(sample_index & 0x1));
-    imu_payload->set_fault(0);
-    imu_payload->set_rtt(2);
-
-    return pdo;
-}
-
 iit::advrf::Ec_slave_pdo make_motor_pdo(double t, uint64_t sample_index, int motor_id) {
 
     iit::advrf::Ec_slave_pdo pdo;
@@ -78,26 +47,26 @@ iit::advrf::Ec_slave_pdo make_motor_pdo(double t, uint64_t sample_index, int mot
 
     const double phase = t + 0.2 * motor_id;
 
-    auto* motor_payload = pdo.mutable_cia402_rx_pdo();
+    auto* payload = pdo.mutable_cia402_rx_pdo();
 
-    motor_payload->set_statusword(0x1234);
-    motor_payload->set_modes_of_op(8);
+    payload->set_statusword(0x1234);
+    payload->set_modes_of_op(8);
 
-    motor_payload->set_motor_pos(static_cast<float>(std::sin(phase)));
-    motor_payload->set_motor_vel(static_cast<float>(std::cos(phase)));
-    motor_payload->set_link_pos(static_cast<float>(std::sin(phase)));
-    motor_payload->set_link_vel(static_cast<float>(std::cos(phase)));
-    motor_payload->set_current(static_cast<float>(0.0));
-    motor_payload->set_torque(static_cast<float>(0.0));
-    motor_payload->set_demanded_pos(static_cast<float>(0.0));
-    motor_payload->set_demanded_vel(static_cast<float>(0.0));
-    motor_payload->set_demanded_current(static_cast<float>(0.0));
-    motor_payload->set_demanded_torque(static_cast<float>(0.0));
-    motor_payload->set_control_effort(static_cast<float>(0.0));
-    motor_payload->set_motor_temp(static_cast<float>(0.0));
-    motor_payload->set_drive_temp(35.5);
-    motor_payload->set_error_code(0);
-    motor_payload->set_error_report("");
+    payload->set_motor_pos(static_cast<float>(std::sin(phase)));
+    payload->set_motor_vel(static_cast<float>(std::cos(phase)));
+    payload->set_link_pos(static_cast<float>(std::sin(phase)));
+    payload->set_link_vel(static_cast<float>(std::cos(phase)));
+    payload->set_current(static_cast<float>(0.0));
+    payload->set_torque(static_cast<float>(0.0));
+    payload->set_demanded_pos(static_cast<float>(0.0));
+    payload->set_demanded_vel(static_cast<float>(0.0));
+    payload->set_demanded_current(static_cast<float>(0.0));
+    payload->set_demanded_torque(static_cast<float>(0.0));
+    payload->set_control_effort(static_cast<float>(0.0));
+    payload->set_motor_temp(static_cast<float>(0.0));
+    payload->set_drive_temp(35.5);
+    payload->set_error_code(0);
+    payload->set_error_report("");
 
     return pdo;
 }
@@ -110,14 +79,146 @@ iit::advrf::Ec_slave_pdo make_gripper_pdo(double t, uint64_t sample_index, int g
 
     const double phase = t + 0.2 * gripper_id;
 
-    auto* gripper_payload = pdo.mutable_gripper_rx_pdo();
+    auto* payload = pdo.mutable_gripper_rx_pdo();
 
-    gripper_payload->set_statusword(0x4321);
-    gripper_payload->set_motor_pos(static_cast<float>(std::sin(phase)));
-    gripper_payload->set_link_pos(static_cast<float>(std::sin(phase)));
-    gripper_payload->set_demanded_pos(static_cast<float>(0.0));
-    gripper_payload->set_demanded_vel(static_cast<float>(0.0));
-    gripper_payload->set_error_code(0);
+    payload->set_statusword(0x4321);
+    payload->set_motor_pos(static_cast<float>(std::sin(phase)));
+    payload->set_link_pos(static_cast<float>(std::sin(phase)));
+    payload->set_demanded_pos(static_cast<float>(0.0));
+    payload->set_demanded_vel(static_cast<float>(0.0));
+    payload->set_error_code(0);
+
+    return pdo;
+}
+
+iit::advrf::Ec_slave_pdo make_valve_pdo(double t, uint64_t sample_index, int valve_id) {
+
+    iit::advrf::Ec_slave_pdo pdo;
+    pdo.set_type(iit::advrf::Ec_slave_pdo::RX_HYQ_KNEE);
+    populate_pdo_header(pdo, "valve_" + std::to_string(valve_id), sample_index);
+
+    const double phase = t + 0.2 * valve_id;
+
+    auto* payload = pdo.mutable_hyqknee_rx_pdo();
+
+    payload->set_encoder_position(static_cast<float>(std::sin(phase)));
+    payload->set_force(static_cast<float>(std::cos(phase)));
+    payload->set_pressure_1(static_cast<float>(std::sin(phase)));
+    payload->set_pressure_2(static_cast<float>(std::cos(phase)));
+    payload->set_current(static_cast<float>(0.0));
+    payload->set_temperature(static_cast<float>(0.0));
+    payload->set_fault(0);
+    payload->set_rtt(0);
+    payload->set_op_idx_ack(0);
+    payload->set_aux(static_cast<float>(0.0));
+    payload->set_current_ref_fb(static_cast<float>(0.0));
+    payload->set_position_ref_fb(static_cast<float>(0.0));
+    payload->set_force_ref_fb(static_cast<float>(0.0));
+
+    return pdo;
+}
+
+iit::advrf::Ec_slave_pdo make_imu_pdo(double t, uint64_t sample_index, int imu_id)
+{
+    iit::advrf::Ec_slave_pdo pdo;
+    pdo.set_type(iit::advrf::Ec_slave_pdo::RX_IMU_VN);
+    populate_pdo_header(pdo, "imu_" + std::to_string(imu_id), sample_index);
+
+    auto* payload = pdo.mutable_imuvn_rx_pdo();
+
+    payload->set_x_rate(static_cast<float>(0.10 * std::sin(t)));
+    payload->set_y_rate(static_cast<float>(0.20 * std::cos(t)));
+    payload->set_z_rate(static_cast<float>(0.05 * std::sin(t * 0.5)));
+
+    payload->set_x_acc(static_cast<float>(0.15 * std::sin(t * 0.7)));
+    payload->set_y_acc(static_cast<float>(0.10 * std::cos(t * 0.4)));
+    payload->set_z_acc(static_cast<float>(9.81 + 0.5 * std::sin(t)));
+
+    const double yaw = 0.25 * std::sin(t * 0.2);
+    payload->set_x_quat(0.0f);
+    payload->set_y_quat(0.0f);
+    payload->set_z_quat(static_cast<float>(std::sin(yaw * 0.5)));
+    payload->set_w_quat(static_cast<float>(std::cos(yaw * 0.5)));
+
+    payload->set_temperature(static_cast<uint32_t>(35 + (sample_index % 4)));
+    payload->set_imu_ts(static_cast<uint32_t>(sample_index));
+    payload->set_digital_in(static_cast<uint32_t>(sample_index & 0x1));
+    payload->set_fault(0);
+    payload->set_rtt(2);
+
+    return pdo;
+}
+
+iit::advrf::Ec_slave_pdo make_pb_pdo(double t, uint64_t sample_index, int power_board_id) {
+
+    iit::advrf::Ec_slave_pdo pdo;
+    pdo.set_type(iit::advrf::Ec_slave_pdo::RX_POW_F28M36);
+    populate_pdo_header(pdo, "power_board_" + std::to_string(power_board_id), sample_index);
+
+    const double phase = t + 0.2 * power_board_id;
+
+    auto* payload = pdo.mutable_powf28m36_rx_pdo();
+
+    payload->set_v_batt(static_cast<float>(std::sin(phase)));
+    payload->set_v_load(static_cast<float>(std::sin(phase)));
+    payload->set_i_load(static_cast<float>(std::cos(phase)));
+    payload->set_temp_pcb(static_cast<float>(0.0));
+    payload->set_temp_heatsink(static_cast<float>(0.0));
+    payload->set_temp_batt(static_cast<float>(0.0));
+    payload->set_status(1);
+    payload->set_fault(0);
+    payload->set_rtt(static_cast<float>(0.0));
+    payload->set_op_idx_ack(0);
+    payload->set_aux(static_cast<float>(0.0));
+
+    return pdo;
+}
+
+iit::advrf::Ec_slave_pdo make_pump_pdo(double t, uint64_t sample_index, int pump_id) {
+
+    iit::advrf::Ec_slave_pdo pdo;
+    pdo.set_type(iit::advrf::Ec_slave_pdo::RX_HYQ_HPU);
+    populate_pdo_header(pdo, "pump_" + std::to_string(pump_id), sample_index);
+
+    const double phase = t + 0.2 * pump_id;
+
+    auto* payload = pdo.mutable_hyqhpu_rx_pdo();
+
+    payload->set_motor_current(static_cast<float>(std::sin(phase)));
+    payload->set_motor_speed(static_cast<float>(std::sin(phase)));
+    payload->set_pressure1(static_cast<float>(std::cos(phase)));
+    payload->set_pressure2(static_cast<float>(std::cos(phase)));
+    payload->set_temperature(40);
+    payload->set_mosfet_temperature(0);
+    payload->set_motor_temperature(0);
+    payload->set_fault(0);
+    payload->set_rtt(0);
+    payload->set_op_idx_ack(0);
+    payload->set_aux(static_cast<float>(0.0));
+
+    return pdo;
+}
+
+iit::advrf::Ec_slave_pdo make_ft_pdo(double t, uint64_t sample_index, int force_torque_id) {
+
+    iit::advrf::Ec_slave_pdo pdo;
+    pdo.set_type(iit::advrf::Ec_slave_pdo::RX_FT6);
+    populate_pdo_header(pdo, "force_torque_" + std::to_string(force_torque_id), sample_index);
+
+    const double phase = t + 0.2 * force_torque_id;
+
+    auto* payload = pdo.mutable_ft6_rx_pdo();
+
+    payload->set_force_x(static_cast<float>(std::sin(phase)));
+    payload->set_force_y(static_cast<float>(std::sin(phase)));
+    payload->set_force_z(static_cast<float>(std::cos(phase)));
+    payload->set_torque_x(static_cast<float>(std::cos(phase)));
+    payload->set_torque_y(static_cast<float>(std::sin(phase)));
+    payload->set_torque_z(static_cast<float>(std::sin(phase)));
+    payload->set_fault(0);
+    payload->set_rtt(0);
+    payload->set_op_idx_ack(0);
+    payload->set_aux(static_cast<float>(0.0));
 
     return pdo;
 }
@@ -131,8 +232,6 @@ int main(int argc, char** argv)
     auto cfg = load_robot_config(ROBOT_CONFIG_DIR);
     if (!cfg) return 1;
 
-    std::cout << "[Producer] Initializing shared memory segment: " << SHM_NAME << '\n';
-
     // Publisher SHM
     SharedMemoryOwner shm(SHM_NAME, sizeof(SharedPubBridge));
     if (!shm.is_valid()) {
@@ -141,8 +240,7 @@ int main(int argc, char** argv)
     }
     auto* bridge = shm.get<SharedPubBridge>();
     new (bridge) SharedPubBridge{};
-
-    std::cout << "[Producer] Initializing shared memory segment: " << SHM_REPL_NAME << '\n';
+    std::cout << "[Producer] Initializing shared memory segment: " << SHM_NAME << '\n';
 
     // REPL SHM
     SharedMemoryOwner repl_shm(SHM_REPL_NAME, sizeof(SharedReplBridge));
@@ -152,36 +250,39 @@ int main(int argc, char** argv)
     }
     auto* repl_bridge = repl_shm.get<SharedReplBridge>();
     new (repl_bridge) SharedReplBridge{};
+    std::cout << "[Producer] Initializing shared memory segment: " << SHM_REPL_NAME << '\n';
 
     // Dynamic Discovery Generation Loop
     uint32_t slave_idx = 0;
     
-    // IMUs
-    const size_t imu_count = 1; 
-    for (size_t i = 1; i <= imu_count && slave_idx < MAX_SLAVES_CAPACITY; ++i) {
-        auto& slave = bridge->topology[slave_idx++];
-        slave.board_id = slave_idx;
-        slave.type = DeviceType::IMU;
-        std::snprintf(slave.name, sizeof(slave.name), "imu_%zu", i);
-    }
+    auto add_devices = [&](const auto& devices, DeviceType type, const char* type_name) {
+        for (const auto& dev : devices) {
+            if (slave_idx >= MAX_SLAVES_CAPACITY) {
+                std::cerr << "[Producer] MAX_SLAVES_CAPACITY reached, dropping '" << type_name
+                        << " '" << dev.name
+                        << "' (ecat_id=" << dev.ecat_id << ")\n";
+                break;
+            }
+            if (dev.ecat_id < 0) {
+                std::cerr << "[Producer] Skipping '" << type_name
+                          << " '" << dev.name 
+                          << "' with invalid ecat_id " << dev.ecat_id << '\n';
+                continue;
+            }
+            auto& slave = bridge->topology[slave_idx++];
+            slave.board_id = static_cast<uint32_t>(dev.ecat_id);
+            slave.type = type;
+            std::snprintf(slave.name, sizeof(slave.name), "%s", dev.name.c_str());     
+        }
+    };
 
-    // Motors
-    const size_t motor_count = 12; 
-    for (size_t i = 1; i <= motor_count && slave_idx < MAX_SLAVES_CAPACITY; ++i) {
-        auto& slave = bridge->topology[slave_idx++];
-        slave.board_id = slave_idx;
-        slave.type = DeviceType::MOTOR;
-        std::snprintf(slave.name, sizeof(slave.name), "motor_%ld", i);
-    }
-
-    // Grippers
-    const size_t gripper_count = 2; 
-    for (size_t i = 1; i <= gripper_count && slave_idx < MAX_SLAVES_CAPACITY; ++i) {
-        auto& slave = bridge->topology[slave_idx++];
-        slave.board_id = slave_idx;
-        slave.type = DeviceType::GRIPPER;
-        std::snprintf(slave.name, sizeof(slave.name), "gripper_%ld", i);
-    }
+    add_devices(cfg->imus, DeviceType::IMU, "imu");
+    add_devices(cfg->motors, DeviceType::MOTOR, "motor");
+    add_devices(cfg->grippers, DeviceType::GRIPPER, "gripper");
+    add_devices(cfg->power_boards, DeviceType::POWER_BOARD, "power_board");
+    add_devices(cfg->pumps, DeviceType::PUMP, "pump");
+    add_devices(cfg->force_torques, DeviceType::FORCE_TORQUE, "force_torque");
+    add_devices(cfg->valves, DeviceType::VALVE, "valve");
 
     bridge->topology_size.store(slave_idx);
     bridge->mw_ready.store(true);
@@ -259,14 +360,30 @@ int main(int argc, char** argv)
         for (uint32_t i = 0; i < slave_idx; ++i) {
             const auto& slave = bridge->topology[i];
 
-            if (slave.type == DeviceType::IMU) {
-                proto_helper.push(bridge->imu, make_imu_pdo(t, sample_count, slave.board_id));
-            } 
-            else if (slave.type == DeviceType::MOTOR) {
-                proto_helper.push(bridge->motor, make_motor_pdo(t, sample_count, slave.board_id));
-            } 
-            else if (slave.type == DeviceType::GRIPPER) {
-                proto_helper.push(bridge->gripper, make_gripper_pdo(t, sample_count, slave.board_id));
+            switch (slave.type) {
+                case DeviceType::IMU:
+                    proto_helper.push(bridge->imu, make_imu_pdo(t, sample_count, slave.board_id));
+                    break;
+                case DeviceType::MOTOR:
+                    proto_helper.push(bridge->motor, make_motor_pdo(t, sample_count, slave.board_id));
+                    break;
+                case DeviceType::GRIPPER:
+                    proto_helper.push(bridge->gripper, make_gripper_pdo(t, sample_count, slave.board_id));
+                    break;
+                case DeviceType::POWER_BOARD:
+                    proto_helper.push(bridge->power_board, make_pb_pdo(t, sample_count, slave.board_id));
+                    break;
+                case DeviceType::PUMP:
+                    proto_helper.push(bridge->pump, make_pump_pdo(t, sample_count, slave.board_id));
+                    break;
+                case DeviceType::FORCE_TORQUE:
+                    proto_helper.push(bridge->force_torque, make_ft_pdo(t, sample_count, slave.board_id));
+                    break;
+                case DeviceType::VALVE:
+                    proto_helper.push(bridge->valve, make_valve_pdo(t, sample_count, slave.board_id));
+                    break;
+                default:
+                    break;
             }
         }
 

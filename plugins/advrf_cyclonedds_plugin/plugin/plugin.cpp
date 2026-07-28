@@ -70,7 +70,7 @@ int main(int argc, char **argv)
         return 1;
 
     auto dds_participant = dds::domain::DomainParticipant(cfg->domain_id);
-    auto config = config::ConfigTopics({"advrf", "robot"});
+    auto config = config::ConfigTopics({"advrf", cfg->robot_name});
 
     // service
     auto dds_adapter_service = std::make_shared<DDSAdapterService>(config, dds_participant);
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
     auto dds_adapter_publishers = std::make_shared<DDSAdapterPublishers>();
     dds_adapter_publishers->shm().connect(SHM_NAME);
 
-    if (!dds_adapter_publishers->init(config, dds_participant))
+    if (!dds_adapter_publishers->init(config, *cfg, dds_participant))
     {
         LOG_ERROR("Failed to bind to target DDS channels.");
         return 1;

@@ -21,6 +21,10 @@ struct RobotConfig {
     std::vector<JointConfig> motors;   
     std::vector<JointConfig> valves;  
     std::vector<JointConfig> grippers; 
+    std::vector<JointConfig> imus;
+    std::vector<JointConfig> power_boards;
+    std::vector<JointConfig> pumps;
+    std::vector<JointConfig> force_torques;
 
     std::vector<std::string> motor_names() const { return get_names(motors); }
     std::vector<std::string> joint_names() const { return get_names(joints); }
@@ -82,6 +86,21 @@ inline std::optional<RobotConfig> load_robot_config(const std::string& yaml_path
                     cfg.valves.push_back(jc); 
             }
         }
+
+        auto load_section = [](const YAML::Node& node, std::vector<JointConfig>& out) {
+            if (!node) return;
+            for (const auto& n : node) {
+                JointConfig jc;
+                jc.name    = n["name"].as<std::string>();
+                jc.ecat_id = n["ecat_id"].as<int>();
+                out.push_back(jc);
+            }
+        };
+
+        load_section(robot["imu"], cfg.imus);
+        load_section(robot["power_board"], cfg.power_boards);
+        load_section(robot["pump"], cfg.pumps);
+        load_section(robot["force_torque"], cfg.force_torques);
 
         return cfg;
     } catch (const YAML::Exception& e) {

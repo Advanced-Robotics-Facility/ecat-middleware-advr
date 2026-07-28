@@ -5,6 +5,7 @@
 #include <advrf_middleware_core/adapters/adapter_publishers.hpp>
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_cyclonedds_plugin/config/config_topics.hpp>
+#include <advrf_middleware_core/config/robot_config.hpp>
 
 using AdapterPublishers=middleware_adapter::message::AdapterPublishers;
 using IPublisher=middleware_adapter::message::AdapterPublishers::IPublisher;
@@ -15,7 +16,9 @@ public:
     DDSAdapterPublishers() = default;
     ~DDSAdapterPublishers() override = default;
 
-    bool init(const config::ConfigTopics& config_topics, dds::domain::DomainParticipant& dp);
+    bool init(const config::ConfigTopics& config_topics, 
+        const RobotConfig& robot_config,
+        dds::domain::DomainParticipant& dp);
 
     private:
 };

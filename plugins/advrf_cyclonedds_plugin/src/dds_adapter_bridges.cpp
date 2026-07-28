@@ -97,3 +97,31 @@ bool ForceTorquePublisher::process(const iit::advrf::Ec_slave_pdo& pdo) {
     convert::dds::from_protobuf(pdo, message().header());
     return true;
 }
+
+bool ValvePublisher::process(const iit::advrf::Ec_slave_pdo& pdo) {
+    switch (pdo.type()) {
+        case iit::advrf::Ec_slave_pdo::RX_HYQ_KNEE:
+            convert::dds::from_protobuf(pdo.hyqknee_rx_pdo(), message());
+            break;
+        default:
+            LOG_WARN("Unexpected PDO type for ValvePublisher: {}", static_cast<int>(pdo.type()));
+            return false; // Exit early if the PDO type is not handled
+    }
+    
+    convert::dds::from_protobuf(pdo, message().header());
+    return true;
+}
+
+bool GripperPublisher::process(const iit::advrf::Ec_slave_pdo& pdo) {
+    switch (pdo.type()) {
+        case iit::advrf::Ec_slave_pdo::RX_GRIPPER:
+            convert::dds::from_protobuf(pdo.gripper_rx_pdo(), message());
+            break;
+        default:
+            LOG_WARN("Unexpected PDO type for GripperPublisher: {}", static_cast<int>(pdo.type()));
+            return false; // Exit early if the PDO type is not handled
+    }
+    
+    convert::dds::from_protobuf(pdo, message().header());
+    return true;
+}

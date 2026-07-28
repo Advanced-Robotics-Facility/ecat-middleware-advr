@@ -176,7 +176,8 @@ private:
         Channel::Gripper,
         Channel::Pump,
         Channel::PowerBoard,
-        Channel::ForceTorque
+        Channel::ForceTorque,
+        Channel::Valve
     };
 
     std::vector<std::unique_ptr<IPublisher>> publishers_;
@@ -208,6 +209,7 @@ private:
         channel_cache(Channel::Pump).storage.reserve(2);
         channel_cache(Channel::PowerBoard).storage.reserve(2);
         channel_cache(Channel::ForceTorque).storage.reserve(8);
+        channel_cache(Channel::Valve).storage.reserve(8);
     }
 
     void fill_cache()

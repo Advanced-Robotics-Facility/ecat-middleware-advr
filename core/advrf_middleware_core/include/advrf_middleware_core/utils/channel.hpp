@@ -10,5 +10,6 @@ enum class Channel : std::size_t
         Pump,
         PowerBoard,
         ForceTorque,
+        Valve,
         Count
     };

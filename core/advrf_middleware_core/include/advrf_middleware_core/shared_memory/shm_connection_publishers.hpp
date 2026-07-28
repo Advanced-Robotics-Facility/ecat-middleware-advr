@@ -35,7 +35,8 @@ public:
             &bridge_->gripper,
             &bridge_->pump,
             &bridge_->power_board,
-            &bridge_->force_torque
+            &bridge_->force_torque,
+            &bridge_->valve
         };
 
         return true;

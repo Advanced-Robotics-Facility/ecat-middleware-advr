@@ -33,9 +33,9 @@ int main(int argc, char** argv)
     DDSAdapterPublishers dds_adapter;
     dds_adapter.shm().connect(SHM_NAME);
 
-    auto config = config::ConfigTopics({"advrf", "robot"});
+    auto config = config::ConfigTopics({"advrf", cfg->robot_name});
     auto domain_participant = dds::domain::DomainParticipant(cfg->domain_id);
-    if (!dds_adapter.init(config, domain_participant)) {
+    if (!dds_adapter.init(config, *cfg, domain_participant)) {
         LOG_ERROR("Failed to bind to target DDS channels.");
         return 1;
     }

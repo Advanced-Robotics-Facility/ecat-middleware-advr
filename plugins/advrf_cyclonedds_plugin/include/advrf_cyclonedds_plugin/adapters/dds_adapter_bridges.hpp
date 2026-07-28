@@ -72,57 +72,59 @@ private:
 
 
 #include <advrf_interfaces/msg/Imu.hpp>
-using ImuMsg = ::advrf_interfaces::msg::dds_::Imu_;
-class ImuPublisher : public DDSAdapterBridgePublisher<ImuMsg> {
-
-protected:
-    bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
-};  
-
 #include <sensor_msgs/msg/JointState.hpp>
-using JointStateMsg = ::sensor_msgs::msg::dds_::JointState_;
-class JointStatePublisher : public DDSAdapterBridgePublisher<JointStateMsg> {
-
-
-protected:
-    bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
-};  
-
-
 #include <advrf_interfaces/msg/Motor.hpp>
-using MotorMsg = ::advrf_interfaces::msg::dds_::Motor_;
-class MotorsPublisher : public DDSAdapterBridgePublisher<MotorMsg> {
-
-
-protected:
-    bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
-};  
-
-
 #include <advrf_interfaces/msg/PowerBoard.hpp>
-using PowerBoardMsg = ::advrf_interfaces::msg::dds_::PowerBoard_;
-class PowerBoardPublisher : public DDSAdapterBridgePublisher<PowerBoardMsg> {
-
-
-protected:
-    bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
-};  
-
-
 #include <advrf_interfaces/msg/Pump.hpp>
+#include <advrf_interfaces/msg/ForceTorque.hpp>
+#include <advrf_interfaces/msg/Valve.hpp>
+#include <advrf_interfaces/msg/Gripper.hpp>
+
+using ImuMsg = ::advrf_interfaces::msg::dds_::Imu_;
+using JointStateMsg = ::sensor_msgs::msg::dds_::JointState_;
+using MotorMsg = ::advrf_interfaces::msg::dds_::Motor_;
+using PowerBoardMsg = ::advrf_interfaces::msg::dds_::PowerBoard_;
 using PumpMsg = ::advrf_interfaces::msg::dds_::Pump_;
-class PumpPublisher : public DDSAdapterBridgePublisher<PumpMsg> {
+using ForceTorqueMsg = ::advrf_interfaces::msg::dds_::ForceTorque_;
+using ValveMsg = ::advrf_interfaces::msg::dds_::Valve_;
+using GripperMsg = ::advrf_interfaces::msg::dds_::Gripper_;
 
-
+class ImuPublisher : public DDSAdapterBridgePublisher<ImuMsg> {
 protected:
     bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
 };  
 
+class JointStatePublisher : public DDSAdapterBridgePublisher<JointStateMsg> {
+protected:
+    bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
+};  
 
-#include <advrf_interfaces/msg/ForceTorque.hpp>
-using ForceTorqueMsg = ::advrf_interfaces::msg::dds_::ForceTorque_;
+class MotorsPublisher : public DDSAdapterBridgePublisher<MotorMsg> {
+protected:
+    bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
+};  
+
+class PowerBoardPublisher : public DDSAdapterBridgePublisher<PowerBoardMsg> {
+protected:
+    bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
+};  
+
+class PumpPublisher : public DDSAdapterBridgePublisher<PumpMsg> {
+protected:
+    bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
+};  
+
 class ForceTorquePublisher : public DDSAdapterBridgePublisher<ForceTorqueMsg> {
+protected:
+    bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
+};  
 
+class ValvePublisher : public DDSAdapterBridgePublisher<ValveMsg> {
+protected:
+    bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
+};  
+
+class GripperPublisher : public DDSAdapterBridgePublisher<GripperMsg> {
 protected:
     bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
 };  
