@@ -252,6 +252,15 @@ int main(int argc, char** argv)
     new (repl_bridge) SharedReplBridge{};
     std::cout << "[Producer] Initializing shared memory segment: " << SHM_REPL_NAME << '\n';
 
+    // SUB SHM
+    SharedMemoryOwner sub_shm(SHM_SUB_NAME, sizeof(SharedSubBridge));
+    if (!sub_shm.is_valid()) {
+        std::cerr << "Failed to allocate or map shared memory segment." << '\n';
+        return 1;
+    }
+    auto* sub_bridge = sub_shm.get<SharedSubBridge>();
+    new (sub_bridge) SharedSubBridge{};
+
     // Dynamic Discovery Generation Loop
     uint32_t slave_idx = 0;
     
@@ -315,7 +324,9 @@ int main(int argc, char** argv)
     while (keep_running) {
         
         repl_proto_helper.drain(repl_bridge->request, cmd_msg, [&](const iit::advrf::Repl_cmd& cmd) {
+      
             iit::advrf::Cmd_reply reply;
+            reply.mutable_request_id()->CopyFrom(cmd.request_id());
             reply.set_type(iit::advrf::Cmd_reply::ACK);
             reply.set_cmd_type(cmd.type());
             reply.set_msg("test ack received");

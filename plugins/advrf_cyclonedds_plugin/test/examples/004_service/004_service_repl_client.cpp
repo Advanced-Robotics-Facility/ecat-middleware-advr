@@ -13,14 +13,14 @@ int main()
 {
     advrf::log::Log::init();
     dds::domain::DomainParticipant participant(42);
-
     config::ConfigTopics topics({"advrf", "robot"});
     ServiceClient<RequestDDS, ResponseDDS> client(
-        participant, topics.replCmd.request(), topics.replCmd.reply());
+        participant, topics.replCmd.request(), 
+        topics.replCmd.reply());
 
     RequestDDS request{};
-    request.type() = static_cast<uint8_t>(4); // ECAT_MASTER_CMD, matching CmdType enum value
-    request.ecat_master_cmd().type() = static_cast<uint8_t>(3); 
+    request.request().type() = static_cast<uint8_t>(4); // ECAT_MASTER_CMD, matching CmdType enum value
+    request.request().ecat_master_cmd().type() = static_cast<uint8_t>(3); 
     
     std::this_thread::sleep_for(std::chrono::seconds(2));
     LOG_INFO("Sending request...");

@@ -6,7 +6,7 @@
 
 template <typename Msg>
 class DDSAdapterBridgePublisher
-    : public DDSPublisher<Msg, DDSAdapterBridgePublisher<Msg>>
+    : public DDSPublisher<Msg>
     , public middleware_adapter::message::AdapterPublishers::IPublisher
 {
 public:

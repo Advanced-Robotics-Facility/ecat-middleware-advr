@@ -1,0 +1,34 @@
+cmake_minimum_required(VERSION 3.16)
+
+project(shm_tools LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(advrf_middleware_core REQUIRED)
+find_package(advrf_interfaces_protobuf REQUIRED)
+find_package(ecat_master_future REQUIRED)
+
+
+#
+# Bridge Inspector
+#
+
+add_executable(bridge_inspector
+    src/main.cpp
+)
+
+target_include_directories(bridge_inspector
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_link_libraries(bridge_inspector
+    PRIVATE
+        advrf_interfaces_protobuf
+        ecat_master_future
+)
+
+install(TARGETS bridge_inspector
+    RUNTIME DESTINATION bin
+)

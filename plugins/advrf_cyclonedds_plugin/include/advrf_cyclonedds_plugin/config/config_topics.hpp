@@ -68,6 +68,14 @@ struct TopicsState : public TopicNamespace
     std::string gripper()     const { return rt("gripper"); }
 };
 
+
+struct TopicsCommand  : public TopicNamespace
+{
+    using TopicNamespace::TopicNamespace;
+    std::string jointCmd()  const { return rt("cmd/joints"); }
+};
+
+
 struct TopicsReplCmd : public TopicNamespace
 {
     using TopicNamespace::TopicNamespace;
@@ -110,12 +118,14 @@ struct ConfigTopics
 {
     explicit ConfigTopics(std::vector<std::string> ns)
         : state(ns),
+          command(ns),
           parameters(ns),
           srv(ns),
           replCmd(ns)
     {}
 
     topics::TopicsState state;
+    topics::TopicsCommand command;
     topics::TopicsParameters parameters;
     topics::TopicsServices srv;
     topics::TopicsReplCmd replCmd;

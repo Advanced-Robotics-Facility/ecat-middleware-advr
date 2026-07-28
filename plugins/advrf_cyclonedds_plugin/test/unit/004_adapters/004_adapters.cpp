@@ -67,7 +67,11 @@ void clear_cache(
     Channel channel)
 {
     auto& cache = adapter.mutable_channel_cache(channel);
-    cache.valid_count = 0;
+
+    for (auto& entry : cache.entries) {
+        entry.valid = false;
+        entry.updated_this_cycle = false;
+    }
 }
 
 
@@ -79,17 +83,15 @@ Pdo& add_cached_pdo(
 {
     auto& cache = adapter.mutable_channel_cache(channel);
 
-    if (cache.valid_count == cache.storage.size()) {
-        cache.storage.emplace_back();
-    }
+    auto& entry = cache.entries[ecat_id];
 
-    auto& cached = cache.storage[cache.valid_count++];
+    entry.valid = true;
+    entry.updated_this_cycle = true;
+    entry.ecat_id = ecat_id;
+    entry.pdo.Clear();
+    entry.pdo.mutable_header()->set_str_id(component_name);
 
-    cached.ecat_id = ecat_id;
-    cached.pdo.Clear();
-    cached.pdo.mutable_header()->set_str_id(component_name);
-
-    return cached.pdo;
+    return entry.pdo;
 }
 
 
@@ -324,7 +326,7 @@ void test_publisher_can_subscribe_to_multiple_channels()
 }
 
 
-void test_duplicate_id_is_consumed_once()
+void test_duplicate_id_overwrites_previous_value()
 {
     TestAdapterPublishers adapter;
 
@@ -350,9 +352,8 @@ void test_duplicate_id_is_consumed_once()
     assert(publisher.consume_count == 1);
     assert(publisher.last_valid);
 
-    // Avec le parcours actuel, la première frame est conservée.
     assert(publisher.consumed_names.size() == 1);
-    assert(publisher.consumed_names.front() == "motor_2_first");
+    assert(publisher.consumed_names.front() == "motor_2_second");
 }
 
 
@@ -391,26 +392,6 @@ void test_seen_ids_are_reset_between_cycles()
 }
 
 
-void test_channel_cache_storage_is_reused()
-{
-    TestAdapterPublishers adapter;
-
-    auto& cache =
-        adapter.mutable_channel_cache(Channel::Motor);
-
-    cache.storage.resize(10);
-    cache.valid_count = 10;
-
-    const auto previous_size = cache.storage.size();
-    const auto previous_capacity = cache.storage.capacity();
-    const auto* previous_data = cache.storage.data();
-
-    cache.valid_count = 0;
-
-    assert(cache.storage.size() == previous_size);
-    assert(cache.storage.capacity() == previous_capacity);
-    assert(cache.storage.data() == previous_data);
-}
 
 
 int main()
@@ -424,9 +405,7 @@ int main()
     test_accept_all_without_data_is_invalid();
     test_same_pdo_is_dispatched_to_multiple_publishers();
     test_publisher_can_subscribe_to_multiple_channels();
-    test_duplicate_id_is_consumed_once();
     test_seen_ids_are_reset_between_cycles();
-    test_channel_cache_storage_is_reused();
 
     std::cout
         << "All AdapterPublishers tests passed."

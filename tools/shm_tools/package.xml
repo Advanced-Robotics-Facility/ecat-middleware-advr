@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>tools_shm_debug</name>
+  <name>shm_tools</name>
   <version>0.1.0</version>
   <description>SHM debug tools.</description>
 

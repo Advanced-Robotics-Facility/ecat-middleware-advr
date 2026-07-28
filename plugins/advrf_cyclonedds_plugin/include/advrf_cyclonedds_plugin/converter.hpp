@@ -18,6 +18,7 @@
 #include <advrf_interfaces/msg/Gripper.hpp>
 #include <advrf_interfaces/msg/PowerBoard.hpp>
 #include <advrf_interfaces/msg/ForceTorque.hpp>
+#include <advrf_interfaces/msg/ReplCmdContent.hpp>
 
 namespace convert::protobuf {
     template<typename DDS_TYPE, typename PROTOBUF_TYPE>
@@ -81,14 +82,17 @@ namespace convert::protobuf {
         const advrf_interfaces::msg::dds_::PdoAuxCmd_& msgdds,
         iit::advrf::PDOs_aux_cmd& pb);
 
-     void from_dds(
-        const rcl_interfaces::msg::dds_::RequestHeader_& msgdds,
-        iit::advrf::Request_header& pb);
+    void from_dds(
+        const advrf_interfaces::msg::dds_::ReplCmd_Content_& request,
+        iit::advrf::Repl_cmd& pb);
 
      void from_dds(
         const advrf_interfaces::srv::dds_::ReplCmd_Request_& request,
         iit::advrf::Repl_cmd& pb);
 
+      void from_dds(
+        const advrf_interfaces::msg::dds_::ReplCmd_Content_Vector_& request,
+        iit::advrf::Repl_cmd_vector& pb);
 };
 
 namespace convert::dds {

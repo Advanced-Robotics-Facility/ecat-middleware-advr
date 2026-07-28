@@ -7,11 +7,13 @@
 
 static constexpr const char* SHM_NAME = "/ecat_master_pub";
 static constexpr const char* SHM_REPL_NAME = "/ecat_master_repl";
+static constexpr const char* SHM_SUB_NAME = "/ecat_master_sub";
 
 template<typename T, size_t N>
 struct SPSCQueue {
     static_assert((N & (N - 1)) == 0);
     static constexpr size_t MASK = N - 1;
+    static constexpr std::size_t capacity = N;
 
     // alignas(64): puts head and tail on two separate cache lines
     alignas(64) std::atomic<size_t> head{0};  // Producer only
@@ -50,6 +52,21 @@ struct SPSCQueue {
         // Update tail index
         tail.store((t + 1) & MASK, std::memory_order_release);
         
+        return true;
+    }
+
+    bool peek(size_t index, T& value) const
+    {
+        const size_t h = head.load(std::memory_order_acquire);
+        const size_t t = tail.load(std::memory_order_acquire);
+
+        const size_t count = (h - t) & MASK;
+
+        if (index >= count)
+            return false;
+
+        value = buf[(t + index) & MASK];
+
         return true;
     }
 
@@ -109,6 +126,13 @@ struct SharedReplBridge {
     SPSCQueue<ProtoSlot, 16> request;
     // EcatMaster -> Middleware (Repl_info)
     SPSCQueue<ProtoSlot, 16> reply;
+
+    alignas(64) std::atomic<bool> mw_ready{false};
+    alignas(64) std::atomic<bool> rt_ready{false};
+};
+
+struct SharedSubBridge {
+    SPSCQueue<ProtoSlot, 16> request;
 
     alignas(64) std::atomic<bool> mw_ready{false};
     alignas(64) std::atomic<bool> rt_ready{false};
@@ -216,5 +240,60 @@ struct ShmProtoHelper {
 
         slot.size = static_cast<uint32_t>(payload_size + PROTO_FRAME_HEADER_BYTES);
         return queue.try_push(slot);
+    }
+
+    template<size_t N, typename Proto, typename Fn>
+    void peek_all(const SPSCQueue<ProtoSlot, N>& queue,
+                Proto& msg,
+                Fn&& on_msg)
+    {
+        const size_t count = queue.size();
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            ProtoSlot frame;
+
+            if (!queue.peek(i, frame))
+                continue;
+
+            uint32_t payload_size = 0;
+
+            if (!frame_payload_size(frame, payload_size))
+                continue;
+
+            msg.Clear();
+
+            if (msg.ParseFromArray(
+                    frame.data + PROTO_FRAME_HEADER_BYTES,
+                    static_cast<int>(payload_size)))
+            {
+                on_msg(msg);
+            }
+        }
+    }
+
+    template<size_t N, typename Proto>
+    bool peek_latest(const SPSCQueue<ProtoSlot, N>& queue, Proto& msg)
+    {
+        const size_t count = queue.size();
+
+        if (count == 0)
+            return false;
+
+        ProtoSlot frame;
+
+        if (!queue.peek(count - 1, frame))
+            return false;
+
+        uint32_t payload_size = 0;
+
+        if (!frame_payload_size(frame, payload_size))
+            return false;
+
+        msg.Clear();
+
+        return msg.ParseFromArray(
+            frame.data + PROTO_FRAME_HEADER_BYTES,
+            static_cast<int>(payload_size));
     }
 };

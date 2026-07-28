@@ -180,32 +180,40 @@ void convert::protobuf::from_dds(
        pb_aux_cmd->set_board_id(aux_cmd.board_id());
    }
     }
+void convert::protobuf::from_dds(
+        const advrf_interfaces::msg::dds_::ReplCmd_Content_& request,
+        iit::advrf::Repl_cmd& pb)
+    {
+        pb.set_type(static_cast<iit::advrf::CmdType>(request.type()));
+
+        from_dds(request.trajectory_cmd(), *pb.mutable_trajectory_cmd());
+        from_dds(request.ctrl_cmd(), *pb.mutable_ctrl_cmd());
+        from_dds(request.flash_cmd(), *pb.mutable_flash_cmd());
+        from_dds(request.ecat_master_cmd(), *pb.mutable_ecat_master_cmd());
+        from_dds(request.foe_master(), *pb.mutable_foe_master());
+        from_dds(request.trj_queue_cmd(), *pb.mutable_trj_queue_cmd());
+        from_dds(request.slave_sdo_cmd(), *pb.mutable_slave_sdo_cmd());
+        from_dds(request.slave_sdo_info(), *pb.mutable_slave_sdo_info());
+        from_dds(request.motors_pdo_cmd(), *pb.mutable_motors_pdo_cmd());
+        from_dds(request.slave_registry_write(), *pb.mutable_slave_registry_write());
+        from_dds(request.pdos_aux_cmd(), *pb.mutable_pdos_aux_cmd());
+    }
 
 void convert::protobuf::from_dds(
-        const rcl_interfaces::msg::dds_::RequestHeader_& msgdds,
-        iit::advrf::Request_header& pb)
+        const advrf_interfaces::msg::dds_::ReplCmd_Content_Vector_& request,
+        iit::advrf::Repl_cmd_vector& pb)
     {
-   pb.set_guid(msgdds.guid());
-   pb.set_seq(msgdds.seq());
+        for (const auto& content : request.requests()) {
+            auto* pb_content = pb.add_requests();
+            from_dds(content, *pb_content);
+        }
     }
 
 void convert::protobuf::from_dds(
         const advrf_interfaces::srv::dds_::ReplCmd_Request_& request,
         iit::advrf::Repl_cmd& pb)
     {
-   pb.set_type(static_cast<iit::advrf::CmdType>(request.type()));
-
-   from_dds(request.trajectory_cmd(), *pb.mutable_trajectory_cmd());
-   from_dds(request.ctrl_cmd(), *pb.mutable_ctrl_cmd());
-   from_dds(request.flash_cmd(), *pb.mutable_flash_cmd());
-   from_dds(request.ecat_master_cmd(), *pb.mutable_ecat_master_cmd());
-   from_dds(request.foe_master(), *pb.mutable_foe_master());
-   from_dds(request.trj_queue_cmd(), *pb.mutable_trj_queue_cmd());
-   from_dds(request.slave_sdo_cmd(), *pb.mutable_slave_sdo_cmd());
-   from_dds(request.slave_sdo_info(), *pb.mutable_slave_sdo_info());
-   from_dds(request.motors_pdo_cmd(), *pb.mutable_motors_pdo_cmd());
-   from_dds(request.slave_registry_write(), *pb.mutable_slave_registry_write());
-   from_dds(request.pdos_aux_cmd(), *pb.mutable_pdos_aux_cmd());
+    from_dds(request.request(), pb);
     }
 
 void convert::dds::from_protobuf(uint64_t timestamp_ns, builtin_interfaces::msg::dds_::Time_& msgdds)
