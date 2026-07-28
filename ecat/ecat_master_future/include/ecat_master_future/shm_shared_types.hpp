@@ -54,6 +54,21 @@ struct SPSCQueue {
         return true;
     }
 
+    bool peek(size_t index, T& value) const
+    {
+        const size_t h = head.load(std::memory_order_acquire);
+        const size_t t = tail.load(std::memory_order_acquire);
+
+        const size_t count = (h - t) & MASK;
+
+        if (index >= count)
+            return false;
+
+        value = buf[(t + index) & MASK];
+
+        return true;
+    }
+
     size_t size() const {
         size_t h = head.load(std::memory_order_relaxed);
         size_t t = tail.load(std::memory_order_relaxed);
@@ -224,5 +239,60 @@ struct ShmProtoHelper {
 
         slot.size = static_cast<uint32_t>(payload_size + PROTO_FRAME_HEADER_BYTES);
         return queue.try_push(slot);
+    }
+
+    template<size_t N, typename Proto, typename Fn>
+    void peek_all(const SPSCQueue<ProtoSlot, N>& queue,
+                Proto& msg,
+                Fn&& on_msg)
+    {
+        const size_t count = queue.size();
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            ProtoSlot frame;
+
+            if (!queue.peek(i, frame))
+                continue;
+
+            uint32_t payload_size = 0;
+
+            if (!frame_payload_size(frame, payload_size))
+                continue;
+
+            msg.Clear();
+
+            if (msg.ParseFromArray(
+                    frame.data + PROTO_FRAME_HEADER_BYTES,
+                    static_cast<int>(payload_size)))
+            {
+                on_msg(msg);
+            }
+        }
+    }
+
+    template<size_t N, typename Proto>
+    bool peek_latest(const SPSCQueue<ProtoSlot, N>& queue, Proto& msg)
+    {
+        const size_t count = queue.size();
+
+        if (count == 0)
+            return false;
+
+        ProtoSlot frame;
+
+        if (!queue.peek(count - 1, frame))
+            return false;
+
+        uint32_t payload_size = 0;
+
+        if (!frame_payload_size(frame, payload_size))
+            return false;
+
+        msg.Clear();
+
+        return msg.ParseFromArray(
+            frame.data + PROTO_FRAME_HEADER_BYTES,
+            static_cast<int>(payload_size));
     }
 };

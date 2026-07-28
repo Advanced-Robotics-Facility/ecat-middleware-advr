@@ -20,7 +20,12 @@ int main(int argc, char** argv)
         msg_motor.pos_ref() = 0.5;
         msg_motor.vel_ref() = 0.1;
         msg_motor.tor_ref() = 0.05;
+        msg.motors_pdo().push_back(msg_motor);
 
+        msg_motor.motor_id() = 2;
+        msg_motor.pos_ref() = 0.1;
+        msg_motor.vel_ref() = 0.0;
+        msg_motor.tor_ref() = 0.85;
         msg.motors_pdo().push_back(msg_motor);
 
         publisher.publish(msg);
