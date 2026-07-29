@@ -7,6 +7,7 @@
 #include <string>
 #include <type_traits>
 #include <vector>
+#include <unordered_map>
 
 #include "advrf_middleware_core/adapters/adapter_base.hpp"
 #include "advrf_middleware_core/shared_memory/shm_connection_publishers.hpp"
@@ -77,6 +78,11 @@ public:
         virtual void begin_cycle() = 0;
         virtual void consume(const Pdo& pdo) = 0;
         virtual void end_cycle(bool valid) = 0;
+
+        void set_names(std::unordered_map<uint32_t, std::string> m) { id_to_name_ = std::move(m); }
+    
+    protected:
+        std::unordered_map<uint32_t, std::string> id_to_name_;
     };
 
     struct Subscription

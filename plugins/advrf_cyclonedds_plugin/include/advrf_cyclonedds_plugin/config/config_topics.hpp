@@ -59,13 +59,14 @@ struct TopicsState : public TopicNamespace
     using TopicNamespace::TopicNamespace;
 
     std::string jointState()  const { return rt("joint_state"); }
-    std::string imu()         const { return rt("imu"); }
-    std::string forceTorque() const { return rt("force_torque"); }
     std::string motor()       const { return rt("motor"); }
-    std::string powerBoard()  const { return rt("power_board"); }
-    std::string pump()        const { return rt("pump"); }
-    std::string valve()       const { return rt("valve"); }
     std::string gripper()     const { return rt("gripper"); }
+    std::string valve()       const { return rt("valve"); }
+
+    std::string imu(const std::string& device_name)         const { return rt("imu/" + device_name); }
+    std::string forceTorque(const std::string& device_name) const { return rt("force_torque/" + device_name); }
+    std::string powerBoard(const std::string& device_name)  const { return rt("power_board/" + device_name); }
+    std::string pump(const std::string& device_name)        const { return rt("pump/" + device_name); }
 };
 
 

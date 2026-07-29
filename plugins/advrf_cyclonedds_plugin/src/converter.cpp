@@ -373,7 +373,6 @@ void convert::dds::from_protobuf(const iit::advrf::HyqKnee_rx_pdo& pb, sensor_ms
 
 void convert::dds::from_protobuf(const iit::advrf::HyqKnee_rx_pdo& pb, advrf_interfaces::msg::dds_::Valve_& ddsmsg)
     {
-   ddsmsg.name().push_back("");
    ddsmsg.force().push_back(pb.force());
    ddsmsg.pressure1().push_back(pb.pressure_1());
    ddsmsg.pressure2().push_back(pb.pressure_2());
@@ -407,7 +406,6 @@ void convert::dds::from_protobuf(const iit::advrf::HyqHpu_rx_pdo& pb, advrf_inte
 
 void convert::dds::from_protobuf(const iit::advrf::Gripper_rx_pdo& pb, advrf_interfaces::msg::dds_::Gripper_& ddsmsg)
     {
-   ddsmsg.name().push_back("");
    ddsmsg.statusword().push_back(pb.statusword());
    ddsmsg.motor_pos().push_back(pb.motor_pos());
    ddsmsg.link_pos().push_back(pb.link_pos());
