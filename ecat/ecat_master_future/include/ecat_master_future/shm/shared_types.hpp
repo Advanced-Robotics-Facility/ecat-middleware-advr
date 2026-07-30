@@ -27,7 +27,6 @@ struct SPSCQueue {
         size_t next = (h + 1) & MASK;
 
         if (next == tail.load(std::memory_order_acquire)) {
-            std::cerr << "SPSCQueue::try_push: queue is full" << std::endl;
             return false;
         }
 
