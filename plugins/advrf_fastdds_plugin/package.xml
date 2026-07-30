@@ -2,10 +2,10 @@
 <package format="3">
   <name>advrf_fastdds_plugin</name>
   <version>0.1.0</version>
-  <description>Fast DDS plugin for ecat-middleware-advr.</description>
+  <description>ECAT plugin implementation using FastDDS.</description>
 
   <maintainer email="hugo.pousseur@iit.it">Hugo POUSSEUR</maintainer>
-  <maintainer email="manuel.delucchi@iit.it">Manuel delucchi</maintainer>
+  <maintainer email="manuel.delucchi@iit.it">Manuel Delucchi</maintainer>
   <license>TODO</license>
 
   <depend>advrf_interfaces_dds</depend>
@@ -13,7 +13,6 @@
   <depend>advrf_middleware_core</depend>
   <depend>ecat_master_future</depend>
   <depend>advrf_fastdds_lib</depend>
-  <buildtool_depend>cmake</buildtool_depend>
 
   <export>
     <build_type>cmake</build_type>
