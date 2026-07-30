@@ -52,8 +52,8 @@ public:
             return;
         }
         eprosima::fastdds::dds::ReturnCode_t ret = this->writer_->write(&message_);
-        if (ret != 0) {
-            LOG_ERROR("[DDSAdapterBridges] Write error: write() returned false");            
+        if (ret != eprosima::fastdds::dds::RETCODE_OK) {
+            LOG_ERROR("[DDSAdapterBridges] write() retcode: {}", ret);            
         }
     }
 
