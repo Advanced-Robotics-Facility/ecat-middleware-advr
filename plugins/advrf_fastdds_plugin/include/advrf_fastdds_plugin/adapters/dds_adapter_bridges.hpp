@@ -51,8 +51,8 @@ public:
             LOG_ERROR("[DDSAdapterBridges] Write error: writer not initialized");
             return;
         }
-        bool ok = this->writer_->write(&message_);
-        if (!ok) {
+        eprosima::fastdds::dds::ReturnCode_t ret = this->writer_->write(&message_);
+        if (ret != 0) {
             LOG_ERROR("[DDSAdapterBridges] Write error: write() returned false");            
         }
     }

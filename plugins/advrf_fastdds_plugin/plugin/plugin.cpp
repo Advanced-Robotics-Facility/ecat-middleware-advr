@@ -112,6 +112,7 @@ int main(int argc, char **argv)
     // LOG_INFO("Service registered");
 
     plugin_exec.register_adapter({
+        "dds_adapter_publishers",
         dds_adapter_publishers,
         period_from_rate(options.rate_publishers)
     });

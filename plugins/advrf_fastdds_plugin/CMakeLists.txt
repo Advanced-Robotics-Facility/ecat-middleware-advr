@@ -37,7 +37,7 @@ target_include_directories(advrf_fastdds_plugin
 
 target_link_libraries(advrf_fastdds_plugin
     PUBLIC
-        advrf_interfaces_dds
+        advrf_interfaces_dds::fastdds
         advrf_middleware_core
         advrf_interfaces_protobuf
         fastdds

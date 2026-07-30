@@ -6,8 +6,8 @@ project(advrf_interfaces_dds
 )
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-option(BUILD_FASTDDS "Build FastDDS backend" ON)
-option(BUILD_CYCLONEDDS "Build CycloneDDS backend" ON)
+option(BUILD_FASTDDS "Build FastDDS backend" OFF)
+option(BUILD_CYCLONEDDS "Build CycloneDDS backend" OFF)
 
 if(NOT BUILD_FASTDDS AND NOT BUILD_CYCLONEDDS)
     message(FATAL_ERROR
