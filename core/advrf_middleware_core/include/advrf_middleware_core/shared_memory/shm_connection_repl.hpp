@@ -1,33 +1,36 @@
 #pragma once
 
-#include "advrf_middleware_core/shared_memory/shm_bridge_connection.hpp"
+// ecat_master_future
+#include <ecat_master_future/shm/bridge_struct.hpp>
+#include <ecat_master_future/shm/proto_helper.hpp>
 
-#include <ecat_master_future/shm_shared_types.hpp>
-#include <ecat_master_future/shm_utils.hpp>
+// advrf_middleware_core
 #include <advrf_interfaces_protobuf/repl_cmd.pb.h>
+#include <advrf_middleware_core/shared_memory/shm_bridge_connection.hpp>
+
 
 class ReplShmConnection
-    : public ShmBridgeConnection<ReplShmConnection, SharedReplBridge>
+    : public ShmMiddlewareBridgeConnection<ReplShmConnection, SharedReplBridge>
 {
 public:
-    bool peer_ready() const
+    bool remote_ready() const
     {
-        return bridge_->rt_ready.load();
+        return bridge().rt_ready.load();
     }
 
-    void set_local_ready(bool ready)
+    void set_ready(bool ready)
     {
-        bridge_->mw_ready.store(ready);
+        bridge().mw_ready.store(ready);
     }
 
     bool push_request(const iit::advrf::Repl_cmd& request)
     {
-        return proto_helper_.push(bridge_->request, request);
+        return proto_helper_.push(bridge().request, request);
     }
 
     bool pop_reply(ProtoSlot& frame)
     {
-        return proto_helper_.pop_latest_frame(bridge_->reply, frame);
+        return proto_helper_.pop_latest_frame(bridge().reply, frame);
     }
 
 private:

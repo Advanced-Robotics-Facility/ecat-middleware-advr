@@ -1,1 +1,0 @@
-#include "ecat_master_future/shm_shared_types.hpp"

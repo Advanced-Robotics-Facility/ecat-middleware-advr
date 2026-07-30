@@ -2,41 +2,41 @@
 
 #include <array>
 
-#include <ecat_master_future/shm_shared_types.hpp>
-#include <ecat_master_future/shm_utils.hpp>
+// ecat_master_future
+#include <ecat_master_future/shm/bridge_struct.hpp>
+#include <advrf_middleware_core/shared_memory/shm_bridge_connection.hpp>
 
+// advrf_middleware_core
 #include "advrf_middleware_core/utils/channel.hpp"
-#include "advrf_middleware_core/shared_memory/shm_bridge_connection.hpp"
 
 class PublisherShmConnection
-    : public ShmBridgeConnection<PublisherShmConnection, SharedPubBridge>
+    : public ShmMiddlewareBridgeConnection<PublisherShmConnection, SharedPubBridge>
 {
 public:
     using Queue = decltype(SharedPubBridge::imu);
-
-    bool peer_ready() const
+    bool remote_ready() const
     {
-        return bridge_->mw_ready.load();
+        return bridge().rt_ready.load();
     }
 
-    void set_local_ready(bool ready)
+    void set_ready(bool ready)
     {
-        bridge_->rt_ready.store(ready);
+        bridge().mw_ready.store(ready);
     }
 
     bool connect(const std::string& shm_name)
     {
-        if (!ShmBridgeConnection::connect(shm_name))
+        if (!ShmMiddlewareBridgeConnection<PublisherShmConnection, SharedPubBridge>::connect(shm_name))
             return false;
 
         channels_ = {
-            &bridge_->imu,
-            &bridge_->motor,
-            &bridge_->gripper,
-            &bridge_->pump,
-            &bridge_->power_board,
-            &bridge_->force_torque,
-            &bridge_->valve
+            &bridge().imu,
+            &bridge().motor,
+            &bridge().gripper,
+            &bridge().pump,
+            &bridge().power_board,
+            &bridge().force_torque,
+            &bridge().valve
         };
 
         return true;

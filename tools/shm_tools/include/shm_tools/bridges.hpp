@@ -1,6 +1,8 @@
 #pragma once
 
 #include "shm_tools/bridge_inspector.hpp"
+
+#include <ecat_master_future/shm/bridge_struct.hpp>
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 
 class ReadBridgePub : public BridgeInspector<SharedPubBridge>

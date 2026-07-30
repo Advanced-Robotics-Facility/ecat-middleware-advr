@@ -2,8 +2,7 @@
 #include <thread>
 #include <csignal>
 
-#include <ecat_master_future/shm_utils.hpp> 
-#include <ecat_master_future/shm_shared_types.hpp>
+#include <ecat_master_future/shm/config.hpp>
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/utils/pdo_utils.hpp>
 #include <advrf_middleware_core/config/robot_config.hpp>
@@ -31,7 +30,7 @@ int main(int argc, char** argv)
 
     clock_utils::init();
     DDSAdapterPublishers dds_adapter;
-    dds_adapter.shm().connect(SHM_NAME);
+    dds_adapter.shm().connect(SHM_PUB_NAME);
 
     auto config = config::ConfigTopics({"advrf", cfg->robot_name});
     auto domain_participant = dds::domain::DomainParticipant(cfg->domain_id);

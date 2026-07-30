@@ -12,8 +12,9 @@
 #include <thread>
 #include <yaml-cpp/yaml.h>
 
-#include <ecat_master_future/shm_shared_types.hpp>
-#include <ecat_master_future/shm_utils.hpp>
+#include <ecat_master_future/shm/config.hpp>
+#include <ecat_master_future/shm/shared_memory.hpp>
+#include <ecat_master_future/shm/proto_helper.hpp>
 #include <shm_tools/monitor.hpp>
 
 #include <google/protobuf/message.h>
@@ -86,7 +87,7 @@ private:
     std::vector<QueueDescriptor> queues_;
     std::unordered_map<std::string, QueueStats> stats_;
 
-    SharedMemoryOpenOrCreate shm_;
+    std::unique_ptr<SharedMemory<Bridge>> shm_;
     std::string shm_name_;
 
     void connect();
@@ -120,21 +121,20 @@ private:
 
 template<typename Bridge>
 BridgeInspector<Bridge>::BridgeInspector(const std::string& shm_name)
-    : shm_name_(shm_name),
-      shm_(shm_name.c_str(), sizeof(Bridge))
 {
+    shm_ = SharedMemory<Bridge>::open_or_create(shm_name);
 }
 
 template<typename Bridge>
 void BridgeInspector<Bridge>::connect()
 {
-    if (!shm_.is_valid())
+    if (!shm_->is_ok())
     {
         throw std::runtime_error(
             "Unable to open shared memory '" + shm_name_ + "'");
     }
 
-    bridge_ = static_cast<Bridge*>(shm_.raw_ptr());
+    bridge_ = shm_->get();
 }
 
 template<typename Bridge>

@@ -13,8 +13,7 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 add_library(ecat_master_future SHARED
-    src/shm_utils.cpp
-    src/shm_shared_types.cpp
+    src/share_memory.cpp
 )
 
 # add_library(advrf::ecat_master_future ALIAS ecat_master_future)

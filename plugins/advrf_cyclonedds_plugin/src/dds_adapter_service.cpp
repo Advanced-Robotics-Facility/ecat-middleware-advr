@@ -1,15 +1,10 @@
 #include "advrf_cyclonedds_plugin/adapters/dds_adapter_service.hpp"
+#include "advrf_cyclonedds_plugin/converter.hpp"
 
 #include <dds/dds.hpp>
 #include <sys/types.h>
-#include <chrono>
 
-#include "advrf_cyclonedds_plugin/converter.hpp"
-#include <ecat_master_future/shm_utils.hpp>
-#include <ecat_master_future/shm_shared_types.hpp>
 #include <advrf_middleware_core/utils/log.hpp>
-
-
 
 DDSAdapterService::DDSAdapterService(const config::ConfigTopics& config_topics,
                                     dds::domain::DomainParticipant& participant)

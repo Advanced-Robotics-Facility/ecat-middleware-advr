@@ -1,101 +1,84 @@
 #pragma once
 
-#include <chrono>
-#include <memory>
+#include <advrf_middleware_core/utils/log.hpp>
+
+#include <ecat_master_future/shm/shared_memory.hpp>
 #include <thread>
 
-#include <ecat_master_future/shm_utils.hpp>
-#include "advrf_middleware_core/utils/log.hpp"
+#define MS_WAIT_FOR_REMOTE_READY 100
 
 template<class Derived, class Bridge>
-class ShmBridgeConnection
+class ShmMiddlewareBridgeConnection
 {
-public:
-    ~ShmBridgeConnection()
+protected:
+    Bridge& bridge()
     {
-        close();
+        return shm_->bridge();
     }
 
-    bool connect(const std::string& shm_name)
+    const Bridge& bridge() const
     {
-        stop_ = false;
-        while (!stop_)
-        {
-            shm_ = std::make_unique<SharedMemoryClient>(
-                shm_name.c_str(),
-                sizeof(Bridge));
+        return shm_->bridge();
+    }
 
-            if (shm_->is_valid())
-                break;
-
-            LOG_WARN("Waiting shared memory {}", shm_name);
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        }
-
-        if (stop_ || !shm_ || !shm_->is_valid())
+public:
+    bool connect(const std::string& name)
+    {
+        if (!wait_for_shared_memory(name))
             return false;
 
-        bridge_ = shm_->template get<Bridge>();
-
-        if (!bridge_)
+        if (!wait_for_remote())
             return false;
 
-        while (!stop_ && !derived().peer_ready())
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-        if (stop_)
-            return false;
-
-        derived().set_local_ready(true);
-
+        derived().set_ready(true);
         return true;
     }
 
     void close()
     {
         stop_ = true;
-
-        if (bridge_)
-            derived().set_local_ready(false);
-
-        bridge_ = nullptr;
+        if (shm_)
+            derived().set_ready(false);
         shm_.reset();
-    }
-
-    bool is_connected() const
-    {
-        return bridge_ != nullptr;
     }
 
     bool is_ok() const
     {
-        return bridge_ && derived().peer_ready();
-    }
-
-    Bridge& bridge()
-    {
-        return *bridge_;
-    }
-
-    const Bridge& bridge() const
-    {
-        return *bridge_;
+        return shm_ && shm_->is_ok();
     }
 
 protected:
+    bool wait_for_shared_memory(const std::string& name)
+    {
+        while (!stop_)
+        {
+            shm_ = SharedMemory<Bridge>::open(name);
+            if (shm_)
+                return true;
+
+            LOG_WARN("Waiting for shared memory '{}'", name);
+            std::this_thread::sleep_for(
+                std::chrono::milliseconds(MS_WAIT_FOR_REMOTE_READY));
+        }
+
+        return false;
+    }
+
+    bool wait_for_remote()
+    {
+        if (derived().remote_ready())
+            return true;
+
+        LOG_ERROR("Remote not ready: {}", shm_->name());
+        return false;
+    }
+
+private:
     Derived& derived()
     {
         return static_cast<Derived&>(*this);
     }
 
-    const Derived& derived() const
-    {
-        return static_cast<const Derived&>(*this);
-    }
-
-    Bridge* bridge_ = nullptr;
-
-private:
-    std::unique_ptr<SharedMemoryClient> shm_;
-    bool stop_ = false;
+    std::unique_ptr<SharedMemory<Bridge>> shm_;
+    bool stop_{false};
 };

@@ -1,11 +1,7 @@
 #pragma once
 
-
 #include "advrf_middleware_core/adapters/adapter_base.hpp"
 #include "advrf_middleware_core/shared_memory/shm_connection_subscribers.hpp"
-
-#include <ecat_master_future/shm_shared_types.hpp>
-#include <ecat_master_future/shm_utils.hpp>
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_interfaces_protobuf/repl_cmd.pb.h>

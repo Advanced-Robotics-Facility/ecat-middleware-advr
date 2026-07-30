@@ -9,6 +9,9 @@
 #include <vector>
 #include <unordered_map>
 
+#include <ecat_master_future/shm/config.hpp>
+#include <ecat_master_future/shm/proto_helper.hpp>
+
 #include "advrf_middleware_core/adapters/adapter_base.hpp"
 #include "advrf_middleware_core/shared_memory/shm_connection_publishers.hpp"
 #include "advrf_middleware_core/utils/channel.hpp"
@@ -16,8 +19,7 @@
 #include "advrf_middleware_core/utils/pdo_utils.hpp"
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
-#include <ecat_master_future/shm_shared_types.hpp>
-#include <ecat_master_future/shm_utils.hpp>
+
 
 inline int get_ecat_id(const std::string& component_name)
 {
@@ -120,7 +122,7 @@ public:
 
     bool start() override
     {
-        return shm_.connect(SHM_NAME);
+        return shm_.connect(SHM_PUB_NAME);
     }
 
 protected:

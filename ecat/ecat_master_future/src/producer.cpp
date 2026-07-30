@@ -3,11 +3,13 @@
 #include <thread>
 #include <cmath>
 #include <csignal>
-#include <new>
 #include <string>
 
-#include "ecat_master_future/shm_utils.hpp" 
-#include "ecat_master_future/shm_shared_types.hpp" 
+#include "ecat_master_future/shm/config.hpp"
+#include "ecat_master_future/shm/bridge_struct.hpp"
+#include "ecat_master_future/shm/shared_memory.hpp" 
+#include "ecat_master_future/shm/shared_types.hpp"
+#include "ecat_master_future/shm/proto_helper.hpp"
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_interfaces_protobuf/repl_cmd.pb.h>
@@ -233,33 +235,13 @@ int main(int argc, char** argv)
     if (!cfg) return 1;
 
     // Publisher SHM
-    SharedMemoryOwner shm(SHM_NAME, sizeof(SharedPubBridge));
-    if (!shm.is_valid()) {
-        std::cerr << "Failed to allocate or map shared memory segment." << '\n';
-        return 1;
-    }
-    auto* bridge = shm.get<SharedPubBridge>();
-    new (bridge) SharedPubBridge{};
-    std::cout << "[Producer] Initializing shared memory segment: " << SHM_NAME << '\n';
+    auto pub_shm = SharedMemory<SharedPubBridge>::create(SHM_PUB_NAME);
 
     // REPL SHM
-    SharedMemoryOwner repl_shm(SHM_REPL_NAME, sizeof(SharedReplBridge));
-    if (!repl_shm.is_valid()) {
-        std::cerr << "Failed to allocate repl shared memory segment." << '\n';
-        return 1;
-    }
-    auto* repl_bridge = repl_shm.get<SharedReplBridge>();
-    new (repl_bridge) SharedReplBridge{};
-    std::cout << "[Producer] Initializing shared memory segment: " << SHM_REPL_NAME << '\n';
+    auto repl_shm = SharedMemory<SharedReplBridge>::create(SHM_REPL_NAME);
 
     // SUB SHM
-    SharedMemoryOwner sub_shm(SHM_SUB_NAME, sizeof(SharedSubBridge));
-    if (!sub_shm.is_valid()) {
-        std::cerr << "Failed to allocate or map shared memory segment." << '\n';
-        return 1;
-    }
-    auto* sub_bridge = sub_shm.get<SharedSubBridge>();
-    new (sub_bridge) SharedSubBridge{};
+    auto sub_shm = SharedMemory<SharedSubBridge>::create(SHM_SUB_NAME);
 
     // Dynamic Discovery Generation Loop
     uint32_t slave_idx = 0;
@@ -278,7 +260,7 @@ int main(int argc, char** argv)
                           << "' with invalid ecat_id " << dev.ecat_id << '\n';
                 continue;
             }
-            auto& slave = bridge->topology[slave_idx++];
+            auto& slave = pub_shm->bridge().topology[slave_idx++];
             slave.board_id = static_cast<uint32_t>(dev.ecat_id);
             slave.type = type;
             std::snprintf(slave.name, sizeof(slave.name), "%s", dev.name.c_str());     
@@ -293,10 +275,10 @@ int main(int argc, char** argv)
     add_devices(cfg->force_torques, DeviceType::FORCE_TORQUE, "force_torque");
     add_devices(cfg->valves, DeviceType::VALVE, "valve");
 
-    bridge->topology_size.store(slave_idx);
-    bridge->mw_ready.store(true);
-    bridge->rt_ready.store(false);
-    repl_bridge->rt_ready.store(true);
+    pub_shm->bridge().topology_size.store(slave_idx);
+    pub_shm->bridge().rt_ready.store(true);
+    sub_shm->bridge().rt_ready.store(true);
+    repl_shm->bridge().rt_ready.store(true);
 
     std::cout << "\n=======================================\n";
     std::cout << "[Producer] Bus Discovery Finished. Total Slaves Registered: " << slave_idx << "\n";
@@ -305,7 +287,7 @@ int main(int argc, char** argv)
     std::cout << "-----------------------------------------\n";
     
     for (uint32_t i = 0; i < slave_idx; ++i) {
-        const auto& slave = bridge->topology[i];
+        const auto& slave = pub_shm->bridge().topology[i];
 
         std::printf("    %2u    | %s\n", 
                      slave.board_id, slave.name);
@@ -323,7 +305,7 @@ int main(int argc, char** argv)
     auto next_tick = std::chrono::steady_clock::now();
     while (keep_running) {
         
-        repl_proto_helper.drain(repl_bridge->request, cmd_msg, [&](const iit::advrf::Repl_cmd& cmd) {
+        repl_proto_helper.drain(repl_shm->bridge().request, cmd_msg, [&](const iit::advrf::Repl_cmd& cmd) {
       
             iit::advrf::Cmd_reply reply;
             reply.mutable_request_id()->CopyFrom(cmd.request_id());
@@ -336,12 +318,12 @@ int main(int argc, char** argv)
 
                 switch (ecat_cmd.type()) {
                     case iit::advrf::Ecat_Master_cmd::GET_SLAVES_DESCR: {
-                        const uint32_t n = bridge->topology_size.load();
+                        const uint32_t n = pub_shm->bridge().topology_size.load();
 
                         std::ostringstream oss;
                         oss << n << " slaves: ";
                         for (uint32_t i = 0; i < n; ++i) {
-                            const auto& slave = bridge->topology[i];
+                            const auto& slave = pub_shm->bridge().topology[i];
                             oss << slave.name << "(id=" << slave.board_id << ") ";
                         }
 
@@ -363,35 +345,35 @@ int main(int argc, char** argv)
                 }
             }
 
-            if (!repl_proto_helper.push(repl_bridge->reply, reply)) {
+            if (!repl_proto_helper.push(repl_shm->bridge().reply, reply)) {
                 std::cerr << "[Producer] Failed to push repl reply (queue full)" << '\n';
             }
         });
 
         for (uint32_t i = 0; i < slave_idx; ++i) {
-            const auto& slave = bridge->topology[i];
+            const auto& slave = pub_shm->bridge().topology[i];
 
             switch (slave.type) {
                 case DeviceType::IMU:
-                    proto_helper.push(bridge->imu, make_imu_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().imu, make_imu_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceType::MOTOR:
-                    proto_helper.push(bridge->motor, make_motor_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().motor, make_motor_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceType::GRIPPER:
-                    proto_helper.push(bridge->gripper, make_gripper_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().gripper, make_gripper_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceType::POWER_BOARD:
-                    proto_helper.push(bridge->power_board, make_pb_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().power_board, make_pb_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceType::PUMP:
-                    proto_helper.push(bridge->pump, make_pump_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().pump, make_pump_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceType::FORCE_TORQUE:
-                    proto_helper.push(bridge->force_torque, make_ft_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().force_torque, make_ft_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceType::VALVE:
-                    proto_helper.push(bridge->valve, make_valve_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().valve, make_valve_pdo(t, sample_count, slave.board_id));
                     break;
                 default:
                     break;
@@ -401,7 +383,7 @@ int main(int argc, char** argv)
         ++sample_count;
         t += 0.001;
 
-        if (!bridge_seen && bridge->rt_ready.load()) {
+        if (!bridge_seen && pub_shm->bridge().rt_ready.load()) {
             bridge_seen = true;
             std::cout << "[Producer] DDS bridge connected." << '\n';
         }
@@ -410,8 +392,8 @@ int main(int argc, char** argv)
         std::this_thread::sleep_until(next_tick);
     }
 
-    bridge->mw_ready.store(false);
-    bridge->rt_ready.store(false);
+    pub_shm->bridge().mw_ready.store(false);
+    pub_shm->bridge().rt_ready.store(false);
 
     return 0;
 }

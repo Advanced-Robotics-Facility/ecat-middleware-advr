@@ -8,7 +8,7 @@ int main(int argc, char** argv)
     switch (args.bridge)
     {
         case BridgeType::Pub:
-            ReadBridgePub(SHM_NAME).run(args.options);
+            ReadBridgePub(SHM_PUB_NAME).run(args.options);
             break;
 
         case BridgeType::Sub:
