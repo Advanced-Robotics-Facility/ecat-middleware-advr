@@ -12,7 +12,7 @@
 
 #include "advrf_fastdds_plugin/adapters/dds_adapter_publishers.hpp"
 #include "advrf_fastdds_plugin/adapters/dds_adapter_subscribers.hpp"
-//#include "advrf_fastdds_plugin/adapters/dds_adapter_service.hpp"
+#include "advrf_fastdds_plugin/adapters/dds_adapter_service.hpp"
 
 namespace
 {
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
     auto config = config::ConfigTopics({"advrf", cfg->robot_name});
 
     // service
-    //auto dds_adapter_service = std::make_shared<DDSAdapterService>(config, dds_participant);
+    auto dds_adapter_service = std::make_shared<DDSAdapterService>(config, dds_participant);
 
     // publishers
     auto dds_adapter_publishers = std::make_shared<DDSAdapterPublishers>();
@@ -105,11 +105,12 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    // plugin_exec.register_adapter({
-    //     dds_adapter_service,
-    //     period_from_rate(options.rate_service)
-    // });
-    // LOG_INFO("Service registered");
+    plugin_exec.register_adapter({
+        "dds_adapter_service",
+        dds_adapter_service,
+        period_from_rate(options.rate_service)
+    });
+    LOG_INFO("Service registered");
 
     plugin_exec.register_adapter({
         "dds_adapter_publishers",
@@ -127,7 +128,7 @@ int main(int argc, char **argv)
 
 
     LOG_INFO("Publisher rate: {} Hz", options.rate_publishers);
-    // LOG_INFO("Service rate: {} Hz", options.rate_service);
+    LOG_INFO("Service rate: {} Hz", options.rate_service);
     LOG_INFO("Subscribers rate: {} Hz", options.rate_subscribers);
 
     plugin_exec.start();

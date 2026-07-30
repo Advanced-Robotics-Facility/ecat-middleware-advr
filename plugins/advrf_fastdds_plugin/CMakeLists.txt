@@ -23,6 +23,7 @@ add_library(advrf_fastdds_plugin SHARED
     src/dds_adapter_publishers.cpp
     src/dds_adapter_subscribers.cpp
     src/dds_adapter_bridges.cpp
+    src/dds_adapter_service.cpp
 )
 
 target_compile_features(advrf_fastdds_plugin 
