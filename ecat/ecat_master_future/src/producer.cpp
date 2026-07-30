@@ -260,7 +260,7 @@ int main(int argc, char** argv)
                           << "' with invalid ecat_id " << dev.ecat_id << '\n';
                 continue;
             }
-            auto& slave = pub_shm->bridge().topology[slave_idx++];
+            auto& slave = pub_shm->bridge().payload.topology[slave_idx++];
             slave.board_id = static_cast<uint32_t>(dev.ecat_id);
             slave.type = type;
             std::snprintf(slave.name, sizeof(slave.name), "%s", dev.name.c_str());     
@@ -275,10 +275,10 @@ int main(int argc, char** argv)
     add_devices(cfg->force_torques, DeviceType::FORCE_TORQUE, "force_torque");
     add_devices(cfg->valves, DeviceType::VALVE, "valve");
 
-    pub_shm->bridge().topology_size.store(slave_idx);
-    pub_shm->bridge().rt_ready.store(true);
-    sub_shm->bridge().rt_ready.store(true);
-    repl_shm->bridge().rt_ready.store(true);
+    pub_shm->bridge().payload.topology_size.store(slave_idx);
+    pub_shm->bridge().status.rt_ready.store(true);
+    sub_shm->bridge().status.rt_ready.store(true);
+    repl_shm->bridge().status.rt_ready.store(true);
 
     std::cout << "\n=======================================\n";
     std::cout << "[Producer] Bus Discovery Finished. Total Slaves Registered: " << slave_idx << "\n";
@@ -287,7 +287,7 @@ int main(int argc, char** argv)
     std::cout << "-----------------------------------------\n";
     
     for (uint32_t i = 0; i < slave_idx; ++i) {
-        const auto& slave = pub_shm->bridge().topology[i];
+        const auto& slave = pub_shm->bridge().payload.topology[i];
 
         std::printf("    %2u    | %s\n", 
                      slave.board_id, slave.name);
@@ -305,7 +305,7 @@ int main(int argc, char** argv)
     auto next_tick = std::chrono::steady_clock::now();
     while (keep_running) {
         
-        repl_proto_helper.drain(repl_shm->bridge().request, cmd_msg, [&](const iit::advrf::Repl_cmd& cmd) {
+        repl_proto_helper.drain(repl_shm->bridge().payload.request, cmd_msg, [&](const iit::advrf::Repl_cmd& cmd) {
       
             iit::advrf::Cmd_reply reply;
             reply.mutable_request_id()->CopyFrom(cmd.request_id());
@@ -318,12 +318,12 @@ int main(int argc, char** argv)
 
                 switch (ecat_cmd.type()) {
                     case iit::advrf::Ecat_Master_cmd::GET_SLAVES_DESCR: {
-                        const uint32_t n = pub_shm->bridge().topology_size.load();
+                        const uint32_t n = pub_shm->bridge().payload.topology_size.load();
 
                         std::ostringstream oss;
                         oss << n << " slaves: ";
                         for (uint32_t i = 0; i < n; ++i) {
-                            const auto& slave = pub_shm->bridge().topology[i];
+                            const auto& slave = pub_shm->bridge().payload.topology[i];
                             oss << slave.name << "(id=" << slave.board_id << ") ";
                         }
 
@@ -345,35 +345,35 @@ int main(int argc, char** argv)
                 }
             }
 
-            if (!repl_proto_helper.push(repl_shm->bridge().reply, reply)) {
+            if (!repl_proto_helper.push(repl_shm->bridge().payload.reply, reply)) {
                 std::cerr << "[Producer] Failed to push repl reply (queue full)" << '\n';
             }
         });
 
         for (uint32_t i = 0; i < slave_idx; ++i) {
-            const auto& slave = pub_shm->bridge().topology[i];
+            const auto& slave = pub_shm->bridge().payload.topology[i];
 
             switch (slave.type) {
                 case DeviceType::IMU:
-                    proto_helper.push(pub_shm->bridge().imu, make_imu_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().payload.imu, make_imu_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceType::MOTOR:
-                    proto_helper.push(pub_shm->bridge().motor, make_motor_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().payload.motor, make_motor_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceType::GRIPPER:
-                    proto_helper.push(pub_shm->bridge().gripper, make_gripper_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().payload.gripper, make_gripper_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceType::POWER_BOARD:
-                    proto_helper.push(pub_shm->bridge().power_board, make_pb_pdo(t, sample_count, slave.board_id));
+                proto_helper.push(pub_shm->bridge().payload.power_board, make_pb_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceType::PUMP:
-                    proto_helper.push(pub_shm->bridge().pump, make_pump_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().payload.pump, make_pump_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceType::FORCE_TORQUE:
-                    proto_helper.push(pub_shm->bridge().force_torque, make_ft_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().payload.force_torque, make_ft_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceType::VALVE:
-                    proto_helper.push(pub_shm->bridge().valve, make_valve_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().payload.valve, make_valve_pdo(t, sample_count, slave.board_id));
                     break;
                 default:
                     break;
@@ -383,7 +383,7 @@ int main(int argc, char** argv)
         ++sample_count;
         t += 0.001;
 
-        if (!bridge_seen && pub_shm->bridge().rt_ready.load()) {
+        if (!bridge_seen && pub_shm->bridge().status.rt_ready.load()) {
             bridge_seen = true;
             std::cout << "[Producer] DDS bridge connected." << '\n';
         }
@@ -392,8 +392,8 @@ int main(int argc, char** argv)
         std::this_thread::sleep_until(next_tick);
     }
 
-    pub_shm->bridge().mw_ready.store(false);
-    pub_shm->bridge().rt_ready.store(false);
+    pub_shm->bridge().status.mw_ready.store(false);
+    pub_shm->bridge().status.rt_ready.store(false);
 
     return 0;
 }

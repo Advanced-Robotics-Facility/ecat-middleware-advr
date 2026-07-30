@@ -15,17 +15,17 @@ class SubscriberShmConnection
 public:
     bool remote_ready() const
     {
-        return bridge().rt_ready.load();
+        return bridge().status.rt_ready.load();
     }
 
     void set_ready(bool ready)
     {
-        bridge().mw_ready.store(ready);
+        bridge().status.mw_ready.store(ready);
     }
 
     bool push_request(const iit::advrf::Repl_cmd& request)
     {
-        return proto_helper_.push(bridge().request, request);
+        return proto_helper_.push(bridge().payload.request, request);
     }
 
 private:

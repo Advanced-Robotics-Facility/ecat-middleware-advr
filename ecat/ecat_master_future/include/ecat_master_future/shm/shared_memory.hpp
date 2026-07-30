@@ -8,15 +8,20 @@
 #include <memory>
 #include <string>
 #include <cstring>
+#include <csignal>
 
-template<typename T>
+#include "ecat_master_future/shm/bridge_struct.hpp"
+
+template<typename T_Bridge>
 class SharedMemory
 {
+    static_assert(is_shared_memory_bridge_v<T_Bridge>,
+                  "T must be a SharedMemoryBridge<...>");
+
 public:
     static std::unique_ptr<SharedMemory> create(const std::string& name)
     {
         shm_unlink(name.c_str());
-
         auto shm = std::unique_ptr<SharedMemory>(
             new SharedMemory(name, O_CREAT | O_EXCL | O_RDWR));
 
@@ -46,11 +51,11 @@ public:
     {
         if (created_ && ptr_)
         {
-            std::memset(ptr_, 0, sizeof(T));
+            std::memset(ptr_, 0, sizeof(T_Bridge));
         }
 
         if (ptr_)
-            munmap(ptr_, sizeof(T));
+            munmap(ptr_, sizeof(T_Bridge));
     }
 
     bool created() const
@@ -63,33 +68,39 @@ public:
         return name_;
     }
 
-    T& object()
+    T_Bridge& object()
     {
-        return *static_cast<T*>(ptr_);
+        return *static_cast<T_Bridge*>(ptr_);
     }
 
-    const T& object() const
+    const T_Bridge& object() const
     {
-        return *static_cast<const T*>(ptr_);
+        return *static_cast<const T_Bridge*>(ptr_);
     }
 
-    T& operator*()             { return object(); }
-    const T& operator*() const { return object(); }
+    T_Bridge& operator*()             { return object(); }
+    const T_Bridge& operator*() const { return object(); }
 
-    T& bridge()             { return object(); }
-    const T& bridge() const { return object(); }
+    T_Bridge& bridge()             { return object(); }
+    const T_Bridge& bridge() const { return object(); }
 
-    T* operator->()            { return &object(); }
-    const T* operator->() const{ return &object(); }
+    bool owner_alive() const
+    {
+        pid_t pid = object().status.owner_pid.load(std::memory_order_acquire);
+        return pid != 0 && (kill(pid, 0) == 0 || errno != ESRCH);
+    }
+
+    T_Bridge* operator->()            { return &object(); }
+    const T_Bridge* operator->() const{ return &object(); }
 
     bool is_ok() const
     {
-        return ptr_ != nullptr;
+        return ptr_ != nullptr && owner_alive();
     }
 
-    T* get() const
+    T_Bridge* get() const
     {
-        return static_cast<T*>(ptr_);
+        return static_cast<T_Bridge*>(ptr_);
     }
 
 private:
@@ -110,7 +121,12 @@ private:
             return false;
 
         if (created_)
-            new (&object()) T();
+        {
+            new (&object()) T_Bridge();
+            object().status.owner_pid.store(
+                getpid(),
+                std::memory_order_release);
+        }
 
         return true;
     }
@@ -124,7 +140,6 @@ private:
         if (creating)
         {
             struct stat st{};
-
             if (fstat(fd, &st) != 0)
             {
                 close(fd);
@@ -132,10 +147,9 @@ private:
             }
 
             created_ = (st.st_size == 0);
-
             if (created_)
             {
-                if (ftruncate(fd, sizeof(T)) != 0)
+                if (ftruncate(fd, sizeof(T_Bridge)) != 0)
                 {
                     close(fd);
                     return false;
@@ -144,7 +158,7 @@ private:
         }
 
         ptr_ = mmap(nullptr,
-                    sizeof(T),
+                    sizeof(T_Bridge),
                     PROT_READ | PROT_WRITE,
                     MAP_SHARED,
                     fd,

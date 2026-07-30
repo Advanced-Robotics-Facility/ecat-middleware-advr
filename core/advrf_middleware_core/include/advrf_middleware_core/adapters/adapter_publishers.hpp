@@ -70,7 +70,6 @@ public:
 
     using Cache = std::array<ChannelCache, ChannelCount>;
     using IdMask = std::bitset<MaxEcatIds>;
-    using Queue = decltype(SharedPubBridge::imu);
 
     class IPublisher
     {
@@ -123,6 +122,11 @@ public:
     bool start() override
     {
         return shm_.connect(SHM_PUB_NAME);
+    }
+
+    bool is_ok() const override
+    {
+        return shm_.is_ok();
     }
 
 protected:

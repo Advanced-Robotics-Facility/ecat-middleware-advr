@@ -13,15 +13,15 @@ class PublisherShmConnection
     : public ShmMiddlewareBridgeConnection<PublisherShmConnection, SharedPubBridge>
 {
 public:
-    using Queue = decltype(SharedPubBridge::imu);
+    using Queue = decltype(SharedPubBridge::payload.imu);
     bool remote_ready() const
     {
-        return bridge().rt_ready.load();
+        return bridge().status.rt_ready.load();
     }
 
     void set_ready(bool ready)
     {
-        bridge().mw_ready.store(ready);
+        bridge().status.mw_ready.store(ready);
     }
 
     bool connect(const std::string& shm_name)
@@ -30,13 +30,13 @@ public:
             return false;
 
         channels_ = {
-            &bridge().imu,
-            &bridge().motor,
-            &bridge().gripper,
-            &bridge().pump,
-            &bridge().power_board,
-            &bridge().force_torque,
-            &bridge().valve
+            &bridge().payload.imu,
+            &bridge().payload.motor,
+            &bridge().payload.gripper,
+            &bridge().payload.pump,
+            &bridge().payload.power_board,
+            &bridge().payload.force_torque,
+            &bridge().payload.valve
         };
 
         return true;

@@ -66,11 +66,9 @@ std::chrono::microseconds period_from_rate(uint32_t hz)
 int main(int argc, char **argv)
 {
     advrf::log::Log::init();
-
     const auto options = parse_args(argc, argv);
 
     advrf::plugin::PluginExec plugin_exec;
-
     auto cfg = load_robot_config(ROBOT_CONFIG_DIR);
     if (!cfg)
         return 1;
@@ -83,38 +81,33 @@ int main(int argc, char **argv)
 
     // publishers
     auto dds_adapter_publishers = std::make_shared<DDSAdapterPublishers>();
-    
-    // subscribers
-    auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>(config, dds_participant);
-   
     if (!dds_adapter_publishers->init(config, *cfg, dds_participant))
     {
         LOG_ERROR("Failed to bind to target DDS channels.");
         return 1;
     }
 
+    // subscribers
+    auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>(config, dds_participant);
+
+
     plugin_exec.register_adapter({
+        "dds_adapter_service",
         dds_adapter_service,
         period_from_rate(options.rate_service)
     });
-    LOG_INFO("Service registered");
 
     plugin_exec.register_adapter({
+        "dds_adapter_publishers",
         dds_adapter_publishers,
         period_from_rate(options.rate_publishers)
     });
-    LOG_INFO("Publishers registered");
 
     plugin_exec.register_adapter({
+        "dds_adapter_subscribers",
         dds_adapter_subscribers,
         period_from_rate(options.rate_subscribers)
     });
-    LOG_INFO("Subscribers registered");
-
-
-    LOG_INFO("Publisher rate: {} Hz", options.rate_publishers);
-    LOG_INFO("Service rate: {} Hz", options.rate_service);
-    LOG_INFO("Subscribers rate: {} Hz", options.rate_subscribers);
 
     plugin_exec.start();
 

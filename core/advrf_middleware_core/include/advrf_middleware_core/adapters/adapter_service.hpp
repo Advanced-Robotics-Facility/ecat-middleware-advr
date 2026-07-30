@@ -83,6 +83,11 @@ public:
         return shm_.connect(SHM_REPL_NAME);
     }
 
+    bool is_ok() const override
+    {
+        return shm_.is_ok();
+    }
+
 protected:
     ReplShmConnection shm_;
 

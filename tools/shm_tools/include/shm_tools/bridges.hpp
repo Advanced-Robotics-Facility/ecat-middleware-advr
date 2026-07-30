@@ -14,13 +14,13 @@ protected:
 
     void declare() override
     {
-        register_queue<iit::advrf::Ec_slave_pdo>("imu", bridge_->imu);
-        register_queue<iit::advrf::Ec_slave_pdo>("motor", bridge_->motor);
-        register_queue<iit::advrf::Ec_slave_pdo>("gripper", bridge_->gripper);
-        register_queue<iit::advrf::Ec_slave_pdo>("force_torque", bridge_->force_torque);
-        register_queue<iit::advrf::Ec_slave_pdo>("power_board", bridge_->power_board);
-        register_queue<iit::advrf::Ec_slave_pdo>("pump", bridge_->pump);
-        register_queue<iit::advrf::Ec_slave_pdo>("valve", bridge_->valve);
+        register_queue<iit::advrf::Ec_slave_pdo>("imu", bridge_->payload.imu);
+        register_queue<iit::advrf::Ec_slave_pdo>("motor", bridge_->payload.motor);
+        register_queue<iit::advrf::Ec_slave_pdo>("gripper", bridge_->payload.gripper);
+        register_queue<iit::advrf::Ec_slave_pdo>("force_torque", bridge_->payload.force_torque);
+        register_queue<iit::advrf::Ec_slave_pdo>("power_board", bridge_->payload.power_board);
+        register_queue<iit::advrf::Ec_slave_pdo>("pump", bridge_->payload.pump);
+        register_queue<iit::advrf::Ec_slave_pdo>("valve", bridge_->payload.valve);
     }
 };
 
@@ -39,11 +39,11 @@ protected:
     {
         register_queue<iit::advrf::Repl_cmd>(
             "request",
-            bridge_->request);
+            bridge_->payload.request);
 
         register_queue<iit::advrf::Cmd_reply>(
             "reply",
-            bridge_->reply);
+            bridge_->payload.reply);
     }
 };
 
@@ -63,6 +63,6 @@ protected:
     {
         register_queue<iit::advrf::Repl_cmd>(
             "request",
-            bridge_->request);
+            bridge_->payload.request);
     }
 };

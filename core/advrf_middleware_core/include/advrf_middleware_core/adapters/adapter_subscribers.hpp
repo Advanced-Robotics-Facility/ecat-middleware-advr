@@ -40,6 +40,11 @@ public:
         return shm_.connect(SHM_SUB_NAME);
     }
 
+    bool is_ok() const override
+    {
+        return shm_.is_ok();
+    }
+
 protected:
     SubscriberShmConnection shm_;
 
