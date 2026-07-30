@@ -5,7 +5,7 @@ add_executable(002_parameters_parameter_client
 target_link_libraries(002_parameters_parameter_client
     PRIVATE
         advrf_cyclonedds_plugin
-        advrf_interfaces_dds
+        advrf_interfaces_dds::cyclonedds
         advrf_interfaces_protobuf
         ecat_master_future
 )
@@ -22,7 +22,7 @@ add_executable(002_parameters_parameter_server
 target_link_libraries(002_parameters_parameter_server
     PRIVATE
         advrf_cyclonedds_plugin
-        advrf_interfaces_dds
+        advrf_interfaces_dds::cyclonedds
         advrf_interfaces_protobuf
         ecat_master_future
 )

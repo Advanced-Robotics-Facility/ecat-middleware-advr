@@ -57,7 +57,7 @@ public:
                      1'000'000 / period_.count());
 
             auto next = std::chrono::steady_clock::now();
-            auto next_health = next + std::chrono::seconds(1);q
+            auto next_health = next + std::chrono::seconds(1);
             while (running)
             {
                 next += period_;

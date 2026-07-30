@@ -10,7 +10,7 @@ target_compile_features(005_subscriber_publisher
 target_link_libraries(005_subscriber_publisher
     PRIVATE
         advrf_cyclonedds_plugin
-        advrf_interfaces_dds
+        advrf_interfaces_dds::cyclonedds
         advrf_middleware_core
         ecat_master_future
 )

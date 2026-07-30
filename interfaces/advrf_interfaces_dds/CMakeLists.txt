@@ -5,29 +5,54 @@ project(advrf_interfaces_dds
     LANGUAGES CXX
 )
 
-
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-option(USE_FASTDDS "Use FastDDS instead of CycloneDDS" OFF)
+option(BUILD_FASTDDS "Build FastDDS backend" ON)
+option(BUILD_CYCLONEDDS "Build CycloneDDS backend" ON)
+
+if(NOT BUILD_FASTDDS AND NOT BUILD_CYCLONEDDS)
+    message(FATAL_ERROR
+        "At least one DDS backend must be enabled."
+    )
+endif()
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-if(USE_FASTDDS)
-    message(STATUS "[advrf_interfaces_dds] Configuring for FastDDS")
-    find_package(advrf_fastdds_lib REQUIRED)
-    find_package(fastcdr 2 REQUIRED)
-    find_package(fastdds 3 REQUIRED)
+#
+# FastDDS
+#
 
-    if(NOT ADVRF_FASTDDSGEN_EXECUTABLE OR NOT ADVRF_FASTDDSGEN_JAR)
+if(BUILD_FASTDDS)
+
+    message(STATUS "[advrf_interfaces_dds] Configuring FastDDS")
+
+    find_package(advrf_fastdds_lib REQUIRED)
+    find_package(fastcdr REQUIRED)
+    find_package(fastdds REQUIRED)
+
+    if(NOT ADVRF_FASTDDSGEN_EXECUTABLE
+       OR NOT ADVRF_FASTDDSGEN_JAR)
+
         message(FATAL_ERROR
-            "advrf_fastdds_lib did not provide the Fast DDS-Gen runtime"
+            "advrf_fastdds_lib did not provide FastDDSGen."
         )
+
     endif()
-else()
-    message(STATUS "[advrf_interfaces_dds] Configuring for CycloneDDS")
+
+endif()
+
+#
+# CycloneDDS
+#
+
+if(BUILD_CYCLONEDDS)
+
+    message(STATUS "[advrf_interfaces_dds] Configuring CycloneDDS")
+
     find_package(advrf_cyclonedds_lib REQUIRED)
     find_package(CycloneDDS REQUIRED)
     find_package(CycloneDDS-CXX REQUIRED)
+
 endif()
 
 get_filename_component(DDS_IDL_DIR
@@ -35,8 +60,12 @@ get_filename_component(DDS_IDL_DIR
     REALPATH
 )
 
-set(DDS_GENERATED_DIR
-    "${CMAKE_CURRENT_BINARY_DIR}/generated"
+set(FASTDDS_GENERATED_DIR
+    "${CMAKE_CURRENT_BINARY_DIR}/generated/fastdds"
+)
+
+set(CYCLONEDDS_GENERATED_DIR
+    "${CMAKE_CURRENT_BINARY_DIR}/generated/cyclonedds"
 )
 
 set(DDS_INTERFACE_PACKAGES
@@ -48,7 +77,7 @@ set(DDS_INTERFACE_PACKAGES
     advrf_interfaces
 )
 
-if(USE_FASTDDS)
+if(BUILD_FASTDDS)
     set(FASTDDS_GENERATED_OUTPUTS "")
 
     file(GLOB_RECURSE FASTDDS_IDL_FILES
@@ -62,7 +91,7 @@ if(USE_FASTDDS)
         get_filename_component(IDL_RELATIVE_DIR "${IDL_RELATIVE}" DIRECTORY)
         get_filename_component(MSG_NAME "${IDL_FILE}" NAME_WE)
         set(GENERATED_BASE
-            "${DDS_GENERATED_DIR}/${IDL_RELATIVE_DIR}/${MSG_NAME}"
+            "${FASTDDS_GENERATED_DIR}/${IDL_RELATIVE_DIR}/${MSG_NAME}"
         )
 
         list(APPEND FASTDDS_GENERATED_OUTPUTS
@@ -78,11 +107,11 @@ if(USE_FASTDDS)
 
     add_custom_command(
         OUTPUT ${FASTDDS_GENERATED_OUTPUTS}
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${DDS_GENERATED_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${FASTDDS_GENERATED_DIR}"
         COMMAND ${CMAKE_COMMAND}
             -D "IDL_FILES=${FASTDDS_IDL_FILES}"
             -D "IDL_DIR=${DDS_IDL_DIR}"
-            -D "OUTPUT_DIR=${DDS_GENERATED_DIR}"
+            -D "OUTPUT_DIR=${FASTDDS_GENERATED_DIR}"
             -D "FASTDDSGEN_EXECUTABLE=${ADVRF_FASTDDSGEN_EXECUTABLE}"
             -D "FASTDDSGEN_JAR=${ADVRF_FASTDDSGEN_JAR}"
             -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_fastddsgen.cmake"
@@ -100,9 +129,34 @@ if(USE_FASTDDS)
     add_custom_target(fastdds_idl_generate
         DEPENDS ${FASTDDS_GENERATED_OUTPUTS}
     )
+
+    add_library(advrf_interfaces_dds_fastdds INTERFACE)
+    add_library(advrf_interfaces_dds::fastdds ALIAS advrf_interfaces_dds_fastdds)
+
+    set_target_properties(advrf_interfaces_dds_fastdds PROPERTIES
+        EXPORT_NAME fastdds
+    )
+
+    install(
+        TARGETS advrf_interfaces_dds_fastdds
+        EXPORT advrf_interfaces_ddsTargets
+    )
 endif()
 
-add_library(advrf_interfaces_dds INTERFACE)
+if(BUILD_CYCLONEDDS)
+    add_library(advrf_interfaces_dds_cyclonedds INTERFACE)
+    add_library(advrf_interfaces_dds::cyclonedds ALIAS advrf_interfaces_dds_cyclonedds)
+
+    set_target_properties(advrf_interfaces_dds_cyclonedds PROPERTIES
+        EXPORT_NAME cyclonedds
+    )
+
+    install(
+        TARGETS advrf_interfaces_dds_cyclonedds
+        EXPORT advrf_interfaces_ddsTargets
+    )
+endif()
+
 foreach(package IN LISTS DDS_INTERFACE_PACKAGES)
 
     message(STATUS "[DDS] Processing package '${package}'")
@@ -138,7 +192,9 @@ foreach(package IN LISTS DDS_INTERFACE_PACKAGES)
         message(STATUS "    ${rel}")
     endforeach()
 
-    if(USE_FASTDDS)
+    # --- Bloc FastDDS ---
+    if(BUILD_FASTDDS)
+        set(target_fastdds "${package}_fastdds")
         set(ALL_GEN_SOURCES "")
 
         foreach(IDL_FILE IN LISTS package_idls_real)
@@ -146,7 +202,7 @@ foreach(package IN LISTS DDS_INTERFACE_PACKAGES)
             get_filename_component(IDL_RELATIVE_DIR "${IDL_RELATIVE}" DIRECTORY)
             get_filename_component(MSG_NAME "${IDL_FILE}" NAME_WE)
             set(GENERATED_BASE
-                "${DDS_GENERATED_DIR}/${IDL_RELATIVE_DIR}/${MSG_NAME}"
+                "${FASTDDS_GENERATED_DIR}/${IDL_RELATIVE_DIR}/${MSG_NAME}"
             )
             list(APPEND ALL_GEN_SOURCES
                 "${GENERATED_BASE}PubSubTypes.cxx"
@@ -154,40 +210,55 @@ foreach(package IN LISTS DDS_INTERFACE_PACKAGES)
             )
         endforeach()
 
-        add_library(${package} STATIC ${ALL_GEN_SOURCES})
-        add_dependencies(${package} fastdds_idl_generate)
+        add_library(${target_fastdds} STATIC ${ALL_GEN_SOURCES})
+        add_dependencies(${target_fastdds} fastdds_idl_generate)
 
-        add_library(advrf::${package} ALIAS ${package})
+        target_compile_features(${target_fastdds} PUBLIC cxx_std_17)
 
-        target_compile_features(${package} PUBLIC cxx_std_17)
-
-        target_include_directories(${package}
+        target_include_directories(${target_fastdds}
             PUBLIC
-                $<BUILD_INTERFACE:${DDS_GENERATED_DIR}>
+                $<BUILD_INTERFACE:${FASTDDS_GENERATED_DIR}>
                 $<BUILD_INTERFACE:${DDS_IDL_DIR}>
-                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/fastdds>
         )
 
-        target_compile_definitions(${package} PUBLIC USE_FASTDDS)
-        target_link_libraries(${package} PUBLIC fastdds fastcdr)
+        target_compile_definitions(${target_fastdds} PUBLIC USE_FASTDDS)
+        target_link_libraries(${target_fastdds} PUBLIC fastdds fastcdr)
 
-    else()
+        install(
+            TARGETS ${target_fastdds}
+            EXPORT advrf_interfaces_ddsTargets
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/fastdds
+        )
+
+        target_link_libraries(advrf_interfaces_dds_fastdds
+            INTERFACE
+                ${target_fastdds}
+        )
+    endif()
+
+    # --- Bloc CycloneDDS ---
+    if(BUILD_CYCLONEDDS)
+        set(target_cyclonedds "${package}_cyclonedds")
 
         idlcxx_generate(
-            TARGET ${package}_idl
+            TARGET ${target_cyclonedds}_idl
             BASE_DIR "${DDS_IDL_DIR}"
             FILES ${package_idls_real}
-            OUTPUT_DIR "${DDS_GENERATED_DIR}"
+            OUTPUT_DIR "${CYCLONEDDS_GENERATED_DIR}"
             WARNINGS no-implicit-extensibility
         )
 
-        get_target_property(package_sources ${package}_idl INTERFACE_SOURCES)
+        get_target_property(package_sources ${target_cyclonedds}_idl INTERFACE_SOURCES)
 
         if(NOT package_sources)
-            message(FATAL_ERROR "No generated sources for package '${package}'.")
+            message(FATAL_ERROR "No generated sources for package '${package}' (CycloneDDS).")
         endif()
 
-        set_target_properties(${package}_idl
+        set_target_properties(${target_cyclonedds}_idl
             PROPERTIES
                 INTERFACE_SOURCES ""
         )
@@ -197,87 +268,98 @@ foreach(package IN LISTS DDS_INTERFACE_PACKAGES)
                 GENERATED TRUE
         )
 
-        add_library(${package} STATIC
+        add_library(${target_cyclonedds} STATIC
             ${package_sources}
         )
 
-        add_library(advrf::${package} ALIAS ${package})
-
-        target_compile_features(${package}
+        target_compile_features(${target_cyclonedds}
             PUBLIC
                 cxx_std_17
         )
 
-        target_include_directories(${package}
+        target_include_directories(${target_cyclonedds}
             PUBLIC
-                $<BUILD_INTERFACE:${DDS_GENERATED_DIR}>
+                $<BUILD_INTERFACE:${CYCLONEDDS_GENERATED_DIR}>
                 $<BUILD_INTERFACE:${DDS_IDL_DIR}>
-                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/cyclonedds>
         )
 
-        target_link_libraries(${package}
+        target_link_libraries(${target_cyclonedds}
             PUBLIC
                 CycloneDDS-CXX::ddscxx
         )
 
-        if(TARGET ${package}_idl_generate)
-            add_dependencies(${package} ${package}_idl_generate)
+        if(TARGET ${target_cyclonedds}_idl_generate)
+            add_dependencies(${target_cyclonedds} ${target_cyclonedds}_idl_generate)
         endif()
 
+        install(
+            TARGETS ${target_cyclonedds}
+            EXPORT advrf_interfaces_ddsTargets
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cyclonedds
+        )
+
+        target_link_libraries(advrf_interfaces_dds_cyclonedds
+            INTERFACE
+                ${target_cyclonedds}
+        )
     endif()
-
-    install(
-        TARGETS ${package}
-        EXPORT advrf_interfaces_ddsTargets
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    )
-
-    target_link_libraries(advrf_interfaces_dds
-        INTERFACE
-            advrf::${package}
-    )
 
 endforeach()
 
-if(USE_FASTDDS)
+#
+# Dependances d'inter-packages FastDDS
+#
+if(BUILD_FASTDDS)
     # Fast DDS-Gen emits calls into the generated support code of included
     # IDLs. Express those relationships so consumers of a package library get
     # all required serialization and TypeObject symbols transitively.
-    target_link_libraries(std_msgs PUBLIC builtin_interfaces)
-    target_link_libraries(sensor_msgs PUBLIC std_msgs)
-    target_link_libraries(advrf_interfaces
+    target_link_libraries(std_msgs_fastdds PUBLIC builtin_interfaces_fastdds)
+    target_link_libraries(sensor_msgs_fastdds PUBLIC std_msgs_fastdds)
+    target_link_libraries(advrf_interfaces_fastdds
         PUBLIC
-            builtin_interfaces
-            std_msgs
-            geometry_msgs
-            rcl_interfaces
+            builtin_interfaces_fastdds
+            std_msgs_fastdds
+            geometry_msgs_fastdds
+            rcl_interfaces_fastdds
+    )
+
+    install(
+        DIRECTORY "${FASTDDS_GENERATED_DIR}/"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/fastdds"
+        FILES_MATCHING
+            PATTERN "*.hpp"
+            PATTERN "*.h"
+            PATTERN "*.ipp"
     )
 endif()
 
-install(
-    TARGETS advrf_interfaces_dds
-    EXPORT advrf_interfaces_ddsTargets
-)
-
-install(
-    DIRECTORY "${DDS_GENERATED_DIR}/"
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/"
-    FILES_MATCHING
-        PATTERN "*.hpp"
-        PATTERN "*.h"
-)
+#
+# Installation CycloneDDS
+#
+if(BUILD_CYCLONEDDS)
+    install(
+        DIRECTORY "${CYCLONEDDS_GENERATED_DIR}/"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/cyclonedds"
+        FILES_MATCHING
+            PATTERN "*.hpp"
+            PATTERN "*.h"
+    )
+endif()
 
 install(
     DIRECTORY "${DDS_IDL_DIR}/"
     DESTINATION "share/${PROJECT_NAME}/idl"
 )
 
+# --- CORRECTION ICI ---
 install(
     EXPORT advrf_interfaces_ddsTargets
     FILE advrf_interfaces_ddsTargets.cmake
+    NAMESPACE advrf_interfaces_dds::
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
 )
 

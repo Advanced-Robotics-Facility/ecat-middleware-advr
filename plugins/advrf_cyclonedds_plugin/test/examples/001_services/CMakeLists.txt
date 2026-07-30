@@ -6,7 +6,7 @@ target_link_libraries(001_services_sdo_get_request_server
     PRIVATE
         advrf_cyclonedds_plugin
         advrf_middleware_core
-        advrf_interfaces_dds
+        advrf_interfaces_dds::cyclonedds
         ecat_master_future
 )
 
@@ -23,7 +23,7 @@ target_link_libraries(001_services_sdo_get_request_client
     PRIVATE
         advrf_cyclonedds_plugin
         advrf_middleware_core
-        advrf_interfaces_dds
+        advrf_interfaces_dds::cyclonedds
         ecat_master_future
 )
 
@@ -41,7 +41,7 @@ target_link_libraries(001_services_cmd_server
     PRIVATE
         advrf_cyclonedds_plugin
         advrf_middleware_core
-        advrf_interfaces_dds
+        advrf_interfaces_dds::cyclonedds
         ecat_master_future
 )
 

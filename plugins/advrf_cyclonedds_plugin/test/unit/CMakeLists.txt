@@ -8,7 +8,7 @@ function(plugin_test TEST_NAME TEST_SOURCE)
     target_link_libraries(${TEST_NAME}
         PRIVATE
             advrf_middleware_core
-            advrf_interfaces_dds
+            advrf_interfaces_dds::cyclonedds
             advrf_cyclonedds_plugin
             advrf_interfaces_protobuf
             ecat_master_future

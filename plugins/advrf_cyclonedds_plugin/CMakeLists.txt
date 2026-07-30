@@ -44,7 +44,7 @@ target_include_directories(advrf_cyclonedds_plugin
 target_link_libraries(advrf_cyclonedds_plugin
     PUBLIC    
         advrf_middleware_core
-        advrf_interfaces_dds
+        advrf_interfaces_dds::cyclonedds
         advrf_interfaces_protobuf
     PRIVATE
         ecat_master_future
