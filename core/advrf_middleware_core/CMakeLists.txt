@@ -14,7 +14,7 @@ find_package(spdlog REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
 add_library(advrf_middleware_core SHARED
-    src/middleware.cpp
+    src/core.cpp
 )
 
 target_compile_features(advrf_middleware_core
