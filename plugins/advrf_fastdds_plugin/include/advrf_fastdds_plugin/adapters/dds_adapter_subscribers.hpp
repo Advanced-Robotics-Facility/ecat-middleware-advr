@@ -7,7 +7,7 @@
 #include <advrf_interfaces_protobuf/repl_cmd.pb.h>
 #include <advrf_middleware_core/adapters/adapter_subscribers.hpp>
 
-#include "advrf_dds_common/config/config_topics.hpp"
+#include "advrf_middleware_core/config/config_topics.hpp"
 #include "advrf_fastdds_plugin/subscriber/dds_subscriber.hpp"
 
 using MessageDDS = advrf_interfaces::msg::dds_::ReplCmd_Content_Vector_;

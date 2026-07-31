@@ -1,5 +1,5 @@
 #include "advrf_cyclonedds_plugin/publisher/dds_publisher.hpp"
-#include "advrf_dds_common/config/config_topics.hpp"
+#include "advrf_middleware_core/config/config_topics.hpp"
 #include <advrf_interfaces/msg/ReplCmdContent.hpp>
 
 #include <dds/dds.hpp>

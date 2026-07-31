@@ -1,5 +1,5 @@
 #include "advrf_fastdds_plugin/adapters/dds_adapter_service.hpp"
-#include "advrf_dds_common/converter.hpp"
+#include "advrf_dds_common/converter/converter.hpp"
 
 #include <advrf_middleware_core/utils/log.hpp>
 

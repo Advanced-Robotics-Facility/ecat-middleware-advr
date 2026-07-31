@@ -1,7 +1,7 @@
 #include <cassert>
 #include <iostream>
 
-#include "advrf_dds_common/converter.hpp"
+#include "advrf_dds_common/converter/converter.hpp"
 
 #include <std_msgs/msg/Header.hpp>
 #include <advrf_interfaces/msg/CtrlCmd.hpp>
