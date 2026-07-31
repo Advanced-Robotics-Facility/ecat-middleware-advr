@@ -71,10 +71,12 @@ public:
     }
 
     eprosima::fastdds::dds::DataWriterQos writer_qos() {
-        eprosima::fastdds::dds::DataWriterQos qos = eprosima::fastdds::dds::DATAWRITER_QOS_DEFAULT;
+        auto qos = eprosima::fastdds::dds::DATAWRITER_QOS_DEFAULT;
         qos.reliability().kind = eprosima::fastdds::dds::BEST_EFFORT_RELIABILITY_QOS;
-        qos.history().kind = eprosima::fastdds::dds::KEEP_ALL_HISTORY_QOS;
+        qos.history().kind = eprosima::fastdds::dds::KEEP_LAST_HISTORY_QOS;
         qos.history().depth = 1;
+        qos.resource_limits().max_samples = 1;
+        qos.resource_limits().allocated_samples = 1;
         return qos;
     }
 

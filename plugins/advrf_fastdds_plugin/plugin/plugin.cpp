@@ -1,6 +1,7 @@
 #include <chrono>
 #include <iostream>
 #include <string>
+#include <csignal>
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
@@ -16,6 +17,10 @@
 
 namespace
 {
+
+volatile std::sig_atomic_t keep_running = 1;
+void on_signal(int) { keep_running = 0; }
+
 struct Options
 {
     uint32_t rate_publishers = 1000; // Hz
@@ -70,14 +75,15 @@ std::chrono::microseconds period_from_rate(uint32_t hz)
 int main(int argc, char **argv)
 {
     advrf::log::Log::init();
+    std::signal(SIGINT, on_signal);
+    std::signal(SIGTERM, on_signal);
 
     const auto options = parse_args(argc, argv);
 
     advrf::plugin::PluginExec plugin_exec;
 
     auto cfg = load_robot_config(ROBOT_CONFIG_DIR);
-    if (!cfg)
-        return 1;
+    if (!cfg) return 1;
 
     auto* dds_participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
         cfg->domain_id,
