@@ -3,7 +3,7 @@
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 
 #include <advrf_fastdds_plugin/publisher/dds_publisher.hpp>
-#include <advrf_dds_common/converter.hpp>
+#include <advrf_dds_common/converter/converter.hpp>
 
 #include <advrf_middleware_core/adapters/adapter_publishers.hpp>
 #include <advrf_middleware_core/utils/log.hpp>

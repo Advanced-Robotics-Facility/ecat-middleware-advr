@@ -2,7 +2,7 @@
 
 #include <advrf_middleware_core/adapters/adapter_publishers.hpp>
 #include "advrf_cyclonedds_plugin/publisher/dds_publisher.hpp"
-#include <advrf_dds_common/converter.hpp>
+#include <advrf_dds_common/converter/converter.hpp>
 
 template <typename Msg>
 class DDSAdapterBridgePublisher
