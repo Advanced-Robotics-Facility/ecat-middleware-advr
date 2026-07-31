@@ -3,7 +3,7 @@
 
 #include <advrf_middleware_core/utils/log.hpp>
 #include "advrf_fastdds_plugin/service/service_client.hpp"
-#include "advrf_dds_common/config/config_topics.hpp"
+#include "advrf_middleware_core/config/config_topics.hpp"
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>

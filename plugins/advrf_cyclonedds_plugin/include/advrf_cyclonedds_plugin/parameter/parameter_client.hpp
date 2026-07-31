@@ -11,7 +11,7 @@
 #include "advrf_interfaces/srv/ListGetParameters.hpp"
 #include "advrf_interfaces/msg/Enums.hpp"
 
-#include "advrf_dds_common/config/config_topics.hpp"
+#include "advrf_middleware_core/config/config_topics.hpp"
 #include "advrf_cyclonedds_plugin/parameter/parameter_make_get.hpp"
 #include "advrf_cyclonedds_plugin/service/service_client.hpp"
 

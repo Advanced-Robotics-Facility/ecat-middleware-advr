@@ -1,5 +1,5 @@
 #include "advrf_cyclonedds_plugin/adapters/dds_adapter_subscribers.hpp"
-#include "advrf_dds_common/converter.hpp"
+#include "advrf_dds_common/converter/converter.hpp"
 
 DDSAdapterSubscribers::DDSAdapterSubscribers(const config::ConfigTopics& config_topics, 
                                              dds::domain::DomainParticipant& participant) {

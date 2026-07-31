@@ -5,7 +5,7 @@
 
 #include <advrf_middleware_core/adapters/adapter_service.hpp>
 
-#include "advrf_dds_common/config/config_topics.hpp"
+#include "advrf_middleware_core/config/config_topics.hpp"
 #include "advrf_cyclonedds_plugin/service/service_server.hpp"
 
 
