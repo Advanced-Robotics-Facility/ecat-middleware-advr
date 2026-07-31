@@ -7,8 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(advrf_middleware_core REQUIRED)
 find_package(advrf_interfaces_protobuf REQUIRED)
-find_package(ecat_master_future REQUIRED)
-
 
 #
 # Bridge Inspector
@@ -26,7 +24,7 @@ target_include_directories(bridge_inspector
 target_link_libraries(bridge_inspector
     PRIVATE
         advrf_interfaces_protobuf
-        ecat_master_future
+        advrf_middleware_core
 )
 
 install(TARGETS bridge_inspector
