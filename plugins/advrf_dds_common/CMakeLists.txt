@@ -8,6 +8,9 @@ project(advrf_dds_common
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
+option(BUILD_FASTDDS "Build FastDDS backend" OFF)
+option(BUILD_CYCLONEDDS "Build CycloneDDS backend" OFF)
+
 find_package(advrf_interfaces_dds REQUIRED)
 find_package(advrf_interfaces_protobuf REQUIRED)
 
@@ -53,8 +56,13 @@ function(advrf_dds_common_add_backend backend)
     )
 endfunction()
 
-advrf_dds_common_add_backend(fastdds)
-advrf_dds_common_add_backend(cyclonedds)
+if(BUILD_FASTDDS)
+    advrf_dds_common_add_backend(fastdds)
+endif()
+
+if(BUILD_CYCLONEDDS)
+    advrf_dds_common_add_backend(cyclonedds)
+endif()
 
 if(NOT ADVRF_DDS_COMMON_TARGETS)
     message(FATAL_ERROR
