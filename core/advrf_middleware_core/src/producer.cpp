@@ -5,15 +5,15 @@
 #include <csignal>
 #include <string>
 
-#include "ecat_master_future/shm/config.hpp"
-#include "ecat_master_future/shm/bridge_struct.hpp"
-#include "ecat_master_future/shm/shared_memory.hpp" 
-#include "ecat_master_future/shm/shared_types.hpp"
-#include "ecat_master_future/shm/proto_helper.hpp"
+#include "advrf_middleware_core/config/robot_config.hpp"
 
+#include <ecat_master_future/shm/config.hpp>
+#include <ecat_master_future/shm/bridge_struct.hpp>
+#include <ecat_master_future/shm/shared_memory.hpp>
+#include <ecat_master_future/shm/shared_types.hpp>
+#include <ecat_master_future/shm/proto_helper.hpp>
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_interfaces_protobuf/repl_cmd.pb.h>
-#include <advrf_middleware_core/config/robot_config.hpp>
 
 namespace {
 volatile std::sig_atomic_t keep_running = 1;

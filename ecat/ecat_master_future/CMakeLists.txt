@@ -6,7 +6,6 @@ project(ecat_master_future
 )
 
 find_package(advrf_interfaces_protobuf REQUIRED)
-find_package(advrf_middleware_core REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
 include(GNUInstallDirs)
@@ -29,13 +28,11 @@ target_include_directories(ecat_master_future
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-
 target_link_libraries(ecat_master_future
     PRIVATE
         yaml-cpp::yaml-cpp
     PUBLIC
         advrf_interfaces_protobuf
-        advrf_middleware_core
 )
 
 set_target_properties(ecat_master_future PROPERTIES
@@ -60,32 +57,32 @@ install(
 option(BUILD_ECAT_MASTER_FUTURE_TOOLS "Build ecat_master_future tools" ON)
 
 if(BUILD_ECAT_MASTER_FUTURE_TOOLS)
-    add_executable(ecat_master_future_producer
-        src/producer.cpp
-    )
+    # add_executable(ecat_master_future_producer
+    #     src/producer.cpp
+    # )
 
-    target_compile_definitions(ecat_master_future_producer PRIVATE
-        ROBOT_CONFIG_DIR="${advrf_middleware_core_CONFIG_DIR}/robot.yaml"
-    )
+    # target_compile_definitions(ecat_master_future_producer PRIVATE
+    #     ROBOT_CONFIG_DIR="${advrf_middleware_core_CONFIG_DIR}/robot.yaml"
+    # )
 
-    target_compile_features(ecat_master_future_producer
-        PRIVATE
-            cxx_std_17
-    )
+    # target_compile_features(ecat_master_future_producer
+    #     PRIVATE
+    #         cxx_std_17
+    # )
 
-    target_link_libraries(ecat_master_future_producer
-        PRIVATE
-            ecat_master_future
-            advrf_interfaces_protobuf
-            yaml-cpp::yaml-cpp
-    )
+    # target_link_libraries(ecat_master_future_producer
+    #     PRIVATE
+    #         ecat_master_future
+    #         advrf_interfaces_protobuf
+    #         yaml-cpp::yaml-cpp
+    # )
 
     
 
-    install(
-        TARGETS ecat_master_future_producer
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    )
+    # install(
+    #     TARGETS ecat_master_future_producer
+    #     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    # )
 endif()
 
 install(
