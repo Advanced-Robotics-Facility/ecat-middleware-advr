@@ -10,11 +10,7 @@ find_package(advrf_dds_common REQUIRED)
 find_package(advrf_interfaces_dds REQUIRED)
 find_package(advrf_middleware_core REQUIRED)
 find_package(advrf_interfaces_protobuf REQUIRED)
-find_package(ecat_master_future REQUIRED)
 find_package(yaml-cpp REQUIRED)
-
-message(STATUS "ecat_master_future_DIR = ${ecat_master_future_DIR}")
-message(STATUS "ecat_master_future_CONFIG_DIR = ${ecat_master_future_CONFIG_DIR}")
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -46,7 +42,6 @@ target_link_libraries(advrf_fastdds_plugin
         fastdds
         fastcdr
     PRIVATE
-        ecat_master_future
         spdlog::spdlog
 )
 
