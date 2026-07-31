@@ -4,7 +4,7 @@
 #include <advrf_middleware_core/utils/log.hpp>
 
 #include "advrf_cyclonedds_plugin/service/service_client.hpp"
-#include "advrf_cyclonedds_plugin/config/config_topics.hpp"
+#include "advrf_dds_common/config/config_topics.hpp"
 
 using RequestDDS = advrf_interfaces::srv::dds_::ReplCmd_Request_;
 using ResponseDDS = advrf_interfaces::srv::dds_::ReplCmd_Response_;

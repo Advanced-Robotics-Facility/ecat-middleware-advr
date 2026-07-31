@@ -1,5 +1,5 @@
 #include "advrf_cyclonedds_plugin/adapters/dds_adapter_service.hpp"
-#include "advrf_cyclonedds_plugin/converter.hpp"
+#include "advrf_dds_common/converter.hpp"
 
 #include <dds/dds.hpp>
 #include <sys/types.h>

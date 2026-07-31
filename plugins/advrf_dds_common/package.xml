@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>advrf_dds_common</name>
+  <version>0.1.0</version>
+  <description>Backend-neutral DDS topic configuration and message conversion for ADVRF.</description>
+
+  <maintainer email="hugo.pousseur@iit.it">Hugo Pousseur</maintainer>
+  <maintainer email="manuel.delucchi@iit.it">Manuel Delucchi</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>cmake</buildtool_depend>
+
+  <depend>advrf_interfaces_dds</depend>
+  <depend>advrf_interfaces_protobuf</depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>

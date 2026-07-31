@@ -6,19 +6,19 @@
 // protobuf messages
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 // DDS service
-#include <advrf_interfaces/srv/ReplCmdPubSubTypes.hpp>
+#include <advrf_interfaces/srv/ReplCmd.hpp>
 // DDS messages
-#include <builtin_interfaces/msg/TimePubSubTypes.hpp>
-#include <std_msgs/msg/HeaderPubSubTypes.hpp>
-#include <advrf_interfaces/msg/ImuPubSubTypes.hpp>
-#include <sensor_msgs/msg/JointStatePubSubTypes.hpp>
-#include <advrf_interfaces/msg/MotorPubSubTypes.hpp>
-#include <advrf_interfaces/msg/PowerBoardPubSubTypes.hpp>
-#include <advrf_interfaces/msg/PumpPubSubTypes.hpp>
-#include <advrf_interfaces/msg/ForceTorquePubSubTypes.hpp>
-#include <advrf_interfaces/msg/ValvePubSubTypes.hpp>
-#include <advrf_interfaces/msg/GripperPubSubTypes.hpp>
-#include <advrf_interfaces/msg/ReplCmdContentPubSubTypes.hpp>
+#include <builtin_interfaces/msg/Time.hpp>
+#include <std_msgs/msg/Header.hpp>
+#include <advrf_interfaces/msg/Imu.hpp>
+#include <sensor_msgs/msg/JointState.hpp>
+#include <advrf_interfaces/msg/Motor.hpp>
+#include <advrf_interfaces/msg/PowerBoard.hpp>
+#include <advrf_interfaces/msg/Pump.hpp>
+#include <advrf_interfaces/msg/ForceTorque.hpp>
+#include <advrf_interfaces/msg/Valve.hpp>
+#include <advrf_interfaces/msg/Gripper.hpp>
+#include <advrf_interfaces/msg/ReplCmdContent.hpp>
 
 namespace convert::protobuf {
     template<typename DDS_TYPE, typename PROTOBUF_TYPE>

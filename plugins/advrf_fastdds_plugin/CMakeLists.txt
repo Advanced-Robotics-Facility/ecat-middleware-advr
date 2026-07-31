@@ -6,6 +6,7 @@ project(advrf_fastdds_plugin
 )
 
 find_package(advrf_fastdds_lib REQUIRED)
+find_package(advrf_dds_common REQUIRED)
 find_package(advrf_interfaces_dds REQUIRED)
 find_package(advrf_middleware_core REQUIRED)
 find_package(advrf_interfaces_protobuf REQUIRED)
@@ -19,7 +20,6 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 add_library(advrf_fastdds_plugin SHARED
-    src/converter.cpp
     src/dds_adapter_publishers.cpp
     src/dds_adapter_subscribers.cpp
     src/dds_adapter_bridges.cpp
@@ -40,6 +40,7 @@ target_include_directories(advrf_fastdds_plugin
 target_link_libraries(advrf_fastdds_plugin
     PUBLIC
         advrf_interfaces_dds::fastdds
+        advrf_dds_common::fastdds
         advrf_middleware_core
         advrf_interfaces_protobuf
         fastdds

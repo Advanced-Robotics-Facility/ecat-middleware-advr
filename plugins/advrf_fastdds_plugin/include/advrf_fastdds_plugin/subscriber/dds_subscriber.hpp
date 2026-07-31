@@ -98,7 +98,7 @@ public:
 protected:
 
     eprosima::fastdds::dds::DataReaderQos reader_qos() const {
-        eprosima::fastdds::dds::DataReaderQos qos = eprosima::fastdds::dds::DATAREADER_QOS_DEFAULT;
+        auto qos = eprosima::fastdds::dds::DATAREADER_QOS_DEFAULT;
         qos.reliability().kind = eprosima::fastdds::dds::BEST_EFFORT_RELIABILITY_QOS;
         qos.history().kind = eprosima::fastdds::dds::KEEP_LAST_HISTORY_QOS;
         qos.history().depth = 1;

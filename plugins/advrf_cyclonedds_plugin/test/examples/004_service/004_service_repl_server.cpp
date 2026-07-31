@@ -11,7 +11,7 @@
 #include <advrf_middleware_core/config/robot_config.hpp>
 
 #include "advrf_cyclonedds_plugin/adapters/dds_adapter_service.hpp"
-#include "advrf_cyclonedds_plugin/config/config_topics.hpp"
+#include "advrf_dds_common/config/config_topics.hpp"
 
 #include <advrf_middleware_core/shared_memory/shm_connection_repl.hpp>
 

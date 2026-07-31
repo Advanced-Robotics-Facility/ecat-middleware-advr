@@ -7,7 +7,7 @@
 #include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
 
 #include "advrf_fastdds_plugin/publisher/dds_publisher.hpp"
-#include "advrf_fastdds_plugin/config/config_topics.hpp"
+#include "advrf_dds_common/config/config_topics.hpp"
 
 #include <advrf_interfaces/msg/CtrlCmd.hpp>
 #include <advrf_interfaces/msg/CtrlCmdPubSubTypes.hpp>

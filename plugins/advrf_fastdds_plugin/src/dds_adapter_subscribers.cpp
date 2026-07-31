@@ -1,5 +1,5 @@
 #include "advrf_fastdds_plugin/adapters/dds_adapter_subscribers.hpp"
-#include "advrf_fastdds_plugin/converter.hpp"
+#include "advrf_dds_common/converter.hpp"
 
 DDSAdapterSubscribers::DDSAdapterSubscribers(const config::ConfigTopics& config_topics, 
                                              eprosima::fastdds::dds::DomainParticipant* participant) {

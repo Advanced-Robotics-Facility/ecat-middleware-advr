@@ -6,6 +6,7 @@ project(advrf_cyclonedds_plugin
 )
 
 find_package(advrf_cyclonedds_lib REQUIRED)
+find_package(advrf_dds_common REQUIRED)
 find_package(advrf_interfaces_dds REQUIRED)
 find_package(advrf_middleware_core REQUIRED)
 find_package(advrf_interfaces_protobuf REQUIRED)
@@ -19,7 +20,6 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 add_library(advrf_cyclonedds_plugin SHARED
-    src/converter.cpp
     src/dds_adapter_publishers.cpp
     src/dds_adapter_bridges.cpp
     src/dds_adapter_service.cpp
@@ -45,6 +45,7 @@ target_link_libraries(advrf_cyclonedds_plugin
     PUBLIC    
         advrf_middleware_core
         advrf_interfaces_dds::cyclonedds
+        advrf_dds_common::cyclonedds
         advrf_interfaces_protobuf
     PRIVATE
         ecat_master_future
@@ -116,5 +117,4 @@ option(BUILD_PLUGIN "Build plugin" ON)
 if(BUILD_PLUGIN)
     add_subdirectory(plugin/)    
 endif()
-
 

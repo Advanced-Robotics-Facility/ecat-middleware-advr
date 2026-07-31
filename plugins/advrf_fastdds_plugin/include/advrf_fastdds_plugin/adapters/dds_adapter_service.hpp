@@ -8,7 +8,7 @@
 
 #include <advrf_middleware_core/adapters/adapter_service.hpp>
 
-#include "advrf_fastdds_plugin/config/config_topics.hpp"
+#include "advrf_dds_common/config/config_topics.hpp"
 #include "advrf_fastdds_plugin/service/service_server.hpp"
 
 using RequestDDS  = advrf_interfaces::srv::dds_::ReplCmd_Request_;
