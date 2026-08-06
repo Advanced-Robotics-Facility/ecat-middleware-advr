@@ -12,7 +12,6 @@ target_link_libraries(003_service_repl_client
         advrf_fastdds_plugin
         advrf_interfaces_dds::fastdds
         advrf_middleware_core
-        ecat_master_future
 )
 
 
@@ -37,7 +36,6 @@ target_link_libraries(003_service_repl_server
         advrf_fastdds_plugin
         advrf_interfaces_dds::fastdds
         advrf_middleware_core
-        ecat_master_future
         yaml-cpp::yaml-cpp
 )
 

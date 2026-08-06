@@ -12,7 +12,6 @@ target_link_libraries(002_subscriber
         advrf_fastdds_plugin
         advrf_interfaces_dds::fastdds
         advrf_middleware_core
-        ecat_master_future
         yaml-cpp::yaml-cpp
 )
 

@@ -6,7 +6,7 @@
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
 
-#include <ecat_master_future/shm/config.hpp>
+#include <shm_utils.hpp>
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/utils/pdo_utils.hpp>
 #include <advrf_middleware_core/config/robot_config.hpp>
@@ -29,7 +29,7 @@ int main(int argc, char** argv)
 
     clock_utils::init();
     DDSAdapterPublishers dds_adapter;
-    dds_adapter.shm().connect(SHM_PUB_NAME);
+    dds_adapter.shm().connect(SHM_NRT_RX_PDO);
 
     auto config = config::ConfigTopics({"advrf", cfg->robot_name});
 
