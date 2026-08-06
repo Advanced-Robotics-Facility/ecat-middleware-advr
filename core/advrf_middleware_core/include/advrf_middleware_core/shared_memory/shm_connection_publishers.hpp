@@ -1,52 +1,56 @@
 #pragma once
 
-#include <array>
+#include <shm_types.hpp>
 
-// ecat_master_future
-#include <ecat_master_future/shm/bridge_struct.hpp>
 #include <advrf_middleware_core/shared_memory/shm_bridge_connection.hpp>
-
-// advrf_middleware_core
 #include "advrf_middleware_core/utils/channel.hpp"
 
 class PublisherShmConnection
-    : public ShmMiddlewareBridgeConnection<PublisherShmConnection, SharedPubBridge>
+    : public ShmMiddlewareBridgeConnection<PublisherShmConnection, SharedProtoPubBridge>
 {
 public:
-    using Queue = decltype(SharedPubBridge::payload.imu);
+    using Payload = decltype(SharedProtoPubBridge::payload);
+    using Queue = Payload::Queue;
+
     bool remote_ready() const
     {
-        return bridge().status.rt_ready.load();
-    }
-
-    void set_ready(bool ready)
-    {
-        bridge().status.mw_ready.store(ready);
+        return bridge().status.shm_ready.load(std::memory_order_acquire);
     }
 
     bool connect(const std::string& shm_name)
     {
-        if (!ShmMiddlewareBridgeConnection<PublisherShmConnection, SharedPubBridge>::connect(shm_name))
-            return false;
-
-        channels_ = {
-            &bridge().payload.imu,
-            &bridge().payload.motor,
-            &bridge().payload.gripper,
-            &bridge().payload.pump,
-            &bridge().payload.power_board,
-            &bridge().payload.force_torque,
-            &bridge().payload.valve
-        };
-
-        return true;
+        return ShmMiddlewareBridgeConnection<PublisherShmConnection, SharedProtoPubBridge>::connect(shm_name);
     }
 
     Queue& resolve(Channel channel)
     {
-        return *channels_[static_cast<std::size_t>(channel)];
+        switch (channel)
+        {
+            case Channel::Imu:
+                return bridge().payload.queue_for(DeviceType::IMU);
+
+            case Channel::Motor:
+                return bridge().payload.queue_for(DeviceType::MOTOR);
+
+            case Channel::Gripper:
+                return bridge().payload.queue_for(DeviceType::GRIPPER);
+
+            case Channel::Pump:
+                return bridge().payload.queue_for(DeviceType::PUMP);
+
+            case Channel::PowerBoard:
+                return bridge().payload.queue_for(DeviceType::POWER_BOARD);
+
+            case Channel::ForceTorque:
+                return bridge().payload.queue_for(DeviceType::FORCE_TORQUE);
+
+            case Channel::Valve:
+                return bridge().payload.queue_for(DeviceType::VALVE);
+
+            default:
+                throw std::out_of_range("Invalid channel");
+        }
     }
 
 private:
-    std::array<Queue*, static_cast<std::size_t>(Channel::Count)> channels_{};
 };

@@ -37,7 +37,7 @@ public:
 
     bool start() override
     {
-        return shm_.connect(SHM_SUB_NAME);
+        return shm_.connect(SHM_TX_PDO);
     }
 
     bool is_ok() const override

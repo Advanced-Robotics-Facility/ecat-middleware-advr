@@ -7,11 +7,8 @@
 
 #include "advrf_middleware_core/config/robot_config.hpp"
 
-#include <ecat_master_future/shm/config.hpp>
-#include <ecat_master_future/shm/bridge_struct.hpp>
-#include <ecat_master_future/shm/shared_memory.hpp>
-#include <ecat_master_future/shm/shared_types.hpp>
-#include <ecat_master_future/shm/proto_helper.hpp>
+#include <shm_utils.hpp>
+#include <shm_types.hpp>
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_interfaces_protobuf/repl_cmd.pb.h>
 
@@ -235,13 +232,13 @@ int main(int argc, char** argv)
     if (!cfg) return 1;
 
     // Publisher SHM
-    auto pub_shm = SharedMemory<SharedPubBridge>::create(SHM_PUB_NAME);
+    auto pub_shm = SharedMemory<SharedProtoPubBridge>::create(SHM_NRT_RX_PDO);
 
     // REPL SHM
     auto repl_shm = SharedMemory<SharedReplBridge>::create(SHM_REPL_NAME);
 
     // SUB SHM
-    auto sub_shm = SharedMemory<SharedSubBridge>::create(SHM_SUB_NAME);
+    auto sub_shm = SharedMemory<SharedProtoSubBridge>::create(SHM_TX_PDO);
 
     // Dynamic Discovery Generation Loop
     uint32_t slave_idx = 0;
@@ -276,9 +273,9 @@ int main(int argc, char** argv)
     add_devices(cfg->valves, DeviceType::VALVE, "valve");
 
     pub_shm->bridge().payload.topology_size.store(slave_idx);
-    pub_shm->bridge().status.rt_ready.store(true);
-    sub_shm->bridge().status.rt_ready.store(true);
-    repl_shm->bridge().status.rt_ready.store(true);
+    pub_shm->bridge().status.shm_ready.store(true);
+    sub_shm->bridge().status.shm_ready.store(true);
+    repl_shm->bridge().status.shm_ready.store(true);
 
     std::cout << "\n=======================================\n";
     std::cout << "[Producer] Bus Discovery Finished. Total Slaves Registered: " << slave_idx << "\n";
@@ -355,25 +352,25 @@ int main(int argc, char** argv)
 
             switch (slave.type) {
                 case DeviceType::IMU:
-                    proto_helper.push(pub_shm->bridge().payload.imu, make_imu_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::IMU), make_imu_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceType::MOTOR:
-                    proto_helper.push(pub_shm->bridge().payload.motor, make_motor_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::MOTOR), make_motor_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceType::GRIPPER:
-                    proto_helper.push(pub_shm->bridge().payload.gripper, make_gripper_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::GRIPPER), make_gripper_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceType::POWER_BOARD:
-                proto_helper.push(pub_shm->bridge().payload.power_board, make_pb_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::POWER_BOARD), make_pb_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceType::PUMP:
-                    proto_helper.push(pub_shm->bridge().payload.pump, make_pump_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::PUMP), make_pump_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceType::FORCE_TORQUE:
-                    proto_helper.push(pub_shm->bridge().payload.force_torque, make_ft_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::FORCE_TORQUE), make_ft_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceType::VALVE:
-                    proto_helper.push(pub_shm->bridge().payload.valve, make_valve_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::VALVE), make_valve_pdo(t, sample_count, slave.board_id));
                     break;
                 default:
                     break;
@@ -383,7 +380,7 @@ int main(int argc, char** argv)
         ++sample_count;
         t += 0.001;
 
-        if (!bridge_seen && pub_shm->bridge().status.rt_ready.load()) {
+        if (!bridge_seen && pub_shm->bridge().status.shm_ready.load()) {
             bridge_seen = true;
             std::cout << "[Producer] DDS bridge connected." << '\n';
         }
@@ -392,8 +389,7 @@ int main(int argc, char** argv)
         std::this_thread::sleep_until(next_tick);
     }
 
-    pub_shm->bridge().status.mw_ready.store(false);
-    pub_shm->bridge().status.rt_ready.store(false);
+    pub_shm->bridge().status.shm_ready.store(false);
 
     return 0;
 }

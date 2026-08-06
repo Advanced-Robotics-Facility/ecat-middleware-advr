@@ -12,9 +12,8 @@
 #include <thread>
 #include <yaml-cpp/yaml.h>
 
-#include <ecat_master_future/shm/config.hpp>
-#include <ecat_master_future/shm/shared_memory.hpp>
-#include <ecat_master_future/shm/proto_helper.hpp>
+#include <shm_utils.hpp>
+#include <shm_types.hpp>
 #include <shm_tools/monitor.hpp>
 
 #include <google/protobuf/message.h>

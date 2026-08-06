@@ -12,7 +12,6 @@ target_link_libraries(003_publisher_from_shm
         advrf_cyclonedds_plugin
         advrf_interfaces_dds::cyclonedds
         advrf_middleware_core
-        ecat_master_future
         yaml-cpp::yaml-cpp
 )
 

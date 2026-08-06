@@ -7,7 +7,6 @@ target_link_libraries(002_parameters_parameter_client
         advrf_cyclonedds_plugin
         advrf_interfaces_dds::cyclonedds
         advrf_interfaces_protobuf
-        ecat_master_future
 )
 
 install(
@@ -24,7 +23,6 @@ target_link_libraries(002_parameters_parameter_server
         advrf_cyclonedds_plugin
         advrf_interfaces_dds::cyclonedds
         advrf_interfaces_protobuf
-        ecat_master_future
 )
 
 install(

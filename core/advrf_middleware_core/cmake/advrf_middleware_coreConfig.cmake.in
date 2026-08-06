@@ -3,7 +3,7 @@
 include(CMakeFindDependencyMacro)
 
 find_dependency(advrf_interfaces_protobuf)
-find_dependency(ecat_master_future)
+find_dependency(ecat_master REQUIRED COMPONENTS ecat_core)
 find_dependency(spdlog)
 find_dependency(yaml-cpp)
 

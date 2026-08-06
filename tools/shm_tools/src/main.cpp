@@ -8,11 +8,11 @@ int main(int argc, char** argv)
     switch (args.bridge)
     {
         case BridgeType::Pub:
-            ReadBridgePub(SHM_PUB_NAME).run(args.options);
+            ReadBridgePub(SHM_NRT_RX_PDO).run(args.options);
             break;
 
         case BridgeType::Sub:
-            ReadBridgeSub(SHM_SUB_NAME).run(args.options);
+            ReadBridgeSub(SHM_TX_PDO).run(args.options);
             break;
 
         case BridgeType::Repl:

@@ -14,8 +14,9 @@ import "generic.proto";
 
 message Ec_slave_pdo {
 
-     enum Type { 
+    enum Type {
         _UNSPECIFIED = 0;
+
         RX_MOTOR = 1;       TX_MOTOR = 2;
         RX_FT6 = 3;         TX_FT6 = 4;
         RX_POW_WLK = 5;     TX_POW_WLK = 6;
@@ -32,33 +33,36 @@ message Ec_slave_pdo {
         RX_HYQ_KNEE = 33;   TX_HYQ_KNEE = 34;
         RX_HYQ_HPU = 35;    TX_HYQ_HPU = 36;
         RX_GRIPPER = 37;    TX_GRIPPER = 38;
+
         DUMMY = 101;
         CLIENT_PIPE = 111;
-        
     }
 
-    // Identifies which field is filled in.
-    Type   type = 1;
-    
+    Type type = 1;
     Header header = 2;
-    
+
     Motor_tx_pdo       motor_tx_pdo = 3;
     Motor_rx_pdo       motor_rx_pdo = 4;
     Motor_xt_tx_pdo    motor_xt_tx_pdo = 5;
     Motor_xt_rx_pdo    motor_xt_rx_pdo = 6;
     FT6_tx_pdo         ft6_tx_pdo = 7;
     FT6_rx_pdo         ft6_rx_pdo = 8;
-    ImuVN_rx_pdo       imuVN_rx_pdo = 9;
-    PowF28M36_tx_pdo   powF28M36_tx_pdo = 10;
-    PowF28M36_rx_pdo   powF28M36_rx_pdo = 11;
-    Cia402_tx_pdo      cia402_tx_pdo = 12;
-    Cia402_rx_pdo      cia402_rx_pdo = 13;
-    HyqKnee_tx_pdo     hyqKnee_tx_pdo = 14;
-    HyqKnee_rx_pdo     hyqKnee_rx_pdo = 15;
-    HyqHpu_tx_pdo      hyqHpu_tx_pdo = 16;
-    HyqHpu_rx_pdo      hyqHpu_rx_pdo = 17;
-    Gripper_rx_pdo     Gripper_rx_pdo = 18;
-    Gripper_tx_pdo     Gripper_tx_pdo = 19;
-    Dummy              dummy_pdo = 30;
-    Client_pipe        client_pdo = 31;
+
+    ImuVN_rx_pdo       imuVN_rx_pdo = 15;
+    PowF28M36_tx_pdo   powF28M36_tx_pdo = 19;
+    PowF28M36_rx_pdo   powF28M36_rx_pdo = 20;
+
+    Cia402_tx_pdo      cia402_tx_pdo = 31;
+    Cia402_rx_pdo      cia402_rx_pdo = 32;
+
+    HyqKnee_tx_pdo     hyqKnee_tx_pdo = 33;
+    HyqKnee_rx_pdo     hyqKnee_rx_pdo = 34;
+    HyqHpu_tx_pdo      hyqHpu_tx_pdo = 35;
+    HyqHpu_rx_pdo      hyqHpu_rx_pdo = 36;
+
+    Gripper_rx_pdo     gripper_rx_pdo = 37;
+    Gripper_tx_pdo     gripper_tx_pdo = 38;
+
+    Dummy              dummy_pdo = 101;
+    Client_pipe        client_pdo = 111;
 }

@@ -9,7 +9,7 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 find_package(advrf_interfaces_protobuf REQUIRED)
-find_package(ecat_master_future REQUIRED)
+find_package(ecat_master REQUIRED COMPONENTS ecat_core)
 find_package(spdlog REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
@@ -31,7 +31,7 @@ target_include_directories(advrf_middleware_core
 target_link_libraries(advrf_middleware_core
     PUBLIC
         advrf_interfaces_protobuf
-        ecat_master_future
+        ecat_master::ecat_core
         spdlog::spdlog
         yaml-cpp::yaml-cpp
 )
@@ -85,28 +85,28 @@ install(
         ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
- add_executable(ecat_master_future_producer
+add_executable(ecat_master_shm_mock
         src/producer.cpp
 )
 
-target_compile_definitions(ecat_master_future_producer PRIVATE
+target_compile_definitions(ecat_master_shm_mock PRIVATE
     ROBOT_CONFIG_DIR="${CMAKE_INSTALL_FULL_DATADIR}/${PROJECT_NAME}/config/robot.yaml"
 )
 
-target_compile_features(ecat_master_future_producer
+target_compile_features(ecat_master_shm_mock
     PRIVATE
         cxx_std_17
 )
 
-target_link_libraries(ecat_master_future_producer
+target_link_libraries(ecat_master_shm_mock
     PRIVATE
         advrf_middleware_core
-        ecat_master_future
+        ecat_master::ecat_core
         advrf_interfaces_protobuf
         yaml-cpp::yaml-cpp
 )
 
 install(
-    TARGETS ecat_master_future_producer
+    TARGETS ecat_master_shm_mock
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )

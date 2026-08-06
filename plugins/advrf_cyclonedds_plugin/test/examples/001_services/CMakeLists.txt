@@ -7,7 +7,6 @@ target_link_libraries(001_services_sdo_get_request_server
         advrf_cyclonedds_plugin
         advrf_middleware_core
         advrf_interfaces_dds::cyclonedds
-        ecat_master_future
 )
 
 install(
@@ -24,7 +23,6 @@ target_link_libraries(001_services_sdo_get_request_client
         advrf_cyclonedds_plugin
         advrf_middleware_core
         advrf_interfaces_dds::cyclonedds
-        ecat_master_future
 )
 
 install(
@@ -42,7 +40,6 @@ target_link_libraries(001_services_cmd_server
         advrf_cyclonedds_plugin
         advrf_middleware_core
         advrf_interfaces_dds::cyclonedds
-        ecat_master_future
 )
 
 install(

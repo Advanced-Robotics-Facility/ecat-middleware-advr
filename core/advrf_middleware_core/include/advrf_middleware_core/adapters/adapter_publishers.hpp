@@ -9,8 +9,8 @@
 #include <vector>
 #include <unordered_map>
 
-#include <ecat_master_future/shm/config.hpp>
-#include <ecat_master_future/shm/proto_helper.hpp>
+#include <shm_utils.hpp>
+#include <shm_types.hpp>
 
 #include "advrf_middleware_core/adapters/adapter_base.hpp"
 #include "advrf_middleware_core/shared_memory/shm_connection_publishers.hpp"
@@ -121,7 +121,7 @@ public:
 
     bool start() override
     {
-        return shm_.connect(SHM_PUB_NAME);
+        return shm_.connect(SHM_NRT_RX_PDO);
     }
 
     bool is_ok() const override

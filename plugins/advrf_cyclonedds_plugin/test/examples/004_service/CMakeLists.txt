@@ -12,7 +12,6 @@ target_link_libraries(004_service_repl_client
         advrf_cyclonedds_plugin
         advrf_interfaces_dds::cyclonedds
         advrf_middleware_core
-        ecat_master_future
 )
 
 
@@ -37,7 +36,6 @@ target_link_libraries(004_service_repl_server
         advrf_cyclonedds_plugin
         advrf_interfaces_dds::cyclonedds
         advrf_middleware_core
-        ecat_master_future
         yaml-cpp::yaml-cpp
 )
 

@@ -11,7 +11,6 @@ function(plugin_test TEST_NAME TEST_SOURCE)
             advrf_interfaces_dds::cyclonedds
             advrf_cyclonedds_plugin
             advrf_interfaces_protobuf
-            ecat_master_future
     )
 
     add_test(

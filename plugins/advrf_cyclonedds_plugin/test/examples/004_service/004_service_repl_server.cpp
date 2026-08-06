@@ -3,7 +3,7 @@
 #include <thread>
 #include <csignal>
 
-#include <ecat_master_future/shm/config.hpp>
+#include <shm_utils.hpp>
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/utils/pdo_utils.hpp>

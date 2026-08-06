@@ -77,7 +77,7 @@ int main(int argc, char **argv)
     auto config = config::ConfigTopics({"advrf", cfg->robot_name});
 
     // service
-    auto dds_adapter_service = std::make_shared<DDSAdapterService>(config, dds_participant);
+    //auto dds_adapter_service = std::make_shared<DDSAdapterService>(config, dds_participant);
 
     // publishers
     auto dds_adapter_publishers = std::make_shared<DDSAdapterPublishers>();
@@ -88,14 +88,14 @@ int main(int argc, char **argv)
     }
 
     // subscribers
-    auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>(config, dds_participant);
+    //auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>(config, dds_participant);
 
 
-    plugin_exec.register_adapter({
-        "dds_adapter_service",
-        dds_adapter_service,
-        period_from_rate(options.rate_service)
-    });
+    // plugin_exec.register_adapter({
+    //     "dds_adapter_service",
+    //     dds_adapter_service,
+    //     period_from_rate(options.rate_service)
+    // });
 
     plugin_exec.register_adapter({
         "dds_adapter_publishers",
@@ -103,11 +103,11 @@ int main(int argc, char **argv)
         period_from_rate(options.rate_publishers)
     });
 
-    plugin_exec.register_adapter({
-        "dds_adapter_subscribers",
-        dds_adapter_subscribers,
-        period_from_rate(options.rate_subscribers)
-    });
+    // plugin_exec.register_adapter({
+    //     "dds_adapter_subscribers",
+    //     dds_adapter_subscribers,
+    //     period_from_rate(options.rate_subscribers)
+    // });
 
     plugin_exec.start();
 
