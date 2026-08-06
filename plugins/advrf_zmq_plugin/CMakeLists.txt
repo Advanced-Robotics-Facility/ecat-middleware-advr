@@ -28,7 +28,6 @@ target_link_libraries(ecat_plugin_zmq
         advrf_zmq_lib
         advrf_middleware_core
         advrf_interfaces_protobuf
-        ecat_master_future
         cppzmq
 )
 

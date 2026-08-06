@@ -38,7 +38,7 @@ int main()
 {
     using namespace std::chrono_literals;
 
-    const std::string key = "advrf/robot/imu";
+    const std::string key = "rt/advrf/kyon/imu/imu_1";
 
     std::signal(SIGINT, stop);
     std::signal(SIGTERM, stop);

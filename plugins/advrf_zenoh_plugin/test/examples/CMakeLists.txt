@@ -1,0 +1,5 @@
+add_subdirectory(001_protobuf)
+if(ZENOH_ROS2_SUPPORT)
+    add_subdirectory(002_cdr)
+endif()
+add_subdirectory(003_service)

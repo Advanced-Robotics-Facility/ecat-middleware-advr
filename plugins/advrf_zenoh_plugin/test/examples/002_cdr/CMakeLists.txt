@@ -13,14 +13,14 @@ target_link_libraries(ros2_compliant_pub
     PRIVATE
         zenohcxx::zenohc
         fastcdr
-        ecat_master_future
+        advrf_zenoh_plugin
 )
 
 target_link_libraries(ros2_compliant_sub
     PRIVATE
         zenohcxx::zenohc
         fastcdr
-        ecat_master_future
+        advrf_zenoh_plugin
 )
 
 

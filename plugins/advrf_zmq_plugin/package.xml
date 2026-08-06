@@ -10,7 +10,6 @@
 
   <depend>advrf_interfaces_protobuf</depend>
   <depend>advrf_middleware_core</depend>
-  <depend>ecat_master_future</depend>
   <depend>advrf_zmq_lib</depend>
   <buildtool_depend>cmake</buildtool_depend>
 

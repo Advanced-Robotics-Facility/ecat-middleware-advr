@@ -12,11 +12,9 @@ target_compile_features(protobuf_compliant_sub PRIVATE cxx_std_17)
 target_link_libraries(protobuf_compliant_pub
     PRIVATE
         zenohcxx::zenohc
-        ecat_master_future
 )
 
 target_link_libraries(protobuf_compliant_sub
     PRIVATE
         zenohcxx::zenohc
-        ecat_master_future
 )

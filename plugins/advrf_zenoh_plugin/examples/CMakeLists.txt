@@ -1,3 +1,0 @@
-add_subdirectory(001_protobuf)
-add_subdirectory(002_cdr)
-add_subdirectory(003_service)
