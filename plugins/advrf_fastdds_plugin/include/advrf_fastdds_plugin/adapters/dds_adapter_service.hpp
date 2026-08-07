@@ -4,7 +4,6 @@
 
 #include <advrf_interfaces/srv/ReplCmd.hpp>
 #include <advrf_interfaces/srv/ReplCmdPubSubTypes.hpp>
-#include <advrf_interfaces_protobuf/repl_cmd.pb.h>
 
 #include <advrf_middleware_core/adapters/adapter_service.hpp>
 

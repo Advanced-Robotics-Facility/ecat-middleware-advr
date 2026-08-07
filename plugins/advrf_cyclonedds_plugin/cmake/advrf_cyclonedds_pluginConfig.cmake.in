@@ -6,7 +6,6 @@ find_dependency(advrf_cyclonedds_lib)
 find_dependency(advrf_dds_common)
 find_dependency(advrf_interfaces_dds)
 find_dependency(advrf_middleware_core)
-find_dependency(advrf_interfaces_protobuf)
 
 include("${CMAKE_CURRENT_LIST_DIR}/advrf_cyclonedds_pluginTargets.cmake")
 

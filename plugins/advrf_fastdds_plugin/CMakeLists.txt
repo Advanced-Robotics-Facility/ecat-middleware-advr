@@ -9,7 +9,6 @@ find_package(advrf_fastdds_lib REQUIRED)
 find_package(advrf_dds_common REQUIRED)
 find_package(advrf_interfaces_dds REQUIRED)
 find_package(advrf_middleware_core REQUIRED)
-find_package(advrf_interfaces_protobuf REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
 include(GNUInstallDirs)
@@ -38,7 +37,6 @@ target_link_libraries(advrf_fastdds_plugin
         advrf_interfaces_dds::fastdds
         advrf_dds_common::fastdds
         advrf_middleware_core
-        advrf_interfaces_protobuf
         fastdds
         fastcdr
     PRIVATE

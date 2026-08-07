@@ -10,7 +10,6 @@ function(plugin_test TEST_NAME TEST_SOURCE)
             advrf_middleware_core
             advrf_interfaces_dds::cyclonedds
             advrf_cyclonedds_plugin
-            advrf_interfaces_protobuf
     )
 
     add_test(

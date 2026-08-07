@@ -3,7 +3,6 @@
 #include <csignal>
 
 #include <shm_utils.hpp>
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/utils/pdo_utils.hpp>
 #include <advrf_middleware_core/config/robot_config.hpp>
 

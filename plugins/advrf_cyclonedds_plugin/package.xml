@@ -12,7 +12,6 @@
 
   <depend>advrf_interfaces_dds</depend>
   <depend>advrf_dds_common</depend>
-  <depend>advrf_interfaces_protobuf</depend>
   <depend>advrf_middleware_core</depend>
   <depend>advrf_cyclonedds_lib</depend>
 

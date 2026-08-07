@@ -4,7 +4,6 @@
 
 #include <advrf_interfaces/msg/ReplCmdContent.hpp>
 #include <advrf_interfaces/msg/ReplCmdContentPubSubTypes.hpp>
-#include <advrf_interfaces_protobuf/repl_cmd.pb.h>
 #include <advrf_middleware_core/adapters/adapter_subscribers.hpp>
 
 #include "advrf_middleware_core/config/config_topics.hpp"

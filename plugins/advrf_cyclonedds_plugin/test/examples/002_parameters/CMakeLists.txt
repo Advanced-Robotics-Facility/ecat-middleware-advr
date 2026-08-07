@@ -6,7 +6,6 @@ target_link_libraries(002_parameters_parameter_client
     PRIVATE
         advrf_cyclonedds_plugin
         advrf_interfaces_dds::cyclonedds
-        advrf_interfaces_protobuf
 )
 
 install(
@@ -22,7 +21,6 @@ target_link_libraries(002_parameters_parameter_server
     PRIVATE
         advrf_cyclonedds_plugin
         advrf_interfaces_dds::cyclonedds
-        advrf_interfaces_protobuf
 )
 
 install(

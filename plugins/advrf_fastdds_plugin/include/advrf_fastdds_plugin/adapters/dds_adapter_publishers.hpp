@@ -3,7 +3,6 @@
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 
 #include <advrf_middleware_core/adapters/adapter_publishers.hpp>
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/config/config_topics.hpp>
 #include <advrf_middleware_core/config/robot_config.hpp>
 
