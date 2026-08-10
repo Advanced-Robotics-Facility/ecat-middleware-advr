@@ -7,12 +7,8 @@
 #include "advrf_middleware_core/config/config_topics.hpp"
 #include "advrf_cyclonedds_plugin/subscriber/dds_subscriber.hpp"
 
-using MessageProtobuf = iit::advrf::Repl_cmd_vector;
-
 class DDSAdapterSubscribers: public middleware_adapter::message::AdapterSubscribers
 {
-
-
 public:
     DDSAdapterSubscribers(const config::ConfigTopics& config_topics, dds::domain::DomainParticipant& participant);
     void spin_once() override;
@@ -23,23 +19,8 @@ protected:
     void register_subscriber(
         const std::string& topic_name,
         dds::domain::DomainParticipant& participant,
-        ChannelTx channel)
-    {
-        register_subscriber<Msg>(
-            topic_name,
-            participant,
-            channel,
-            [](const Msg& msg) {
-                return std::array<const Msg*, 1>{&msg};
-            });
-    }
-
-    template <typename Msg, typename Extractor>
-    void register_subscriber(
-        const std::string& topic_name,
-        dds::domain::DomainParticipant& participant,
         ChannelTx channel,
-        Extractor extractor){
+        std::function<std::vector<iit::advrf::Ec_slave_pdo>(const Msg&)> converter){
         auto subscriber = std::make_shared<DDSSubscriber<Msg>>();
         if (!subscriber->init_dds(topic_name, participant)) {
             LOG_ERROR(
@@ -49,17 +30,36 @@ protected:
         }
 
         subscriber->set_callback(
-            [this, channel, extractor](const Msg& msg)
+            [this, channel, converter](const Msg& msg)
             {
-                const auto& messages = extractor(msg);
-                for (const auto& data : messages) {
-                    iit::advrf::Ec_slave_pdo pdo;
-                    convert::protobuf::from_dds(data, pdo);
-                    this->forward(pdo, channel);
-                }
+                this->forward(std::move(converter(msg)), channel);
             });
         subscribers_.push_back(subscriber);
     }
+
+
+    template <typename Msg>
+    void register_subscriber(
+        const std::string& topic_name,
+        dds::domain::DomainParticipant& participant,
+        ChannelTx channel,
+        std::function<iit::advrf::Ec_slave_pdo(const Msg&)> converter){
+        auto subscriber = std::make_shared<DDSSubscriber<Msg>>();
+        if (!subscriber->init_dds(topic_name, participant)) {
+            LOG_ERROR(
+                "Failed to initialize DDS subscriber for topic: {}",
+                topic_name);
+            return;
+        }
+
+        subscriber->set_callback(
+            [this, channel, converter](const Msg& msg)
+            {
+                this->forward(std::move(converter(msg)), channel);
+            });
+        subscribers_.push_back(subscriber);
+    }
+    
 
 private:
     std::vector<std::shared_ptr<DDSSubscriberBase>> subscribers_;

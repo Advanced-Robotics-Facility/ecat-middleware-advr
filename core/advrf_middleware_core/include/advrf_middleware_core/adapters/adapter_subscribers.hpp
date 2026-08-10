@@ -17,18 +17,35 @@ public:
     AdapterSubscribers(){}
     ~AdapterSubscribers() override = default;
 
-    void forward(const iit::advrf::Repl_cmd_vector& cmd){
-        for(auto it = cmd.requests().begin(); it != cmd.requests().end(); ++it){
-             shm_.push_request(*it);
-        }
-    }
-
     void forward(const iit::advrf::Repl_cmd& cmd){
         shm_.push_request(cmd);
     }
 
+    void forward(const iit::advrf::Repl_cmd_vector& cmd){
+        for(auto it = cmd.requests().begin(); it != cmd.requests().end(); ++it){
+            forward(*it);
+        }
+    }
+
     void forward(const Pdo& pdo, ChannelTx channel){
         shm_.push_pdo(pdo, channel);
+    }
+
+    void forward(const std::vector<Pdo>& pdos, ChannelTx channel){
+        for(const auto& pdo : pdos){
+            shm_.push_pdo(pdo, channel);
+        }
+    }
+
+
+    void forward(const Pdo&& pdo, ChannelTx channel){
+        shm_.push_pdo(pdo, channel);
+    }
+
+    void forward(const std::vector<Pdo>&& pdos, ChannelTx channel){
+        for(const auto& pdo : pdos){
+            shm_.push_pdo(std::move(pdo), channel);
+        }
     }
 
 
