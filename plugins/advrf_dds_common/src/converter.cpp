@@ -216,6 +216,54 @@ void convert::protobuf::from_dds(
     from_dds(request.request(), pb);
     }
 
+
+void convert::protobuf::from_dds(
+        const advrf_interfaces::msg::dds_::MotorXtTxPdo_& msgdds,
+        iit::advrf::Motor_xt_tx_pdo& pb)
+        {
+            pb.set_pos_ref(msgdds.pos_ref());
+            pb.set_vel_ref(msgdds.vel_ref());
+            pb.set_tor_ref(msgdds.tor_ref());
+            pb.set_gain_0(msgdds.gain_0());
+            pb.set_gain_1(msgdds.gain_1());
+            pb.set_gain_2(msgdds.gain_2());
+            pb.set_gain_3(msgdds.gain_3());
+            pb.set_gain_4(msgdds.gain_4());
+            pb.set_fault_ack(msgdds.fault_ack());
+            pb.set_ts(msgdds.ts());
+            pb.set_op_idx_aux(msgdds.op_idx_aux());
+            pb.set_aux(msgdds.aux());
+        }
+
+void convert::protobuf::from_dds(
+    const advrf_interfaces::msg::dds_::MotorXtTxPdo_& msgdds,
+    iit::advrf::Ec_slave_pdo& pb){
+        pb.set_type(iit::advrf::Ec_slave_pdo::Type::Ec_slave_pdo_Type_RX_XT_MOTOR);
+        auto* motor_xt_tx_pdo = pb.mutable_motor_xt_tx_pdo();
+        from_dds(msgdds, *motor_xt_tx_pdo);
+    }
+
+
+void convert::protobuf::from_dds(
+    const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
+    iit::advrf::Motor_tx_pdo& pb){
+        pb.set_pos_ref(msgdds.pos_ref());
+        pb.set_gainp(msgdds.gainP());
+        pb.set_gaind(msgdds.gainD());
+        pb.set_fault_ack(msgdds.fault_ack());
+        pb.set_ts(msgdds.ts());
+    }
+
+void convert::protobuf::from_dds(
+    const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
+    iit::advrf::Ec_slave_pdo& pb){
+        pb.set_type(iit::advrf::Ec_slave_pdo::Type::Ec_slave_pdo_Type_TX_MOTOR);
+        auto* motor_tx_pdo = pb.mutable_motor_tx_pdo();
+        from_dds(msgdds, *motor_tx_pdo);
+    }
+
+
+
 void convert::dds::from_protobuf(uint64_t timestamp_ns, builtin_interfaces::msg::dds_::Time_& msgdds)
     {
    msgdds.sec() = static_cast<int32_t>(timestamp_ns / 1'000'000'000ULL);

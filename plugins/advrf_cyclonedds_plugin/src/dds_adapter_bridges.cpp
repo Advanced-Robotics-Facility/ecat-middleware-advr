@@ -34,7 +34,6 @@ bool JointStatePublisher::process(const iit::advrf::Ec_slave_pdo& pdo) {
             LOG_WARN("Unexpected PDO type for JointStatePublisher: {}", static_cast<int>(pdo.type()));
             return false; // Exit early if the PDO type is not handled
     }
-    
     message().name().push_back(resolve_name(pdo.header().str_id(), id_to_name_));
     convert::dds::from_protobuf(pdo, message().header());
     return true;

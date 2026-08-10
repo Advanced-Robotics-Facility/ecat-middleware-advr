@@ -19,6 +19,8 @@
 #include <advrf_interfaces/msg/Valve.hpp>
 #include <advrf_interfaces/msg/Gripper.hpp>
 #include <advrf_interfaces/msg/ReplCmdContent.hpp>
+#include <advrf_interfaces/msg/MotorXtTxPdo.hpp>
+#include <advrf_interfaces/msg/MotorTxPdo.hpp>
 
 namespace convert::protobuf {
     template<typename DDS_TYPE, typename PROTOBUF_TYPE>
@@ -54,31 +56,31 @@ namespace convert::protobuf {
         const advrf_interfaces::msg::dds_::EcatMasterCmd_& msgdds,
         iit::advrf::Ecat_Master_cmd& pb);
 
-     void from_dds(
+    void from_dds(
         const advrf_interfaces::msg::dds_::FoeMaster_& msgdds,
         iit::advrf::FOE_Master& pb);
 
-     void from_dds(
+    void from_dds(
         const advrf_interfaces::msg::dds_::TrjQueueCmd_& msgdds,
         iit::advrf::Trj_queue_cmd& pb);
 
-     void from_dds(
+    void from_dds(
         const advrf_interfaces::msg::dds_::SlaveSdoCmd_& msgdds,
         iit::advrf::Slave_SDO_cmd& pb);
 
-     void from_dds(
+    void from_dds(
         const advrf_interfaces::msg::dds_::SlaveSdoInfo_& msgdds,
         iit::advrf::Slave_SDO_info& pb);
 
-     void from_dds(
+    void from_dds(
         const advrf_interfaces::msg::dds_::MotorsPdoCmd_& msgdds,
         iit::advrf::Motors_PDO_cmd& pb);
 
-     void from_dds(
+    void from_dds(
         const advrf_interfaces::msg::dds_::SlaveRegistryWrite_& msgdds,
         iit::advrf::Slave_registry_write& pb);
 
-     void from_dds(
+    void from_dds(
         const advrf_interfaces::msg::dds_::PdoAuxCmd_& msgdds,
         iit::advrf::PDOs_aux_cmd& pb);
 
@@ -90,9 +92,25 @@ namespace convert::protobuf {
         const advrf_interfaces::srv::dds_::ReplCmd_Request_& request,
         iit::advrf::Repl_cmd& pb);
 
-      void from_dds(
+    void from_dds(
         const advrf_interfaces::msg::dds_::ReplCmd_Content_Vector_& request,
         iit::advrf::Repl_cmd_vector& pb);
+
+    void from_dds(
+        const advrf_interfaces::msg::dds_::MotorXtTxPdo_& msgdds,
+        iit::advrf::Motor_xt_tx_pdo& pb);
+
+    void from_dds(
+        const advrf_interfaces::msg::dds_::MotorXtTxPdo_& msgdds,
+        iit::advrf::Ec_slave_pdo& pb);
+
+    void from_dds(
+        const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
+        iit::advrf::Motor_tx_pdo& pb);
+
+    void from_dds(
+        const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
+        iit::advrf::Ec_slave_pdo& pb);
 };
 
 namespace convert::dds {

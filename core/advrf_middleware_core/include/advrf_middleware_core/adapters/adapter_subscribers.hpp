@@ -2,6 +2,7 @@
 
 #include "advrf_middleware_core/adapters/adapter_base.hpp"
 #include "advrf_middleware_core/shared_memory/shm_connection_subscribers.hpp"
+#include "advrf_middleware_core/utils/channel.hpp"  
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_interfaces_protobuf/repl_cmd.pb.h>
@@ -11,6 +12,7 @@ namespace middleware_adapter::message {
 class AdapterSubscribers : public AdapterBase
 {
 public:
+    using Pdo = iit::advrf::Ec_slave_pdo;
 
     AdapterSubscribers(){}
     ~AdapterSubscribers() override = default;
@@ -24,6 +26,11 @@ public:
     void forward(const iit::advrf::Repl_cmd& cmd){
         shm_.push_request(cmd);
     }
+
+    void forward(const Pdo& pdo, ChannelTx channel){
+        shm_.push_pdo(pdo, channel);
+    }
+
 
     SubscriberShmConnection& shm() noexcept
     {

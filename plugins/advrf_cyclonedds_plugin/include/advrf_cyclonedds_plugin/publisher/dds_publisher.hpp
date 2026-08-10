@@ -5,6 +5,7 @@
 
 #include <advrf_middleware_core/utils/log.hpp>
 
+
 template <typename Msg>
 class DDSPublisher {
     public:

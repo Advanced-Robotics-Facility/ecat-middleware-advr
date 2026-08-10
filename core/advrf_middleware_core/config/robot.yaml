@@ -70,12 +70,12 @@ robot:
     #   ecat_id: 27
 
     # Leg4
-    - name: hip_roll_4
-      ecat_id: 10
-    - name: hip_pitch_4
-      ecat_id: 11
-    - name: knee_pitch_4
-      ecat_id: 12
+    # - name: hip_roll_4
+    #   ecat_id: 10
+    # - name: hip_pitch_4
+    #   ecat_id: 11
+    # - name: knee_pitch_4
+    #   ecat_id: 12
     # - name: ankle_yaw_4
     #   ecat_id: 31
     # - name: wheel_joint_4

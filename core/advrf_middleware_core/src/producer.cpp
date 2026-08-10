@@ -243,7 +243,7 @@ int main(int argc, char** argv)
     // Dynamic Discovery Generation Loop
     uint32_t slave_idx = 0;
     
-    auto add_devices = [&](const auto& devices, DeviceType type, const char* type_name) {
+    auto add_devices = [&](const auto& devices, DeviceTypeRx type, const char* type_name) {
         for (const auto& dev : devices) {
             if (slave_idx >= MAX_SLAVES_CAPACITY) {
                 std::cerr << "[Producer] MAX_SLAVES_CAPACITY reached, dropping '" << type_name
@@ -264,13 +264,13 @@ int main(int argc, char** argv)
         }
     };
 
-    add_devices(cfg->imus, DeviceType::IMU, "imu");
-    add_devices(cfg->motors, DeviceType::MOTOR, "motor");
-    add_devices(cfg->grippers, DeviceType::GRIPPER, "gripper");
-    add_devices(cfg->power_boards, DeviceType::POWER_BOARD, "power_board");
-    add_devices(cfg->pumps, DeviceType::PUMP, "pump");
-    add_devices(cfg->force_torques, DeviceType::FORCE_TORQUE, "force_torque");
-    add_devices(cfg->valves, DeviceType::VALVE, "valve");
+    add_devices(cfg->imus, DeviceTypeRx::IMU, "imu");
+    add_devices(cfg->motors, DeviceTypeRx::MOTOR, "motor");
+    add_devices(cfg->grippers, DeviceTypeRx::GRIPPER, "gripper");
+    add_devices(cfg->power_boards, DeviceTypeRx::POWER_BOARD, "power_board");
+    add_devices(cfg->pumps, DeviceTypeRx::PUMP, "pump");
+    add_devices(cfg->force_torques, DeviceTypeRx::FORCE_TORQUE, "force_torque");
+    add_devices(cfg->valves, DeviceTypeRx::VALVE, "valve");
 
     pub_shm->bridge().payload.topology_size.store(slave_idx);
     pub_shm->bridge().status.shm_ready.store(true);
@@ -351,25 +351,25 @@ int main(int argc, char** argv)
             const auto& slave = pub_shm->bridge().payload.topology[i];
 
             switch (slave.type) {
-                case DeviceType::IMU:
+                case DeviceTypeRx::IMU:
                     proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::IMU), make_imu_pdo(t, sample_count, slave.board_id));
                     break;
-                case DeviceType::MOTOR:
+                case DeviceTypeRx::MOTOR:
                     proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::MOTOR), make_motor_pdo(t, sample_count, slave.board_id));
                     break;
-                case DeviceType::GRIPPER:
+                case DeviceTypeRx::GRIPPER:
                     proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::GRIPPER), make_gripper_pdo(t, sample_count, slave.board_id));
                     break;
-                case DeviceType::POWER_BOARD:
+                case DeviceTypeRx::POWER_BOARD:
                     proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::POWER_BOARD), make_pb_pdo(t, sample_count, slave.board_id));
                     break;
-                case DeviceType::PUMP:
+                case DeviceTypeRx::PUMP:
                     proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::PUMP), make_pump_pdo(t, sample_count, slave.board_id));
                     break;
-                case DeviceType::FORCE_TORQUE:
+                case DeviceTypeRx::FORCE_TORQUE:
                     proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::FORCE_TORQUE), make_ft_pdo(t, sample_count, slave.board_id));
                     break;
-                case DeviceType::VALVE:
+                case DeviceTypeRx::VALVE:
                     proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::VALVE), make_valve_pdo(t, sample_count, slave.board_id));
                     break;
                 default:

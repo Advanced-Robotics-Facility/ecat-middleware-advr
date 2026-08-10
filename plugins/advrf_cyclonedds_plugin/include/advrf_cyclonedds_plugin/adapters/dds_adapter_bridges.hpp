@@ -40,7 +40,7 @@ public:
     }
 
     void end_cycle(bool valid) override
-    {
+    {   
         if(!valid || !has_update_) {return;}
 
         try {

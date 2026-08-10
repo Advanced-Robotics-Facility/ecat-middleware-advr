@@ -60,15 +60,15 @@ bool ZenohAdapterPublishers::init(const config::ConfigTopics& topics,
 
     bool success = true;
     success &= register_topic(
-        {Channel::Motor, Channel::Gripper, Channel::Valve},
+        {ChannelToShm::Motor, ChannelToShm::Gripper, ChannelToShm::Valve},
         joint_ids,
         topics.state.jointState());
     success &= register_topic(
-        {Channel::Motor}, motor_ids, topics.state.motor());
+        {ChannelToShm::Motor}, motor_ids, topics.state.motor());
     success &= register_topic(
-        {Channel::Valve}, valve_ids, topics.state.valve());
+        {ChannelToShm::Valve}, valve_ids, topics.state.valve());
     success &= register_topic(
-        {Channel::Gripper}, gripper_ids, topics.state.gripper());
+        {ChannelToShm::Gripper}, gripper_ids, topics.state.gripper());
 
     auto register_devices = [&register_topic](
         const std::vector<JointConfig>& devices,
@@ -91,21 +91,21 @@ bool ZenohAdapterPublishers::init(const config::ConfigTopics& topics,
 
     success &= register_devices(
         robot.imus,
-        Channel::Imu,
+        ChannelToShm::Imu,
         [&topics](const std::string& name) { return topics.state.imu(name); });
     success &= register_devices(
         robot.power_boards,
-        Channel::PowerBoard,
+        ChannelToShm::PowerBoard,
         [&topics](const std::string& name) {
             return topics.state.powerBoard(name);
         });
     success &= register_devices(
         robot.pumps,
-        Channel::Pump,
+        ChannelToShm::Pump,
         [&topics](const std::string& name) { return topics.state.pump(name); });
     success &= register_devices(
         robot.force_torques,
-        Channel::ForceTorque,
+        ChannelToShm::ForceTorque,
         [&topics](const std::string& name) {
             return topics.state.forceTorque(name);
         });

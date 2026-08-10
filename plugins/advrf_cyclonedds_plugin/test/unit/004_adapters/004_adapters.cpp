@@ -64,7 +64,7 @@ public:
 
 void clear_cache(
     TestAdapterPublishers& adapter,
-    Channel channel)
+    ChannelRx channel)
 {
     auto& cache = adapter.mutable_channel_cache(channel);
 
@@ -77,7 +77,7 @@ void clear_cache(
 
 Pdo& add_cached_pdo(
     TestAdapterPublishers& adapter,
-    Channel channel,
+    ChannelRx channel,
     EcatId ecat_id,
     const std::string& component_name)
 {
@@ -101,7 +101,7 @@ void test_empty_cache_is_invalid()
 
     auto& publisher =
         adapter.register_publisher<TestPublisher>(
-            {Channel::Imu},
+            {ChannelRx::Imu},
             {1});
 
     adapter.dispatch_cached_data();
@@ -119,12 +119,12 @@ void test_allowed_id_is_dispatched()
 
     auto& publisher =
         adapter.register_publisher<TestPublisher>(
-            {Channel::Imu},
+            {ChannelRx::Imu},
             {1});
 
     add_cached_pdo(
         adapter,
-        Channel::Imu,
+        ChannelRx::Imu,
         1,
         "imu_1");
 
@@ -146,12 +146,12 @@ void test_disallowed_id_is_ignored()
 
     auto& publisher =
         adapter.register_publisher<TestPublisher>(
-            {Channel::Imu},
+            {ChannelRx::Imu},
             {1});
 
     add_cached_pdo(
         adapter,
-        Channel::Imu,
+        ChannelRx::Imu,
         2,
         "imu_2");
 
@@ -170,18 +170,18 @@ void test_missing_expected_id_is_invalid()
 
     auto& publisher =
         adapter.register_publisher<TestPublisher>(
-            {Channel::Motor},
+            {ChannelRx::Motor},
             {2, 3, 4});
 
     add_cached_pdo(
         adapter,
-        Channel::Motor,
+        ChannelRx::Motor,
         2,
         "motor_2");
 
     add_cached_pdo(
         adapter,
-        Channel::Motor,
+        ChannelRx::Motor,
         3,
         "motor_3");
 
@@ -198,24 +198,24 @@ void test_all_expected_ids_are_valid()
 
     auto& publisher =
         adapter.register_publisher<TestPublisher>(
-            {Channel::Motor},
+            {ChannelRx::Motor},
             {2, 3, 4});
 
     add_cached_pdo(
         adapter,
-        Channel::Motor,
+        ChannelRx::Motor,
         2,
         "motor_2");
 
     add_cached_pdo(
         adapter,
-        Channel::Motor,
+        ChannelRx::Motor,
         3,
         "motor_3");
 
     add_cached_pdo(
         adapter,
-        Channel::Motor,
+        ChannelRx::Motor,
         4,
         "motor_4");
 
@@ -232,11 +232,11 @@ void test_empty_allowed_ids_accepts_any_id()
 
     auto& publisher =
         adapter.register_publisher<TestPublisher>(
-            {Channel::PowerBoard});
+            {ChannelRx::PowerBoard});
 
     add_cached_pdo(
         adapter,
-        Channel::PowerBoard,
+        ChannelRx::PowerBoard,
         42,
         "power_board_42");
 
@@ -253,7 +253,7 @@ void test_accept_all_without_data_is_invalid()
 
     auto& publisher =
         adapter.register_publisher<TestPublisher>(
-            {Channel::PowerBoard});
+            {ChannelRx::PowerBoard});
 
     adapter.dispatch_cached_data();
 
@@ -268,17 +268,17 @@ void test_same_pdo_is_dispatched_to_multiple_publishers()
 
     auto& first =
         adapter.register_publisher<TestPublisher>(
-            {Channel::Motor},
+            {ChannelRx::Motor},
             {2});
 
     auto& second =
         adapter.register_publisher<TestPublisher>(
-            {Channel::Motor},
+            {ChannelRx::Motor},
             {2});
 
     add_cached_pdo(
         adapter,
-        Channel::Motor,
+        ChannelRx::Motor,
         2,
         "motor_2");
 
@@ -299,8 +299,8 @@ void test_publisher_can_subscribe_to_multiple_channels()
     auto& publisher =
         adapter.register_publisher<TestPublisher>(
             {
-                Channel::Motor,
-                Channel::Gripper
+                ChannelRx::Motor,
+                ChannelRx::Gripper
             },
             {
                 2,
@@ -309,13 +309,13 @@ void test_publisher_can_subscribe_to_multiple_channels()
 
     add_cached_pdo(
         adapter,
-        Channel::Motor,
+        ChannelRx::Motor,
         2,
         "motor_2");
 
     add_cached_pdo(
         adapter,
-        Channel::Gripper,
+        ChannelRx::Gripper,
         20,
         "gripper_20");
 
@@ -332,18 +332,18 @@ void test_duplicate_id_overwrites_previous_value()
 
     auto& publisher =
         adapter.register_publisher<TestPublisher>(
-            {Channel::Motor},
+            {ChannelRx::Motor},
             {2});
 
     add_cached_pdo(
         adapter,
-        Channel::Motor,
+        ChannelRx::Motor,
         2,
         "motor_2_first");
 
     add_cached_pdo(
         adapter,
-        Channel::Motor,
+        ChannelRx::Motor,
         2,
         "motor_2_second");
 
@@ -363,12 +363,12 @@ void test_seen_ids_are_reset_between_cycles()
 
     auto& publisher =
         adapter.register_publisher<TestPublisher>(
-            {Channel::Motor},
+            {ChannelRx::Motor},
             {2});
 
     add_cached_pdo(
         adapter,
-        Channel::Motor,
+        ChannelRx::Motor,
         2,
         "motor_2");
 
@@ -381,7 +381,7 @@ void test_seen_ids_are_reset_between_cycles()
 
     clear_cache(
         adapter,
-        Channel::Motor);
+        ChannelRx::Motor);
 
     adapter.dispatch_cached_data();
 

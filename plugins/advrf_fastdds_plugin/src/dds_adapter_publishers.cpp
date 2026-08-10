@@ -66,25 +66,25 @@ bool DDSAdapterPublishers::init(
     joint_ids.insert(joint_ids.end(), valve_ids.begin(), valve_ids.end());
 
     if (!joint_ids.empty()) {
-        auto& publisher = register_publisher<JointStatePublisher>({Channel::Motor, Channel::Gripper, Channel::Valve}, joint_ids);
+        auto& publisher = register_publisher<JointStatePublisher>({ChannelToShm::Motor, ChannelToShm::Gripper, ChannelToShm::Valve}, joint_ids);
         publisher.set_names(id_to_name);
         publisher.init(config_topics.state.jointState(), dp);
     }
 
     if (!motor_ids.empty()) {
-        auto& publisher = register_publisher<MotorsPublisher>({Channel::Motor}, motor_ids);
+        auto& publisher = register_publisher<MotorsPublisher>({ChannelToShm::Motor}, motor_ids);
         publisher.set_names(id_to_name);
         publisher.init(config_topics.state.motor(), dp);
     }
 
     if (!valve_ids.empty()) {
-        auto& publisher = register_publisher<ValvePublisher>({Channel::Valve}, valve_ids);
+        auto& publisher = register_publisher<ValvePublisher>({ChannelToShm::Valve}, valve_ids);
         publisher.set_names(id_to_name);
         publisher.init(config_topics.state.valve(), dp);
     }
 
     if (!gripper_ids.empty()) {
-        auto& publisher = register_publisher<GripperPublisher>({Channel::Gripper}, gripper_ids);
+        auto& publisher = register_publisher<GripperPublisher>({ChannelToShm::Gripper}, gripper_ids);
         publisher.set_names(id_to_name);
         publisher.init(config_topics.state.gripper(), dp);
     }
@@ -93,7 +93,7 @@ bool DDSAdapterPublishers::init(
         for (const auto& imu : robot_config.imus) {
             if (imu.ecat_id < 0) continue;
             auto& publisher = register_publisher<ImuPublisher>(
-                {Channel::Imu}, {static_cast<EcatId>(imu.ecat_id)}
+                {ChannelToShm::Imu}, {static_cast<EcatId>(imu.ecat_id)}
             );
             publisher.set_names(id_to_name);
             publisher.init(config_topics.state.imu(imu.name), dp);
@@ -104,7 +104,7 @@ bool DDSAdapterPublishers::init(
         for (const auto& pb : robot_config.power_boards) {
             if (pb.ecat_id < 0) continue;
             auto& publisher = register_publisher<PowerBoardPublisher>(
-                {Channel::PowerBoard}, 
+                {ChannelToShm::PowerBoard}, 
                 {static_cast<EcatId>(pb.ecat_id)}
             );
             publisher.set_names(id_to_name);
@@ -116,7 +116,7 @@ bool DDSAdapterPublishers::init(
         for (const auto& pump : robot_config.pumps) {
             if (pump.ecat_id < 0) continue;
             auto& publisher = register_publisher<PumpPublisher>(
-                {Channel::Pump}, 
+                {ChannelToShm::Pump}, 
                 {static_cast<EcatId>(pump.ecat_id)}
             );
             publisher.set_names(id_to_name);
@@ -128,7 +128,7 @@ bool DDSAdapterPublishers::init(
         for (const auto& ft : robot_config.force_torques) {
             if (ft.ecat_id < 0) continue;
             auto& publisher = register_publisher<ForceTorquePublisher>(
-                {Channel::ForceTorque}, 
+                {ChannelToShm::ForceTorque}, 
                 {static_cast<EcatId>(ft.ecat_id)}
             );
             publisher.set_names(id_to_name);

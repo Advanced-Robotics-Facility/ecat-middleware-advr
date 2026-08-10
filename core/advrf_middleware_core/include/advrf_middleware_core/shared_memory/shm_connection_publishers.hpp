@@ -22,34 +22,13 @@ public:
         return ShmMiddlewareBridgeConnection<PublisherShmConnection, SharedProtoPubBridge>::connect(shm_name);
     }
 
-    Queue& resolve(Channel channel)
+    Queue& resolve(ChannelRx channel)
     {
-        switch (channel)
-        {
-            case Channel::Imu:
-                return bridge().payload.queue_for(DeviceType::IMU);
-
-            case Channel::Motor:
-                return bridge().payload.queue_for(DeviceType::MOTOR);
-
-            case Channel::Gripper:
-                return bridge().payload.queue_for(DeviceType::GRIPPER);
-
-            case Channel::Pump:
-                return bridge().payload.queue_for(DeviceType::PUMP);
-
-            case Channel::PowerBoard:
-                return bridge().payload.queue_for(DeviceType::POWER_BOARD);
-
-            case Channel::ForceTorque:
-                return bridge().payload.queue_for(DeviceType::FORCE_TORQUE);
-
-            case Channel::Valve:
-                return bridge().payload.queue_for(DeviceType::VALVE);
-
-            default:
-                throw std::out_of_range("Invalid channel");
+        auto it = k_map_channelrx_to_devicerx.find(channel);
+        if(it == k_map_channelrx_to_devicerx.end()) {
+            throw std::invalid_argument("Invalid channel");
         }
+        return bridge().payload.queue_for(it->second);
     }
 
 private:

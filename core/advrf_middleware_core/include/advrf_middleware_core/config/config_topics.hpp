@@ -58,22 +58,24 @@ struct TopicsState : public TopicNamespace
 {
     using TopicNamespace::TopicNamespace;
 
-    std::string jointState()  const { return rt("joint_states"); }
-    std::string motor()       const { return rt("motors"); }
-    std::string gripper()     const { return rt("grippers"); }
-    std::string valve()       const { return rt("valves"); }
+    std::string jointState()  const { return rt("rx/joint_states"); }
+    std::string motor()       const { return rt("rx/motors"); }
+    std::string gripper()     const { return rt("rx/grippers"); }
+    std::string valve()       const { return rt("rx/valves"); }
 
-    std::string imu(const std::string& device_name)         const { return rt("imu/" + device_name); }
-    std::string forceTorque(const std::string& device_name) const { return rt("force_torque/" + device_name); }
-    std::string powerBoard(const std::string& device_name)  const { return rt("power_board/" + device_name); }
-    std::string pump(const std::string& device_name)        const { return rt("pump/" + device_name); }
+    std::string imu(const std::string& device_name)         const { return rt("rx/imu/" + device_name); }
+    std::string forceTorque(const std::string& device_name) const { return rt("rx/force_torque/" + device_name); }
+    std::string powerBoard(const std::string& device_name)  const { return rt("rx/power_board/" + device_name); }
+    std::string pump(const std::string& device_name)        const { return rt("rx/pump/" + device_name); }
 };
 
 
 struct TopicsCommand  : public TopicNamespace
 {
     using TopicNamespace::TopicNamespace;
-    std::string jointCmd()  const { return rt("cmd/joints"); }
+    std::string jointCmd()  const { return rt("tx/joints"); }
+    std::string motorXtCmd()  const { return rt("tx/motors_xt"); }
+    std::string motorCmd()  const { return rt("tx/motors"); }
 };
 
 

@@ -88,7 +88,7 @@ int main(int argc, char **argv)
     }
 
     // subscribers
-    //auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>(config, dds_participant);
+    auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>(config, dds_participant);
 
 
     // plugin_exec.register_adapter({
@@ -103,11 +103,11 @@ int main(int argc, char **argv)
         period_from_rate(options.rate_publishers)
     });
 
-    // plugin_exec.register_adapter({
-    //     "dds_adapter_subscribers",
-    //     dds_adapter_subscribers,
-    //     period_from_rate(options.rate_subscribers)
-    // });
+    plugin_exec.register_adapter({
+        "dds_adapter_subscribers",
+        dds_adapter_subscribers,
+        period_from_rate(options.rate_subscribers)
+    });
 
     plugin_exec.start();
 

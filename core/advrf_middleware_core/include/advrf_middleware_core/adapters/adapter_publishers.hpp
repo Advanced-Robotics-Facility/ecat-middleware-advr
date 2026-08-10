@@ -52,7 +52,7 @@ public:
 
     static constexpr std::size_t MaxEcatIds = 256;
     static constexpr std::size_t ChannelCount =
-        static_cast<std::size_t>(Channel::Count);
+        static_cast<std::size_t>(ChannelRx::Count);
 
     struct CachedPdo
     {
@@ -89,7 +89,7 @@ public:
     struct Subscription
     {
         IPublisher* publisher = nullptr;
-        std::vector<Channel> channels;
+        std::vector<ChannelRx> channels;
 
     private:
         friend class AdapterPublishers;
@@ -134,7 +134,7 @@ protected:
 
     template<typename PublisherType>
     PublisherType& register_publisher(
-        std::vector<Channel> channels,
+        std::vector<ChannelRx> channels,
         const std::vector<EcatId>& ids_allowed = {})
     {
         static_assert(
@@ -175,7 +175,7 @@ protected:
 
     // API unit test
 
-    ChannelCache& mutable_channel_cache(Channel channel) noexcept
+    ChannelCache& mutable_channel_cache(ChannelRx channel) noexcept
     {
         return cache_[channel_index(channel)];
     }
@@ -186,14 +186,14 @@ protected:
     }
 
 private:
-    inline static constexpr std::array<Channel, ChannelCount> all_channels_{
-        Channel::Imu,
-        Channel::Motor,
-        Channel::Gripper,
-        Channel::Pump,
-        Channel::PowerBoard,
-        Channel::ForceTorque,
-        Channel::Valve
+    inline static constexpr std::array<ChannelRx, ChannelCount> all_channels_{
+        ChannelRx::Imu,
+        ChannelRx::Motor,
+        ChannelRx::Gripper,
+        ChannelRx::Pump,
+        ChannelRx::PowerBoard,
+        ChannelRx::ForceTorque,
+        ChannelRx::Valve
     };
 
     std::vector<std::unique_ptr<IPublisher>> publishers_;
@@ -202,24 +202,24 @@ private:
     ShmProtoHelper proto_helper_;
     Cache cache_;
 
-    static constexpr std::size_t channel_index(Channel channel) noexcept
+    static constexpr std::size_t channel_index(ChannelRx channel) noexcept
     {
         return static_cast<std::size_t>(channel);
     }
 
-    ChannelCache& channel_cache(Channel channel) noexcept
+    ChannelCache& channel_cache(ChannelRx channel) noexcept
     {
         return cache_[channel_index(channel)];
     }
 
-    const ChannelCache& channel_cache(Channel channel) const noexcept
+    const ChannelCache& channel_cache(ChannelRx channel) const noexcept
     {
         return cache_[channel_index(channel)];
     }
 
     void fill_cache()
     {
-        for (const Channel channel : all_channels_) {
+        for (const ChannelRx channel : all_channels_) {
             auto& queue = shm_.resolve(channel);
             auto& cache = channel_cache(channel);
 
@@ -271,7 +271,7 @@ private:
             subscription.ids_seen.reset();
             subscription.publisher->begin_cycle();
 
-            for (const Channel channel : subscription.channels) {
+            for (const ChannelRx channel : subscription.channels) {
                 dispatch_cache(
                     channel_cache(channel),
                     subscription);

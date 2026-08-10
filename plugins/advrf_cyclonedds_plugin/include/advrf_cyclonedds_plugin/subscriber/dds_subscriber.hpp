@@ -5,8 +5,16 @@
 
 #include <advrf_middleware_core/utils/log.hpp>
 
+class DDSSubscriberBase {
+public:
+    virtual ~DDSSubscriberBase() = default;
+
+    virtual void spin_once() = 0;
+};
+
+
 template <typename Msg>
-class DDSSubscriber {
+class DDSSubscriber : public DDSSubscriberBase {
 public:
 
     using Callback = std::function<void(const Msg&)>;
@@ -46,7 +54,7 @@ public:
         callback_ = std::move(cb);
     }
 
-    void spin_once()
+    void spin_once() override
     {
         auto samples = reader_.take();
         for (const auto& sample : samples)

@@ -1,0 +1,22 @@
+#pragma once
+
+module advrf_interfaces {
+  module msg {
+        module dds_ {
+            struct MotorTxPdo_
+            {
+                float  pos_ref;     
+                unsigned long fault_ack;   
+                int32  gainP;       
+                int32  gainD;       
+                unsigned long ts;
+            };
+            
+
+            struct MotorTxPdo_Vector_
+            {
+                sequence<MotorTxPdo_> data;
+            };
+        };
+    };
+};

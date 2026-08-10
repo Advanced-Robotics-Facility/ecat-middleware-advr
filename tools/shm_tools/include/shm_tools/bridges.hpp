@@ -62,8 +62,8 @@ protected:
      void declare() override
     {
         // TODO: generalize
-        register_queue<iit::advrf::Repl_cmd>(
+        register_queue<iit::advrf::Ec_slave_pdo >(
             "motor",
-            bridge_->payload.queue_for(DeviceType::MOTOR));
+            bridge_->payload.queue_for(DeviceTypeTx::MOTOR));
     }
 };
