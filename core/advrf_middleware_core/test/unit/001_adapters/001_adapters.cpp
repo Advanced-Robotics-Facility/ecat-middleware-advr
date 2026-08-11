@@ -1,13 +1,10 @@
 #include <cassert>
-#include <cstdint>
 #include <iostream>
 #include <vector>
 
 #include "advrf_middleware_core/adapters/adapter_publishers.hpp"
 
-using AdapterPublishers =
-    middleware_adapter::message::AdapterPublishers;
-
+using AdapterPublishers = middleware_adapter::message::AdapterPublishers;
 using Pdo = AdapterPublishers::Pdo;
 using EcatId = AdapterPublishers::EcatId;
 // using Channel = middleware_adapter::Channel;
@@ -72,6 +69,8 @@ void clear_cache(
         entry.valid = false;
         entry.updated_this_cycle = false;
     }
+
+    cache.active_ids.clear();
 }
 
 
@@ -83,7 +82,12 @@ Pdo& add_cached_pdo(
 {
     auto& cache = adapter.mutable_channel_cache(channel);
 
+    assert(ecat_id < AdapterPublishers::MaxEcatIds);
+
     auto& entry = cache.entries[ecat_id];
+    if (!entry.valid) {
+        cache.active_ids.push_back(ecat_id);
+    }
 
     entry.valid = true;
     entry.updated_this_cycle = true;
@@ -406,6 +410,7 @@ int main()
     test_same_pdo_is_dispatched_to_multiple_publishers();
     test_publisher_can_subscribe_to_multiple_channels();
     test_seen_ids_are_reset_between_cycles();
+    test_duplicate_id_overwrites_previous_value();
 
     std::cout
         << "All AdapterPublishers tests passed."

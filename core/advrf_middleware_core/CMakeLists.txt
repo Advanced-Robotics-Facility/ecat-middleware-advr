@@ -110,3 +110,10 @@ install(
     TARGETS ecat_master_shm_mock
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
+option(BUILD_TESTING "Build unit tests" ON)
+
+if(BUILD_TESTING)
+    enable_testing()
+    add_subdirectory(test/unit)    
+endif()
