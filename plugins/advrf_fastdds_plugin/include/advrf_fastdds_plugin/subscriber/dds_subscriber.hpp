@@ -13,13 +13,18 @@
 
 #include <advrf_middleware_core/utils/log.hpp>
 
+class DDSSubscriberBase {
+public:
+    virtual ~DDSSubscriberBase() = default;
+
+    virtual void spin_once() = 0;
+};
+
 template <typename Msg, typename MsgPubSubType>
-class DDSSubscriber {
+class DDSSubscriber : public DDSSubscriberBase {
 public:
 
     using Callback = std::function<void(const Msg&)>;
-
-    DDSSubscriber() = default;
 
     virtual ~DDSSubscriber() {
         if (reader_ != nullptr && subscriber_ != nullptr) {
@@ -76,11 +81,19 @@ public:
         }
     }
 
+    eprosima::fastdds::dds::DataReaderQos reader_qos() const {
+        auto qos = eprosima::fastdds::dds::DATAREADER_QOS_DEFAULT;
+        qos.reliability().kind = eprosima::fastdds::dds::BEST_EFFORT_RELIABILITY_QOS;
+        qos.history().kind = eprosima::fastdds::dds::KEEP_LAST_HISTORY_QOS;
+        qos.history().depth = 1;
+        return qos;
+    }
+
     void set_callback(Callback cb){
         callback_ = std::move(cb);
     }
 
-    void spin_once()
+    void spin_once() override
     {
         if (reader_ == nullptr) return;
 
@@ -97,13 +110,6 @@ public:
 
 protected:
 
-    eprosima::fastdds::dds::DataReaderQos reader_qos() const {
-        auto qos = eprosima::fastdds::dds::DATAREADER_QOS_DEFAULT;
-        qos.reliability().kind = eprosima::fastdds::dds::BEST_EFFORT_RELIABILITY_QOS;
-        qos.history().kind = eprosima::fastdds::dds::KEEP_LAST_HISTORY_QOS;
-        qos.history().depth = 1;
-        return qos;
-    }
     eprosima::fastdds::dds::DomainParticipant* participant_ = nullptr;
     eprosima::fastdds::dds::Subscriber* subscriber_ = nullptr;
     eprosima::fastdds::dds::Topic* topic_ = nullptr;

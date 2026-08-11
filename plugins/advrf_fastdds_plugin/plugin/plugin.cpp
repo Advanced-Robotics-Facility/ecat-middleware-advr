@@ -103,7 +103,7 @@ int main(int argc, char **argv)
     auto dds_adapter_publishers = std::make_shared<DDSAdapterPublishers>();
     
     // subscribers
-    //auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>(config, dds_participant);
+    auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>(config, dds_participant);
    
     if (!dds_adapter_publishers->init(config, *cfg, dds_participant))
     {
@@ -125,12 +125,12 @@ int main(int argc, char **argv)
     });
     LOG_INFO("Publishers registered");
 
-    // plugin_exec.register_adapter({
-    //     "dds_adapter_subscribers",
-    //     dds_adapter_subscribers,
-    //     period_from_rate(options.rate_subscribers)
-    // });
-    // LOG_INFO("Subscribers registered");
+    plugin_exec.register_adapter({
+        "dds_adapter_subscribers",
+        dds_adapter_subscribers,
+        period_from_rate(options.rate_subscribers)
+    });
+    LOG_INFO("Subscribers registered");
 
 
     LOG_INFO("Publisher rate: {} Hz", options.rate_publishers);

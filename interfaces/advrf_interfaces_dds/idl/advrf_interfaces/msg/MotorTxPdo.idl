@@ -13,7 +13,7 @@ module advrf_interfaces {
             };
             
 
-            struct MotorTxPdo_Vector_
+            struct MotorTxPdoVector_
             {
                 sequence<MotorTxPdo_> data;
             };

@@ -15,7 +15,7 @@ int main(int argc, char** argv)
     config::ConfigTopics topics({"advrf", "kyon"});
 
     using MotorMsg =advrf_interfaces::msg::dds_::MotorXtTxPdo_;
-    using MotorVectorMsg =advrf_interfaces::msg::dds_::MotorXtTxPdo_Vector_;
+    using MotorVectorMsg =advrf_interfaces::msg::dds_::MotorXtTxPdoVector_;
 
     DDSPublisher<MotorVectorMsg> publisher;
     publisher.init_dds(

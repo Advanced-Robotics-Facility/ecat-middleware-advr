@@ -19,7 +19,7 @@ module advrf_interfaces {
                 float aux;
             };
             
-            struct MotorXtTxPdo_Vector_
+            struct MotorXtTxPdoVector_
             {
                 sequence<MotorXtTxPdo_> data;
             };
