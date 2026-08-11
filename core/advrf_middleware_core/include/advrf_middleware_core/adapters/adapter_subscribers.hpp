@@ -1,80 +1,49 @@
 #pragma once
 
+#include <shm_types.hpp>
+#include <shm_utils.hpp>
+
 #include "advrf_middleware_core/adapters/adapter_base.hpp"
-#include "advrf_middleware_core/shared_memory/shm_connection_subscribers.hpp"
 #include "advrf_middleware_core/utils/channel.hpp"  
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_interfaces_protobuf/repl_cmd.pb.h>
+#include <advrf_middleware_core/utils/log.hpp>
 
 namespace middleware_adapter::message {
 
-class AdapterSubscribers : public AdapterBase
-{
-public:
-    using Pdo = iit::advrf::Ec_slave_pdo;
-
-    AdapterSubscribers(){}
-    ~AdapterSubscribers() override = default;
-
-    void forward(const iit::advrf::Repl_cmd& cmd){
-        shm_.push_request(cmd);
-    }
-
-    void forward(const iit::advrf::Repl_cmd_vector& cmd){
-        for(auto it = cmd.requests().begin(); it != cmd.requests().end(); ++it){
-            forward(*it);
+    class AdapterSubscribers : public AdapterBase
+    {
+    public:
+        bool start() override
+        {
+            return shm_.connect(SHM_TX_PDO, ShmAttachMode::Open);
         }
-    }
 
-    void forward(const Pdo& pdo, ChannelTx channel){
-        shm_.push_pdo(pdo, channel);
-    }
-
-    void forward(const std::vector<Pdo>& pdos, ChannelTx channel){
-        for(const auto& pdo : pdos){
-            shm_.push_pdo(pdo, channel);
+        bool is_ok() const override
+        {
+            return shm_.is_ok();
         }
-    }
 
-
-    void forward(const Pdo&& pdo, ChannelTx channel){
-        shm_.push_pdo(pdo, channel);
-    }
-
-    void forward(const std::vector<Pdo>&& pdos, ChannelTx channel){
-        for(const auto& pdo : pdos){
-            shm_.push_pdo(std::move(pdo), channel);
+    protected:
+        template<typename Proto>
+        bool push(
+            ChannelTx channel,
+            const Proto& msg)
+        {
+           
+            auto device = device_for(channel);
+            if (!device) {
+                LOG_ERROR(
+                    "No SHM device mapped for ChannelTx {}",
+                    static_cast<int>(channel));
+                return false;
+            }
+            return shm_.push(*device, msg);
         }
-    }
 
-
-    SubscriberShmConnection& shm() noexcept
-    {
-        return shm_;
-    }
-
-    const SubscriberShmConnection& shm() const noexcept
-    {
-        return shm_;
-    }
-
-    bool start() override
-    {
-        return shm_.connect(SHM_TX_PDO);
-    }
-
-    bool is_ok() const override
-    {
-        return shm_.is_ok();
-    }
-
-protected:
-    SubscriberShmConnection shm_;
-
-   
-private:
-   
-};
+    private:
+        ShmTxWriter shm_;
+    };
 
 } // namespace middleware_adapter::message

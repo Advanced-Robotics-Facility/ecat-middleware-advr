@@ -213,7 +213,7 @@ void convert::protobuf::from_dds(
         const advrf_interfaces::srv::dds_::ReplCmd_Request_& request,
         iit::advrf::Repl_cmd& pb)
     {
-    from_dds(request.request(), pb);
+        from_dds(request.request(), pb);
     }
 
 

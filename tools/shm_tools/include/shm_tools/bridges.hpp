@@ -14,13 +14,13 @@ protected:
 
     void declare() override
     {
-        register_queue<iit::advrf::Ec_slave_pdo>("imu", bridge_->payload.queue_for(DeviceType::IMU));
-        register_queue<iit::advrf::Ec_slave_pdo>("motor", bridge_->payload.queue_for(DeviceType::MOTOR));
-        register_queue<iit::advrf::Ec_slave_pdo>("gripper", bridge_->payload.queue_for(DeviceType::GRIPPER));
-        register_queue<iit::advrf::Ec_slave_pdo>("force_torque", bridge_->payload.queue_for(DeviceType::FORCE_TORQUE));
-        register_queue<iit::advrf::Ec_slave_pdo>("power_board", bridge_->payload.queue_for(DeviceType::POWER_BOARD));
-        register_queue<iit::advrf::Ec_slave_pdo>("pump", bridge_->payload.queue_for(DeviceType::PUMP));
-        register_queue<iit::advrf::Ec_slave_pdo>("valve", bridge_->payload.queue_for(DeviceType::VALVE));
+        register_queue<iit::advrf::Ec_slave_pdo>("imu", bridge_->payload.queue_for(DeviceTypeRx::IMU));
+        register_queue<iit::advrf::Ec_slave_pdo>("motor", bridge_->payload.queue_for(DeviceTypeRx::MOTOR));
+        register_queue<iit::advrf::Ec_slave_pdo>("gripper", bridge_->payload.queue_for(DeviceTypeRx::GRIPPER));
+        register_queue<iit::advrf::Ec_slave_pdo>("force_torque", bridge_->payload.queue_for(DeviceTypeRx::FORCE_TORQUE));
+        register_queue<iit::advrf::Ec_slave_pdo>("power_board", bridge_->payload.queue_for(DeviceTypeRx::POWER_BOARD));
+        register_queue<iit::advrf::Ec_slave_pdo>("pump", bridge_->payload.queue_for(DeviceTypeRx::PUMP));
+        register_queue<iit::advrf::Ec_slave_pdo>("valve", bridge_->payload.queue_for(DeviceTypeRx::VALVE));
     }
 };
 

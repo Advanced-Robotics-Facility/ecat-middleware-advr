@@ -352,25 +352,25 @@ int main(int argc, char** argv)
 
             switch (slave.type) {
                 case DeviceTypeRx::IMU:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::IMU), make_imu_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::IMU), make_imu_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceTypeRx::MOTOR:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::MOTOR), make_motor_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::MOTOR), make_motor_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceTypeRx::GRIPPER:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::GRIPPER), make_gripper_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::GRIPPER), make_gripper_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceTypeRx::POWER_BOARD:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::POWER_BOARD), make_pb_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::POWER_BOARD), make_pb_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceTypeRx::PUMP:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::PUMP), make_pump_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::PUMP), make_pump_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceTypeRx::FORCE_TORQUE:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::FORCE_TORQUE), make_ft_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::FORCE_TORQUE), make_ft_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceTypeRx::VALVE:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceType::VALVE), make_valve_pdo(t, sample_count, slave.board_id));
+                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::VALVE), make_valve_pdo(t, sample_count, slave.board_id));
                     break;
                 default:
                     break;

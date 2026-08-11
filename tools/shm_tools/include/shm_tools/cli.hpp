@@ -70,11 +70,11 @@ inline CLIArguments parse_arguments(int argc, char** argv)
 
     std::string bridge = argv[1];
 
-    if (bridge == "pub-bridge")
+    if (bridge == "rx/ntr" || bridge == "pub-bridge")
         args.bridge = BridgeType::Pub;
-    else if (bridge == "sub-bridge")
+    else if (bridge == "tx" || bridge == "sub-bridge")
         args.bridge = BridgeType::Sub;
-    else if (bridge == "repl-bridge")
+    else if (bridge == "service" || bridge == "repl-bridge")
         args.bridge = BridgeType::Repl;
     else
     {

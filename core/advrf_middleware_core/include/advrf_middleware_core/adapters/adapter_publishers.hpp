@@ -13,12 +13,12 @@
 #include <shm_types.hpp>
 
 #include "advrf_middleware_core/adapters/adapter_base.hpp"
-#include "advrf_middleware_core/shared_memory/shm_connection_publishers.hpp"
 #include "advrf_middleware_core/utils/channel.hpp"
 #include "advrf_middleware_core/utils/log.hpp"
 #include "advrf_middleware_core/utils/pdo_utils.hpp"
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
+#include <advrf_middleware_core/utils/log.hpp>
 
 
 inline int get_ecat_id(const std::string& component_name)
@@ -103,12 +103,12 @@ public:
 
     ~AdapterPublishers() override = default;
 
-    PublisherShmConnection& shm() noexcept
+    ShmRxReader& shm() noexcept
     {
         return shm_;
     }
 
-    const PublisherShmConnection& shm() const noexcept
+    const ShmRxReader& shm() const noexcept
     {
         return shm_;
     }
@@ -121,7 +121,7 @@ public:
 
     bool start() override
     {
-        return shm_.connect(SHM_NRT_RX_PDO);
+        return shm_.connect(SHM_NRT_RX_PDO, ShmAttachMode::Open);
     }
 
     bool is_ok() const override
@@ -130,7 +130,8 @@ public:
     }
 
 protected:
-    PublisherShmConnection shm_;
+    protected:
+    ShmRxReader shm_;
 
     template<typename PublisherType>
     PublisherType& register_publisher(
@@ -198,8 +199,6 @@ private:
 
     std::vector<std::unique_ptr<IPublisher>> publishers_;
     std::vector<Subscription> subscriptions_;
-
-    ShmProtoHelper proto_helper_;
     Cache cache_;
 
     static constexpr std::size_t channel_index(ChannelRx channel) noexcept
@@ -219,49 +218,58 @@ private:
 
     void fill_cache()
     {
-        for (const ChannelRx channel : all_channels_) {
-            auto& queue = shm_.resolve(channel);
+        for (const ChannelRx channel : all_channels_)
+        {
+            const auto device = device_for(channel);
+
+            if (!device)
+            {
+                LOG_ERROR(
+                    "No device mapped for ChannelRx {}",
+                    static_cast<int>(channel));
+                continue;
+            }
+
             auto& cache = channel_cache(channel);
+            Pdo pdo;
 
-            // Reset cycle flags
-            for (auto& entry : cache.entries){
-                entry.updated_this_cycle = false;
-            }
+            shm_.drain(
+                *device,
+                pdo,
+                [&](const Pdo& received)
+                {
+                    const int parsed_id =
+                        get_ecat_id(received.header().str_id());
 
+                    if (parsed_id < 0)
+                    {
+                        LOG_ERROR(
+                            "Format error for PDO frame with ID {}",
+                            received.header().str_id());
+                        return;
+                    }
 
-            ProtoSlot frame;
+                    const auto id =
+                        static_cast<EcatId>(parsed_id);
 
-            while (queue.try_pop(frame)) {
+                    if (id >= MaxEcatIds)
+                    {
+                        LOG_ERROR(
+                            "ECAT ID {} exceeds maximum supported ID {}",
+                            id,
+                            MaxEcatIds - 1);
+                        return;
+                    }
 
-                Pdo pdo;
+                    auto& entry = cache.entries[id];
 
-                if (!pdo_utils::parse_frame(
-                        frame.data,
-                        static_cast<ssize_t>(frame.size),
-                        pdo)) {
-                    continue;
-                }
+                    if (!entry.valid)
+                        cache.active_ids.push_back(id);
 
-                const int parsed_id = get_ecat_id(pdo.header().str_id());
-
-                if (parsed_id < 0) {
-                    LOG_ERROR(
-                        "Format error for PDO frame with ID {}",
-                        pdo.header().str_id());
-                    continue;
-                }
-
-                const auto id = static_cast<EcatId>(parsed_id);
-                auto& entry = cache.entries[id];
-                if (!entry.valid) {
-                    cache.active_ids.push_back(id);
-                }
-
-                entry.valid = true;
-                entry.updated_this_cycle = true;
-                entry.ecat_id = id;
-                entry.pdo = std::move(pdo);
-            }
+                    entry.valid = true;
+                    entry.ecat_id = id;
+                    entry.pdo = received;
+                });
         }
     }
 

@@ -1,99 +1,131 @@
 #pragma once
 
+#include <shm_types.hpp>
+#include <shm_utils.hpp>
+
 #include "advrf_middleware_core/adapters/adapter_base.hpp"
 #include "advrf_middleware_core/utils/log.hpp"
-#include "advrf_middleware_core/shared_memory/shm_connection_repl.hpp"
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_interfaces_protobuf/repl_cmd.pb.h>
+#include <advrf_middleware_core/utils/log.hpp>
 
+namespace middleware_adapter::service
+{
 
-namespace middleware_adapter::service   {   
 
 class AdapterServiceServer : public AdapterBase
 {
 public:
-
     AdapterServiceServer() = default;
-    virtual ~AdapterServiceServer() = default;
+    ~AdapterServiceServer() override = default;
 
-    iit::advrf::Cmd_reply process_request(const iit::advrf::Repl_cmd& request)
+
+    iit::advrf::Cmd_reply process_request(
+        const iit::advrf::Repl_cmd& request)
     {
-        iit::advrf::Cmd_reply reply;
+        // Only one outstanding SHM request at a time.
+        std::scoped_lock lock{request_mutex_};
+
         if (!shm_.is_ok())
-        {
-            LOG_ERROR("RT not connected");
-            reply.set_type(iit::advrf::Cmd_reply::NACK);
-            reply.set_msg("ecat master not connected");
-            return reply;
-        }
+            return make_nack("ecat master not connected");
 
         if (!shm_.push_request(request))
         {
-            LOG_ERROR("push to request queue FAILED");
-            reply.set_type(iit::advrf::Cmd_reply::NACK);
-            reply.set_msg("shm request queue full");
-            return reply;
+            LOG_ERROR("Push to request queue failed");
+            return make_nack("shm request queue full");
         }
 
-        LOG_DEBUG("pushed request to shm, waiting for reply...");
+        LOG_DEBUG(
+            "Pushed request to SHM, waiting for reply...");
 
-        ProtoSlot frame;
-        const auto timeout = std::chrono::milliseconds(1000);
-        const auto deadline = std::chrono::steady_clock::now() + timeout;
+        const auto deadline =
+            std::chrono::steady_clock::now() + ReplyTimeout;
 
-        iit::advrf::Cmd_reply reply_tmp;
-        while (std::chrono::steady_clock::now() < deadline) {
-            if (shm_.pop_reply(frame)) {
-                uint32_t payload_size = 0;
-                if (ShmProtoHelper::frame_payload_size(frame, payload_size) &&
-                    reply_tmp.ParseFromArray(frame.data + PROTO_FRAME_HEADER_BYTES,
-                                        static_cast<int>(payload_size))) {
+        while (std::chrono::steady_clock::now() < deadline)
+        {
+            iit::advrf::Cmd_reply reply;
 
-                    if(reply_tmp.request_id().guid() == request.request_id().guid() &&
-                       reply_tmp.request_id().seq() == request.request_id().seq())
-                    {
-                        reply_tmp.set_type(iit::advrf::Cmd_reply::ACK);
-                        return reply_tmp;
-                    }
-                }
+            if (shm_.try_pop_reply(reply))
+            {
+                if (matches(request, reply))
+                    return reply;
             }
-            std::this_thread::sleep_for(std::chrono::microseconds(200));
+
+            std::this_thread::sleep_for(PollPeriod);
         }
 
-        LOG_ERROR("timeout waiting for reply from shm");
-        reply.set_type(iit::advrf::Cmd_reply::NACK);
-        reply.set_msg("Timeout waiting for reply from shm");
-        return reply;
+        LOG_ERROR("Timeout waiting for reply from SHM");
+
+        return make_nack(
+            "Timeout waiting for reply from shm");
     }
 
 
-    ReplShmConnection& shm()
+    ShmServiceClient& shm() noexcept
     {
         return shm_;
     }
 
-    const ReplShmConnection& shm() const
+
+    const ShmServiceClient& shm() const noexcept
     {
         return shm_;
     }
+
 
     bool start() override
     {
-        return shm_.connect(SHM_REPL_NAME);
+        return shm_.connect_and_wait(
+            SHM_REPL_NAME,
+            ShmAttachMode::Open);
     }
+
 
     bool is_ok() const override
     {
         return shm_.is_ok();
     }
 
+
 protected:
-    ReplShmConnection shm_;
+    ShmServiceClient shm_;
+
 
 private:
-    ShmProtoHelper proto_helper_;
+    static constexpr auto ReplyTimeout =
+        std::chrono::milliseconds{1000};
 
+    static constexpr auto PollPeriod =
+        std::chrono::microseconds{200};
+
+
+    static bool matches(
+        const iit::advrf::Repl_cmd& request,
+        const iit::advrf::Cmd_reply& reply)
+    {
+        return
+            reply.request_id().guid() ==
+                request.request_id().guid() &&
+            reply.request_id().seq() ==
+                request.request_id().seq();
+    }
+
+
+    static iit::advrf::Cmd_reply make_nack(
+        const std::string& message)
+    {
+        iit::advrf::Cmd_reply reply;
+
+        reply.set_type(iit::advrf::Cmd_reply::NACK);
+        reply.set_msg(message);
+
+        return reply;
+    }
+
+
+    std::mutex request_mutex_;
 };
 
-}
+
+} // namespace middleware_adapter::service

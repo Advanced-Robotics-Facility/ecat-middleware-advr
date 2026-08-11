@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <map>
+#include <optional>
 
 // from ecat_master
 #include <shm_types.hpp>
@@ -43,3 +44,26 @@ const std::map<ChannelTx, DeviceTypeTx> k_map_channeltx_to_devicetx = {
     {ChannelTx::Pump, DeviceTypeTx::PUMP},
     {ChannelTx::Valve, DeviceTypeTx::VALVE}
 };
+
+
+inline std::optional<DeviceTypeRx>
+device_for(ChannelRx channel)
+{
+    const auto it = k_map_channelrx_to_devicerx.find(channel);
+
+    if (it == k_map_channelrx_to_devicerx.end())
+        return std::nullopt;
+
+    return it->second;
+}
+
+inline std::optional<DeviceTypeTx>
+device_for(ChannelTx channel)
+{
+    const auto it = k_map_channeltx_to_devicetx.find(channel);
+
+    if (it == k_map_channeltx_to_devicetx.end())
+        return std::nullopt;
+
+    return it->second;
+}

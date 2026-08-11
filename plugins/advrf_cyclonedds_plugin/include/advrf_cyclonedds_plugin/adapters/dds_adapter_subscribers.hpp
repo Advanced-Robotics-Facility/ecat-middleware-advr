@@ -41,7 +41,9 @@ protected:
         subscriber->set_callback(
             [this, channel, converter](const Msg& msg)
             {
-                this->forward(std::move(converter(msg)), channel);
+                for(const auto& pdo : converter(msg)){
+                    this->push(channel, pdo);
+                }
             });
         subscribers_.push_back(subscriber);
     }
@@ -65,7 +67,7 @@ protected:
         subscriber->set_callback(
             [this, channel, converter](const Msg& msg)
             {
-                this->forward(std::move(converter(msg)), channel);
+                this->push(channel, std::move(converter(msg)));
             });
         subscribers_.push_back(subscriber);
     }
