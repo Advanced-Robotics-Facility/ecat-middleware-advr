@@ -97,3 +97,9 @@ install(
         "${CMAKE_CURRENT_BINARY_DIR}/advrf_dds_commonConfigVersion.cmake"
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
+
+include(CTest)
+
+if(BUILD_TESTING)
+    add_subdirectory(test/unit)
+endif()
