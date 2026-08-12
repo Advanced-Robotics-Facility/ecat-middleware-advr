@@ -28,7 +28,10 @@ int main(int argc, char** argv)
 
     clock_utils::init();
     DDSAdapterPublishers dds_adapter;
-    dds_adapter.shm().connect(SHM_NRT_RX_PDO);
+    if(!dds_adapter.shm().connect(SHM_NRT_RX_PDO, ShmAttachMode::Open)) {
+        LOG_ERROR("Failed to connect to shared memory");
+        return 1;
+    }
 
     auto config = config::ConfigTopics({"advrf", cfg->robot_name});
 

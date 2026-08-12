@@ -5,6 +5,11 @@ project(advrf_cyclonedds_plugin
     LANGUAGES CXX
 )
 
+if(NOT BUILD_CYCLONEDDS)
+    message(STATUS "CycloneDDS build disabled")
+    return()
+endif()
+
 find_package(advrf_cyclonedds_lib REQUIRED)
 find_package(advrf_dds_common REQUIRED)
 find_package(advrf_interfaces_dds REQUIRED)

@@ -34,15 +34,14 @@ int main(int argc, char** argv)
         42,
         eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT
     );
+    
     if (participant == nullptr) {
         LOG_ERROR("Failed to create DDS participant");
         return 1;
     }
 
     config::ConfigTopics topics({"advrf", "kyon"});
-
     DDSPublisher<MotorVectorXtTxMsg, MotorXtTxPubSubType> publisher;
-
     if (!publisher.init_dds(topics.command.motorXtCmd(), participant)) {
         LOG_ERROR("Failed to initialize DDS publisher");
         eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
@@ -85,7 +84,6 @@ int main(int argc, char** argv)
         msg.data().push_back(motor_2);
 
         publisher.publish(msg);
-
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 

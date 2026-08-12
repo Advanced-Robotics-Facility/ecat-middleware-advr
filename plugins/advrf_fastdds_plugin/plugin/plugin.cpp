@@ -93,9 +93,7 @@ int main(int argc, char **argv)
         LOG_ERROR("Failed to create DDS DomainParticipant.");
         return 1;
     }
-
     auto config = config::ConfigTopics({"advrf", cfg->robot_name});
-
     // service
     //auto dds_adapter_service = std::make_shared<DDSAdapterService>(config, dds_participant);
 

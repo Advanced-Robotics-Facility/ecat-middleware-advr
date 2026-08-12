@@ -15,7 +15,6 @@
 #include "advrf_fastdds_plugin/adapters/dds_adapter_service.hpp"
 #include "advrf_middleware_core/config/config_topics.hpp"
 
-#include <advrf_middleware_core/shared_memory/shm_connection_repl.hpp>
 
 namespace {
     volatile std::sig_atomic_t keep_running = 1;
@@ -47,7 +46,11 @@ int main(int argc, char** argv)
     auto config = config::ConfigTopics({"advrf", "robot"});
     DDSAdapterService dds_adapter_service(config, participant);
         
-    dds_adapter_service.shm().connect(SHM_REPL_NAME);
+    if(!dds_adapter_service.shm().connect(SHM_REPL_NAME, ShmAttachMode::Open))
+    {
+        LOG_ERROR("Failed to connect to shared memory");
+        return 1;
+    }
 
     while (keep_running) {
         dds_adapter_service.spin_once();

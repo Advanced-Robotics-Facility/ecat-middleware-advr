@@ -5,6 +5,11 @@ project(advrf_fastdds_plugin
     LANGUAGES C CXX
 )
 
+if(NOT BUILD_FASTDDS)
+    message(STATUS "FastDDS build disabled")
+    return()
+endif()
+
 find_package(advrf_fastdds_lib REQUIRED)
 find_package(advrf_dds_common REQUIRED)
 find_package(advrf_interfaces_dds REQUIRED)
@@ -91,8 +96,8 @@ install(
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
-option(BUILD_TEST_EXAMPLES "Build testing examples" OFF)
-option(BUILD_TESTING "Build unit tests" OFF)
+option(BUILD_TEST_EXAMPLES "Build testing examples" ON)
+option(BUILD_TESTING "Build unit tests" ON)
 
 if(BUILD_TESTING)
     enable_testing()

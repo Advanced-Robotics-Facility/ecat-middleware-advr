@@ -5,6 +5,11 @@ project(advrf_fastdds_lib
     LANGUAGES C CXX
 )
 
+if(NOT BUILD_FASTDDS)
+    message(STATUS "FastDDS build disabled")
+    return()
+endif()
+
 include(ExternalProject)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
