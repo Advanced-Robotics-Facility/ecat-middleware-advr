@@ -6,28 +6,59 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 set(
+    CONFIG_ROOT
+    "${CMAKE_CURRENT_SOURCE_DIR}/configs"
+)
+
+# Find available configurations
+file(
+    GLOB CONFIG_ENTRIES
+    RELATIVE "${CONFIG_ROOT}"
+    "${CONFIG_ROOT}/*"
+)
+
+set(AVAILABLE_CONFIGS "")
+
+foreach(CONFIG_NAME IN LISTS CONFIG_ENTRIES)
+    if(IS_DIRECTORY "${CONFIG_ROOT}/${CONFIG_NAME}")
+        list(APPEND AVAILABLE_CONFIGS "${CONFIG_NAME}")
+    endif()
+endforeach()
+
+list(SORT AVAILABLE_CONFIGS)
+string(JOIN ", " AVAILABLE_CONFIGS_STR ${AVAILABLE_CONFIGS})
+if(AVAILABLE_CONFIGS)
+    list(GET AVAILABLE_CONFIGS 0 FIRST_CONFIG)
+else()
+    set(FIRST_CONFIG "<config_name>")
+endif()
+
+set(
     SELECT_CONFIG
     ""
     CACHE STRING
     "Project configuration to install"
 )
 
+# Require a configuration
 if(SELECT_CONFIG STREQUAL "")
     message(FATAL_ERROR
         "SELECT_CONFIG is not set.\n"
-        "Example: -DSELECT_CONFIG=robot_a"
+        "Available configs: ${AVAILABLE_CONFIGS_STR}\n"
+        "Example: -DSELECT_CONFIG=${FIRST_CONFIG}"
     )
 endif()
 
 set(
     SELECTED_CONFIG_DIR
-    "${CMAKE_CURRENT_SOURCE_DIR}/configs/${SELECT_CONFIG}"
+    "${CONFIG_ROOT}/${SELECT_CONFIG}"
 )
 
+# Check selected configuration
 if(NOT IS_DIRECTORY "${SELECTED_CONFIG_DIR}")
     message(FATAL_ERROR
-        "Configuration '${SELECT_CONFIG}' not found:\n"
-        "${SELECTED_CONFIG_DIR}"
+        "Configuration '${SELECT_CONFIG}' not found.\n"
+        "Available configs: ${AVAILABLE_CONFIGS_STR}"
     )
 endif()
 
@@ -44,7 +75,7 @@ set(
     "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake"
 )
 
-# Remove previous config before installing the new one
+# Remove previous configuration
 install(CODE "
     message(STATUS \"Cleaning previous project config\")
     file(
@@ -53,7 +84,7 @@ install(CODE "
     )
 ")
 
-# Install selected config
+# Install selected configuration
 install(
     DIRECTORY "${SELECTED_CONFIG_DIR}/"
     DESTINATION "${CONFIG_INSTALL_DIR}"
