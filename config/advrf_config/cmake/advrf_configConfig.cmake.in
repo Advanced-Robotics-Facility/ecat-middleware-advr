@@ -2,7 +2,7 @@
 
 set(
     advrf_config_share
-    "${PACKAGE_PREFIX_DIR}/share/advrf_config"
+    "${PACKAGE_PREFIX_DIR}/share/advrf_config/config"
 )
 
 if(NOT TARGET advrf_config)

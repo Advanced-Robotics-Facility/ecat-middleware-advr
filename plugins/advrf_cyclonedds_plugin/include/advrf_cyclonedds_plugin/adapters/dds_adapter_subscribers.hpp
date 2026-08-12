@@ -75,5 +75,6 @@ protected:
 
 private:
     bool initialized_{true};
+    advrf::dds_common::ReaderPolicy reader_policy_;
     std::vector<std::shared_ptr<DDSSubscriberBase>> subscribers_;
 };
