@@ -4,6 +4,7 @@
 #include <cmath>
 #include <csignal>
 #include <string>
+#include <filesystem>
 
 #include "advrf_middleware_core/config/robot_config.hpp"
 
@@ -228,7 +229,7 @@ int main(int argc, char** argv)
     std::signal(SIGINT, on_signal);
     std::signal(SIGTERM, on_signal);
 
-    auto cfg = load_robot_config(ROBOT_CONFIG_DIR);
+    auto cfg = load_robot_config(ADVRF_CONFIG_SHARE / "middleware" / "middleware.yaml");
     if (!cfg) return 1;
 
     // Publisher SHM

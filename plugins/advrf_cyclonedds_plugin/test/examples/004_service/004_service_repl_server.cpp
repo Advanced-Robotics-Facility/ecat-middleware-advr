@@ -1,6 +1,7 @@
 #include <chrono>
 #include <csignal>
 #include <thread>
+#include <filesystem>
 
 #include <advrf_middleware_core/config/robot_config.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
@@ -28,30 +29,17 @@ int main(int argc, char** argv)
     std::signal(SIGTERM, on_signal);
 
 
-    const auto cfg = load_robot_config(ROBOT_CONFIG_DIR);
+    const auto cfg = load_robot_config( ADVRF_CONFIG_SHARE / "middleware" / "middleware.yaml");
+    auto dds_participant = dds::domain::DomainParticipant{cfg->domain_id};
+    auto config =config::ConfigTopics{{cfg->ns, cfg->robot_name}};
 
     if (!cfg)
         return 1;
-
-
-    auto dds_participant =
-        dds::domain::DomainParticipant{cfg->domain_id};
-
-    auto config =
-        config::ConfigTopics{{"advrf", "robot"}};
 
     DDSAdapterService dds_adapter_service{
         config,
         dds_participant};
 
-
-    /*
-     * AdapterServiceServer::start() now owns the SHM connection:
-     *
-     *   ShmServiceClient
-     *   -> Open SHM_REPL_NAME
-     *   -> wait for ShmServiceServer readiness
-     */
     if (!dds_adapter_service.start())
     {
         LOG_ERROR("Failed to start DDS service adapter");

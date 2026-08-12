@@ -1,21 +1,23 @@
+#include <dds/dds.hpp>
+#include <chrono>
+#include <thread>
+#include <filesystem>
+
+#include <advrf_middleware_core/config/robot_config.hpp>
 #include "advrf_cyclonedds_plugin/publisher/dds_publisher.hpp"
 #include "advrf_middleware_core/config/config_topics.hpp"
 #include <advrf_interfaces/msg/MotorXtTxPdo.hpp>
-
-#include <dds/dds.hpp>
-
-#include <chrono>
-#include <thread>
 
 int main(int argc, char** argv)
 {
     advrf::log::Log::init();
 
-    dds::domain::DomainParticipant participant(42);
-    config::ConfigTopics topics({"advrf", "kyon"});
+    const auto cfg = load_robot_config( ADVRF_CONFIG_SHARE / "middleware" / "middleware.yaml");
+    config::ConfigTopics topics({cfg->ns, cfg->robot_name});
+    dds::domain::DomainParticipant participant(cfg->domain_id);
 
-    using MotorMsg =advrf_interfaces::msg::dds_::MotorXtTxPdo_;
-    using MotorVectorMsg =advrf_interfaces::msg::dds_::MotorXtTxPdoVector_;
+    using MotorMsg = advrf_interfaces::msg::dds_::MotorXtTxPdo_;
+    using MotorVectorMsg = advrf_interfaces::msg::dds_::MotorXtTxPdoVector_;
 
     DDSPublisher<MotorVectorMsg> publisher;
     publisher.init_dds(

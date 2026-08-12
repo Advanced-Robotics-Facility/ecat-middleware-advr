@@ -12,6 +12,7 @@ target_link_libraries(005_subscriber_publisher
         advrf_cyclonedds_plugin
         advrf_interfaces_dds::cyclonedds
         advrf_middleware_core
+        advrf_config
 )
 
 install(

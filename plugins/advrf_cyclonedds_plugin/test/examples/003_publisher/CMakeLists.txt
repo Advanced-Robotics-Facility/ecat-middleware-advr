@@ -12,11 +12,8 @@ target_link_libraries(003_publisher_from_shm
         advrf_cyclonedds_plugin
         advrf_interfaces_dds::cyclonedds
         advrf_middleware_core
+        advrf_config
         yaml-cpp::yaml-cpp
-)
-
-target_compile_definitions(003_publisher_from_shm PRIVATE
-    ROBOT_CONFIG_DIR="${advrf_middleware_core_CONFIG_DIR}/robot.yaml"
 )
 
 install(

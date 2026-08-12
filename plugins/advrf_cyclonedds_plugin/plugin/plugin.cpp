@@ -1,6 +1,7 @@
 #include <chrono>
 #include <iostream>
 #include <string>
+#include <filesystem>
 
 #include <advrf_middleware_core/plugin/plugin_exec.hpp>
 #include <advrf_middleware_core/config/robot_config.hpp>
@@ -69,12 +70,12 @@ int main(int argc, char **argv)
     const auto options = parse_args(argc, argv);
 
     advrf::plugin::PluginExec plugin_exec;
-    auto cfg = load_robot_config(ROBOT_CONFIG_DIR);
+    auto cfg = load_robot_config(ADVRF_CONFIG_SHARE / "middleware" / "middleware.yaml");
     if (!cfg)
         return 1;
 
     auto dds_participant = dds::domain::DomainParticipant(cfg->domain_id);
-    auto config = config::ConfigTopics({"advrf", cfg->robot_name});
+    auto config = config::ConfigTopics{{cfg->ns, cfg->robot_name}};
 
     // service
     //auto dds_adapter_service = std::make_shared<DDSAdapterService>(config, dds_participant);

@@ -8,6 +8,7 @@ project(advrf_middleware_core
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
+find_package(advrf_config CONFIG REQUIRED)
 find_package(advrf_interfaces_protobuf REQUIRED)
 find_package(ecat_master REQUIRED COMPONENTS ecat_core)
 find_package(spdlog REQUIRED)
@@ -34,6 +35,7 @@ target_link_libraries(advrf_middleware_core
         ecat_master::ecat_core
         spdlog::spdlog
         yaml-cpp::yaml-cpp
+        
 )
 
 install(
@@ -53,16 +55,33 @@ install(
 )
 
 install(
-    DIRECTORY
-        config/
-    DESTINATION
-        share/${PROJECT_NAME}/config
-)
-
-install(
     EXPORT advrf_middleware_coreTargets
     FILE advrf_middleware_coreTargets.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+)
+
+add_executable(ecat_master_shm_mock
+        src/producer.cpp
+)
+
+target_compile_features(ecat_master_shm_mock
+    PRIVATE
+        cxx_std_17
+)
+
+target_link_libraries(ecat_master_shm_mock
+    PRIVATE
+        advrf_config
+        advrf_middleware_core
+        ecat_master::ecat_core
+        advrf_interfaces_protobuf
+        yaml-cpp::yaml-cpp
+
+)
+
+install(
+    TARGETS ecat_master_shm_mock
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 configure_package_config_file(
@@ -83,32 +102,6 @@ install(
         ${CMAKE_CURRENT_BINARY_DIR}/advrf_middleware_coreConfigVersion.cmake
     DESTINATION
         ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-)
-
-add_executable(ecat_master_shm_mock
-        src/producer.cpp
-)
-
-target_compile_definitions(ecat_master_shm_mock PRIVATE
-    ROBOT_CONFIG_DIR="${CMAKE_INSTALL_FULL_DATADIR}/${PROJECT_NAME}/config/robot.yaml"
-)
-
-target_compile_features(ecat_master_shm_mock
-    PRIVATE
-        cxx_std_17
-)
-
-target_link_libraries(ecat_master_shm_mock
-    PRIVATE
-        advrf_middleware_core
-        ecat_master::ecat_core
-        advrf_interfaces_protobuf
-        yaml-cpp::yaml-cpp
-)
-
-install(
-    TARGETS ecat_master_shm_mock
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 option(BUILD_TESTING "Build unit tests" ON)

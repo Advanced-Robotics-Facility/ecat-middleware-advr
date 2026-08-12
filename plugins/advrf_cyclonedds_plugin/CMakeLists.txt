@@ -14,6 +14,7 @@ find_package(advrf_cyclonedds_lib REQUIRED)
 find_package(advrf_dds_common REQUIRED)
 find_package(advrf_interfaces_dds REQUIRED)
 find_package(advrf_middleware_core REQUIRED)
+find_package(advrf_config CONFIG REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
 include(GNUInstallDirs)

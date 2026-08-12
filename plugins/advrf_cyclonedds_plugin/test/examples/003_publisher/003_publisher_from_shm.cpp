@@ -1,5 +1,6 @@
 #include <chrono>
 #include <csignal>
+#include <filesystem>
 #include <thread>
 
 #include <advrf_middleware_core/config/robot_config.hpp>
@@ -8,11 +9,9 @@
 
 #include "advrf_cyclonedds_plugin/adapters/dds_adapter_publishers.hpp"
 
-
 namespace
 {
     volatile std::sig_atomic_t keep_running = 1;
-
     void on_signal(int)
     {
         keep_running = 0;
@@ -26,9 +25,7 @@ int main(int argc, char** argv)
 
     std::signal(SIGINT, on_signal);
     std::signal(SIGTERM, on_signal);
-
-
-    const auto cfg = load_robot_config(ROBOT_CONFIG_DIR);
+    const auto cfg = load_robot_config( ADVRF_CONFIG_SHARE / "middleware" / "middleware.yaml");
 
     if (!cfg)
         return 1;
@@ -39,7 +36,7 @@ int main(int argc, char** argv)
 
     auto config =
         config::ConfigTopics{
-            {"advrf", cfg->robot_name}
+            {cfg->ns, cfg->robot_name}
         };
 
     auto domain_participant =

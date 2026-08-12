@@ -14,6 +14,7 @@
   <depend>advrf_dds_common</depend>
   <depend>advrf_middleware_core</depend>
   <depend>advrf_cyclonedds_lib</depend>
+  <depend>advrf_config</depend>
 
   <export>
     <build_type>cmake</build_type>

@@ -1,6 +1,7 @@
 #include <chrono>
 #include <thread>
 #include <csignal>
+#include <filesystem>
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
@@ -31,11 +32,12 @@ int main(int argc, char** argv)
     std::signal(SIGINT, on_signal);
     std::signal(SIGTERM, on_signal);
 
-    auto cfg = load_robot_config(ROBOT_CONFIG_DIR);
+    auto cfg = load_robot_config(ADVRF_CONFIG_SHARE / "middleware" / "middleware.yaml");
     if (!cfg) return 1;
     
+    auto config = config::ConfigTopics({cfg->ns, cfg->robot_name});
     auto* participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
-        42,
+        cfg->domain_id,
         eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT
     );
     if (participant == nullptr) {
@@ -43,7 +45,6 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    auto config = config::ConfigTopics({"advrf", "robot"});
     DDSAdapterService dds_adapter_service(config, participant);
         
     if(!dds_adapter_service.shm().connect(SHM_REPL_NAME, ShmAttachMode::Open))

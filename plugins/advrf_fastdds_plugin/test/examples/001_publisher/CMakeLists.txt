@@ -12,12 +12,10 @@ target_link_libraries(001_publisher
         advrf_fastdds_plugin
         advrf_interfaces_dds::fastdds
         advrf_middleware_core
+        advrf_config
         yaml-cpp::yaml-cpp
 )
 
-target_compile_definitions(001_publisher PRIVATE
-    ROBOT_CONFIG_DIR="${advrf_middleware_core_CONFIG_DIR}/robot.yaml"
-)
 
 install(
     TARGETS 001_publisher

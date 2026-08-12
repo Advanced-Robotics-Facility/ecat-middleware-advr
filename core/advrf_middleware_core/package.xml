@@ -6,11 +6,12 @@
 
   <maintainer email="hugo.pousseur@iit.it">Hugo POUSSEUR</maintainer>
   <maintainer email="manuel.delucchi@iit.it">Manuel Delucchi</maintainer>
-  <license>MIT</license>
+  <license>TODO</license>
 
   <buildtool_depend>cmake</buildtool_depend>
 
   <depend>ecat_master</depend>
+  <depend>advrf_config</depend>
   <depend>advrf_interfaces_protobuf</depend>
   <depend>yaml-cpp</depend>
 

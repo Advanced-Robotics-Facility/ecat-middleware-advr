@@ -1,6 +1,7 @@
 #include <chrono>
 #include <thread>
 #include <csignal>
+#include <filesystem>
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
@@ -8,7 +9,7 @@
 
 #include "advrf_fastdds_plugin/publisher/dds_publisher.hpp"
 #include "advrf_middleware_core/config/config_topics.hpp"
-
+#include <advrf_middleware_core/config/robot_config.hpp>
 #include <advrf_interfaces/msg/MotorXtTxPdo.hpp>
 #include <advrf_interfaces/msg/MotorXtTxPdoPubSubTypes.hpp>
 
@@ -30,8 +31,12 @@ int main(int argc, char** argv)
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);
 
+    auto cfg = load_robot_config(ADVRF_CONFIG_SHARE / "middleware" / "middleware.yaml");
+    if (!cfg) return 1;
+
+    config::ConfigTopics topics({cfg->ns, cfg->robot_name});
     auto* participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
-        42,
+        cfg->domain_id,
         eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT
     );
     
@@ -40,7 +45,7 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    config::ConfigTopics topics({"advrf", "kyon"});
+    
     DDSPublisher<MotorVectorXtTxMsg, MotorXtTxPubSubType> publisher;
     if (!publisher.init_dds(topics.command.motorXtCmd(), participant)) {
         LOG_ERROR("Failed to initialize DDS publisher");

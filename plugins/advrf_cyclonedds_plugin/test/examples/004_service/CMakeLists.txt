@@ -36,13 +36,8 @@ target_link_libraries(004_service_repl_server
         advrf_cyclonedds_plugin
         advrf_interfaces_dds::cyclonedds
         advrf_middleware_core
+        advrf_config
         yaml-cpp::yaml-cpp
-)
-
-
-
-target_compile_definitions(004_service_repl_server PRIVATE
-    ROBOT_CONFIG_DIR="${advrf_middleware_core_CONFIG_DIR}/robot.yaml"
 )
 
 

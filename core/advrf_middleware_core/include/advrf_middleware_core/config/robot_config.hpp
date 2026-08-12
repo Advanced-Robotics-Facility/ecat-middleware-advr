@@ -16,6 +16,7 @@ struct JointConfig {
 struct RobotConfig {
     std::string robot_name {"NoNe"};
     uint32_t domain_id {0};
+    std::string ns {""};
 
     std::vector<JointConfig> joints;  
     std::vector<JointConfig> motors;   
@@ -67,6 +68,8 @@ inline std::optional<RobotConfig> load_robot_config(const std::string& yaml_path
                          root["domain"] ? root["domain"].as<uint32_t>() :
                          0u;
 
+        cfg.ns = dds && dds["namespace"] ? dds["namespace"].as<std::string>(): "";
+
         const YAML::Node joints = robot["joints"] ? robot["joints"] : root["joints"];
         if (joints) {
             for (const auto& j : joints) {
@@ -77,7 +80,6 @@ inline std::optional<RobotConfig> load_robot_config(const std::string& yaml_path
                 std::string type = j["type"] ? j["type"].as<std::string>() : "motor";
 
                 cfg.joints.push_back(jc);
-
                 if (type == "motor")
                     cfg.motors.push_back(jc);
                 else if (type == "gripper")
