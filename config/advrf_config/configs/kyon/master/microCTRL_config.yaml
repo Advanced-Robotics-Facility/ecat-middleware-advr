@@ -1,0 +1,139 @@
+    
+firmware_update:
+  #default fw path relative to ${HOME}/.ecat_master/
+  fw_path: firmware/
+  #fw_path: fw_test/
+  # all esc
+  #slave_pos_list: [0]
+  # all BigMotor
+  #slave_pos_list: [-1]
+  # all MedMotor
+  #slave_pos_list: [-2]
+  # all LowPower motor
+  #slave_pos_list: [-3]
+  # all CentAC motor
+  #slave_pos_list: [-4]
+  # all synapticon motor
+  #slave_pos_list: [-5]
+  slave_pos_list: [1]
+  
+  big_motor:
+    bin_file: BigMotor.bin
+    passwd: 0xb001
+  medium_motor:
+    bin_file: MedMotor.bin
+    passwd: 0xb002
+  power_hub:
+    bin_file: Pow_Hub.bin
+    passwd: 0xb003
+  small_motor:
+    bin_file: mc_tm4c.bin
+    passwd: 0xbeef
+  heri_hand:
+    bin_file: mc_tm4c.bin
+    passwd: 0xbeef
+  force_torque_6:
+    bin_file: FT6.bin
+    passwd: 0xbeef
+  imu:
+    bin_file: imu_tm4c.bin
+    passwd: 0xb003
+  cent_AC:
+    m3:
+      bin_file: cent_AC_m3.bin
+      passwd: 0xA550
+    c28:
+      bin_file: cent_AC_c28.bin
+      passwd: 0xDAD0
+  synapticon:
+    bin_file: synapticon.bin
+    config: synapticon.csv
+    passwd: 0x00
+  power_f28m36:
+    m3:
+      bin_file: pow_m3.bin
+      passwd: 0xF2F2
+    c28:
+      bin_file: pow_c28.bin
+      passwd: 0xF3F3
+  test_f28m36:
+    m3:
+      bin_file: soes_m3.bin
+      passwd: 0xF0F0
+      #bin_file: ama_m3.bin
+      #passwd: 0xCACA
+    c28:
+      bin_file: soes_c28.bin
+      passwd: 0xF1F1
+      #bin_file: ama_c28.bin
+      #passwd: 0xCAC0
+  blueboard:
+    m3:
+      bin_file: bb_m3.bin
+      passwd: 0xBB01
+    c28:
+      bin_file: bb_c28.bin
+      passwd: 0xBB02
+  v3_actuator:
+    m3:
+      bin_file: v3_act_m3.bin
+      passwd: 0x0301
+    c28:
+      bin_file: v3_act_c28.bin
+      passwd: 0x0302
+  test_tiva:
+    bin_file: soes_tm4c.bin
+    passwd: 0xb007
+  test_msp432:
+    bin_file: soes_msp432.bin
+    passwd: 0xbefa
+  test_lan9252:
+    bin_file: soes_msp432.bin
+    passwd: 0xbefa
+  ft6_msp432:
+    bin_file: ft6_msp432.bin
+    passwd: 0xbefa
+  ain_msp432:
+    bin_file: ain_msp432.bin
+    passwd: 0xa1a1
+  hyq_valve:
+    bin_file: valve_tm4c.bin
+    passwd: 0xb002
+  hyq_ioV5:
+    bin_file: ioV5_tm4c.bin
+    passwd: 0xb001
+
+      
+      
+flash_files:
+  bin_path: /tmp/
+  # all CentAC motor
+  slave_pos_list: [-4]
+
+  cent_AC: 
+    m3: 
+        params: 
+            bin_file: flash_params 
+            passwd: 0xF001 
+            size_byte: 131072 
+        torque_cal: 
+            bin_file: torque_calib 
+            passwd: 0xF002 
+            size_byte: 32768 
+
+  test_f28m36:
+    m3:
+        params:
+            bin_file: flash_params.bin
+            passwd: 0xF001
+        torque_cal:
+            bin_file: torque_calib.bin
+            passwd: 0xF002
+  
+  
+
+eeprom:
+  use_pos : true
+  # mapping of esc, key depend on "use_pos" 
+  module_params_pos : {3: 0xDEADBEEF, 2: 0xF0CACC1A, 1: 0xBADCAFFE}
+  module_params_rid : {3: 0xDEADBEEF, 2: 0xF0CACC1A, 1: 0xBADCAFFE}

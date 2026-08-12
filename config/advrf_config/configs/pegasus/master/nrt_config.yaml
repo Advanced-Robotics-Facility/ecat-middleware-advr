@@ -1,0 +1,177 @@
+#
+ec_board_ctrl:
+  # if NO eth_iface is defined use env ECAT_ETH_IFACE
+  #eth_iface: eth0
+  #eth_iface: enp29s0
+  eth_iface: enp130s0
+  #sync_cycle_time_ns: 2000000
+  sync_cycle_time_ns: 1000000
+  #sync_cycle_time_ns: 500000
+  #sync_cycle_time_ns: 0
+  sync_cycle_offset_ns: 1000000000
+  sync_point_ns : 650000
+  power_off_boards : false
+  reset_micro : true
+
+ec_boards_base :
+  app_mode : run_mode
+  #app_mode : config_mode
+  robot_name : NoNe
+  read_SDOs : false
+  use_pipes : true
+  log_level : 1
+  #fault_power_off : true
+  use_ecat_pos_as_id : true
+  pb_utils_verbose : false
+
+zmq_rep :
+  uri: "tcp://*:5555"
+  zmq_rcvtimeo_ms : 500
+  pipe_prefix : "/tmp/nrt_pipes/xddp/"
+  pb_utils_verbose : false
+
+ati_config :
+  ati_ip_addr : 192.168.1.1
+  ft_ecat_pos : 1
+  # SMALL = 0 BIG = 1 COGIMON = 2
+  sensor_type : 0
+  # SMALL
+  signs : [1,1,1,1,1,1]
+  idx_map : [0,1,2,3,4,5]
+  # BIG
+  #signs : [-1,1,1,-1,1,1]
+  #idx_map : [0,1,2,3,4,5]
+  # COGIMON
+  #signs : [-1,1,1,-1,1,1]
+  #idx_map : [1,0,2,4,3,5]
+  # TEST
+  #signs : [1,1,1,-1,-1,-1]
+  #idx_map : [0,1,2,3,4,5]
+  save_calib_matrix : true
+  #calib_mat_file : ../examples/ati_ft6_calib/data/ones.txt
+  #calib_mat_file : ../examples/ati_ft6_calib/data/Calib_matrix_Cogimon_right_Foot_ft_147_sens8.txt
+  # ft6_msp432 use FOE to send bin files as calib matrix
+  #calib_mat_file : /home/amargan/work/code/python/pandas-snip/ones.bin
+  calib_mat_file : /home/amargan/work/code/python/pandas-snip/cal_mat.bin
+  dump_log : true
+  
+#############################
+## GENERIC config
+#############################
+
+LpESC_X:
+  sign: 1
+  pos_offset: 0
+  control_mode : 3B_motor_pos_ctrl
+  pid :
+    position: [100000.0 , 0.0 , 1.0]
+
+LpHandESC_X:
+  sign: 1
+  pos_offset: 0
+  control_mode : 3B_motor_pos_ctrl
+  pid :
+    position: [100000.0 , 0.0 , 1.0]
+
+HeriHandESC_X:
+  sign: 1
+  pos_offset: 0
+  control_mode : 3B_motor_pos_ctrl
+  pid :
+    position: [100000.0 , 0.0 , 1.0]
+
+CentAcESC_X:
+  sign: 1
+  pos_offset: 0
+  #max_current_A: 5.0
+  enable_sandbox: false
+  enable_pos_filter: false
+  control_mode : 3B_motor_pos_ctrl
+  pid :
+    position: [220.0 , 0.0 , 5.0]
+    #  .... tor_K divided by 10000 to respect the int range [0..65536]
+    #impedance:  [0.0, 0.0, 5.0, 0.01, 0.8]
+    impedance:  [30.0, 5, 5.0, 0.01, 0.8]
+   
+Ft6Msp432ESC_X:
+  analog_sample_freq_HZ: 20000
+  smpl_num_pow2: 5
+  aux_pdo : # names defined in SDO index 0x8002 
+     wrd : [ "ts&&rtt" ]
+  
+AinMsp432ESC_X:
+  analog_sample_freq_HZ: 1000
+
+
+PowF28M36ESC_X:
+  aux_pdo :
+    rd : [ master_volt_mV, master_curr_mA, master_FET_temp_decC,master_cell_temp_decC, 
+           master_design_cap_mV,info_status_reg,warn_status_reg,error_status_reg]
+    
+TestESC_X:
+  upd_params :
+    analog_sample_freq_Hz: 20000
+  aux_pdo : # names defined in SDO index 0x8002 
+     #rd :  [ pos_ref_fb ]
+     #rd :  [ pos_ref_fb, motor_enc_warn, motor_enc_err, link_enc_warn, link_enc_err ]
+     #rd :  [ iq_ref_fb, id_ref_fb ]
+     #wr :  [ iq_ref ]
+     #wrd : [ "iq_offset&&iq_out_fb" ]
+     wrd : [ "ts&&rtt" ]
+
+SynapticonESC_X:
+  #skip_motor_link_offset: true   ##### avoid computing offset between link and motor encoders ###
+  #wrap_pos_angle: false          ##### wrap angle to -pi to pi ###
+  #position_limits_rad:           ##### set new mechanical limits in radiant ###
+    #min: -3.1
+    #max: 3.1
+  #link_zero_rad: 0                     ##### set link zero in radiant ###
+  #link_zero_inc: 0                     ##### set link zero in incremental ###
+  #link_zero_from_start_pos: false      ##### set link zero in radiant from actual position ###
+
+  #control_mode: 3B_motor_pos_ctrl #esc.cpp --> controller_type_map
+  #pid:
+    #position: [0.0062845, 0.0 , 0.0 , 6.578719 , 311.577179] #3B_motor_pos_ctrl: 0: P_Pos, 1: I_Pos, 2: D_Pos, 3:P_Vel, 4:I_Vel
+    #velocity: [10, 300 , 0.0 ] #71_motor_speed_ctrl, 0: P, 1: I, 2: D
+    #impedance: [10, 1000, 0.06, 0, 0.006]
+    #torque: [2000, 2000] #CC_current_ctrl: 0: Damping [mill, 1 --> 1000 mill], 1: Settling time [us]
+    #current: [2000, 2000] #CC_current_ctrl: 0: Damping [mill, 1 --> 1000 mill], 1: Settling time [us]
+
+  simulation:
+    gear_ratio: 50
+    torque_const: 0.129   #[Nm/A]
+    max_current: 38.6     #[A]
+    rated_current: 13600  #[mA]
+    max_torque: 4.95      #[Nm]
+    rated_torque: 1760    #[mNm]
+    max_vel: 2828         #[rpm]
+    encoder_1: [1,19,19]  #[polarity, position bit , single turn bit]
+    encoder_2: [1,19,19]  #[polarity, position bit , single turn bit]
+
+NovantaESC_X:
+  #skip_motor_link_offset: true   ##### avoid computing offset between link and motor encoders ###
+  #wrap_pos_angle: false          ##### wrap angle to -pi to pi ###
+  #position_limits_rad:           ##### set new mechanical limits in radiant ###
+    #min: -3.1
+    #max: 3.1
+  #link_zero_rad: 0                     ##### set link zero in radiant ###
+  #link_zero_inc: 0                     ##### set link zero in incremental ###
+  #link_zero_from_start_pos: false      ##### set link zero in radiant from actual position ###
+
+  #control_mode: 3B_motor_pos_ctrl
+  #pid:
+    #position: [0.0062845, 0.0 , 0.0]
+    #velocity: [10, 300 , 0.0 ]
+    #torque: [0.07, 0, 0]
+    #current: [3000, 2000]
+    
+  simulation:
+    gear_ratio: 50
+    torque_const: 0.129   #[Nm/A]
+    max_current: 38.6     #[A]
+    max_torque: 4.95      #[Nm]
+    rated_current: 13600  #[mA]
+    rated_torque: 1760    #[mNm]
+    max_vel: 2828         #[rpm]
+    encoder_1: [1,19,19]  #[polarity, position bit , single turn bit]
+    encoder_2: [1,19,19]  #[polarity, position bit , single turn bit]
