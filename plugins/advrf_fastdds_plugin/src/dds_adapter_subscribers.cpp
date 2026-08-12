@@ -5,7 +5,9 @@
 #include <advrf_interfaces/msg/MotorTxPdoPubSubTypes.hpp>
 
 DDSAdapterSubscribers::DDSAdapterSubscribers(const config::ConfigTopics& config_topics, 
-                                             eprosima::fastdds::dds::DomainParticipant* participant) {
+                                             eprosima::fastdds::dds::DomainParticipant* participant,
+                                             advrf::dds_common::ReaderPolicy reader_policy)
+    : reader_policy_(reader_policy) {
 
         register_subscriber<
             advrf_interfaces::msg::dds_::MotorXtTxPdoVector_,
@@ -13,13 +15,7 @@ DDSAdapterSubscribers::DDSAdapterSubscribers(const config::ConfigTopics& config_
         >(
             config_topics.command.motorXtCmd(), participant, 
             ChannelTx::Motor, [](const advrf_interfaces::msg::dds_::MotorXtTxPdoVector_& msg) {
-                std::vector<iit::advrf::Ec_slave_pdo> pdos;
-                for (const auto& motor_xt_tx_pdo : msg.data()) {
-                    iit::advrf::Ec_slave_pdo pdo;
-                    convert::protobuf::from_dds(motor_xt_tx_pdo, pdo);
-                    pdos.emplace_back(std::move(pdo));
-                }
-                return pdos;
+                return convert::protobuf::vector_from_dds(msg);
             });
 
         register_subscriber<
@@ -28,17 +24,11 @@ DDSAdapterSubscribers::DDSAdapterSubscribers(const config::ConfigTopics& config_
         >(
             config_topics.command.motorCmd(), participant, 
             ChannelTx::Motor, [](const advrf_interfaces::msg::dds_::MotorTxPdoVector_& msg) {
-                std::vector<iit::advrf::Ec_slave_pdo> pdos;
-                for (const auto& motor_tx_pdo : msg.data()) {
-                    iit::advrf::Ec_slave_pdo pdo;
-                    convert::protobuf::from_dds(motor_tx_pdo, pdo);
-                    pdos.emplace_back(std::move(pdo));
-                }
-                return pdos;
+                return convert::protobuf::vector_from_dds(msg);
             });
     }
 
 void DDSAdapterSubscribers::spin_once() { 
     for (const auto& sub : subscribers_)
-        sub->spin_once(); 
+        sub->spin_once();
 }

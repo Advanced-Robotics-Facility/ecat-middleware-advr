@@ -3,6 +3,7 @@
 #include <string>
 #include <dds/dds.hpp>
 
+#include <advrf_dds_common/qos/reader_policy.hpp>
 #include <advrf_middleware_core/utils/log.hpp>
 
 class DDSSubscriberBase {
@@ -28,12 +29,13 @@ public:
     virtual ~DDSSubscriber() = default;
 
     bool init_dds(const std::string& topic_name,
-                  dds::domain::DomainParticipant& participant){
+                  dds::domain::DomainParticipant& participant,
+                  const advrf::dds_common::ReaderPolicy& policy = {}){
         try
         {
             topic_ = dds::topic::Topic<Msg>(participant, topic_name);
             subscriber_ = dds::sub::Subscriber(participant);
-            reader_ = dds::sub::DataReader<Msg>(subscriber_, topic_, reader_qos());
+            reader_ = dds::sub::DataReader<Msg>(subscriber_, topic_, reader_qos(policy));
 
             return true;
         }
@@ -44,10 +46,17 @@ public:
         }
     }
 
-    dds::sub::qos::DataReaderQos reader_qos(){
-        return dds::sub::qos::DataReaderQos()
-            << dds::core::policy::Reliability::BestEffort()
-            << dds::core::policy::History::KeepLast(1);
+    dds::sub::qos::DataReaderQos reader_qos(const advrf::dds_common::ReaderPolicy& policy) const {
+        auto qos = dds::sub::qos::DataReaderQos()
+            << dds::core::policy::History::KeepLast(policy.history_depth);
+
+        if (policy.reliability == advrf::dds_common::Reliability::Reliable) {
+            qos << dds::core::policy::Reliability::Reliable();
+        } else {
+            qos << dds::core::policy::Reliability::BestEffort();
+        }
+
+        return qos;
     }
 
     void set_callback(Callback cb){

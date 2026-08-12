@@ -99,7 +99,7 @@ if(BUILD_TESTING)
     add_subdirectory(test/unit)    
 endif()
 
-if(BUILD_TEST_EXAMPLES)
+if(BUILD_EXAMPLES)
     add_subdirectory(test/examples)    
 endif()
 

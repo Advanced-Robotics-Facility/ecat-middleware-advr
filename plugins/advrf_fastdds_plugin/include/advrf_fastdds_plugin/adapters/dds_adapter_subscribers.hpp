@@ -9,6 +9,7 @@
 #include <advrf_middleware_core/adapters/adapter_subscribers.hpp>
 #include "advrf_fastdds_plugin/subscriber/dds_subscriber.hpp"
 #include <advrf_dds_common/converter/converter.hpp>
+#include <advrf_dds_common/qos/reader_policy.hpp>
 
 using Msg = advrf_interfaces::msg::dds_::ReplCmd_Content_Vector_;
 using MsgPubSubType = advrf_interfaces::msg::dds_::ReplCmd_Content_Vector_PubSubType;
@@ -18,8 +19,12 @@ class DDSAdapterSubscribers: public middleware_adapter::message::AdapterSubscrib
     
 public:
     DDSAdapterSubscribers(const config::ConfigTopics& config_topics, 
-                          eprosima::fastdds::dds::DomainParticipant* participant);
+                          eprosima::fastdds::dds::DomainParticipant* participant,
+                          advrf::dds_common::ReaderPolicy reader_policy = {});
+
     void spin_once() override;
+
+    bool is_initialized() const noexcept { return initialized_; }
 
 protected:
     template <typename Msg, typename MsgPubSubType>
@@ -30,8 +35,9 @@ protected:
         std::function<std::vector<iit::advrf::Ec_slave_pdo>(const Msg&)> converter) 
     {
         auto subscriber = std::make_shared<DDSSubscriber<Msg ,MsgPubSubType>>();
-        if (!subscriber->init_dds(topic_name, participant)) {
+        if (!subscriber->init_dds(topic_name, participant, reader_policy_)) {
             LOG_ERROR("Failed to initialize DDS subscriber for topic: {}", topic_name);
+            initialized_ = false;
             return;
         }
 
@@ -51,8 +57,9 @@ protected:
         std::function<iit::advrf::Ec_slave_pdo(const Msg&)> converter) 
     {
         auto subscriber = std::make_shared<DDSSubscriber<Msg ,MsgPubSubType>>();
-        if (!subscriber->init_dds(topic_name, participant)) {
+        if (!subscriber->init_dds(topic_name, participant, reader_policy_)) {
             LOG_ERROR("Failed to initialize DDS subscriber for topic: {}", topic_name);
+            initialized_ = false;
             return;
         }
 
@@ -65,5 +72,7 @@ protected:
     }
 
 private:
+    advrf::dds_common::ReaderPolicy reader_policy_;
+    bool initialized_{true};
     std::vector<std::shared_ptr<DDSSubscriberBase>> subscribers_;
 };

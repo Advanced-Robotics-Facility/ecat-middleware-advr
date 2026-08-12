@@ -11,6 +11,7 @@
 #include <fastdds/dds/topic/TypeSupport.hpp>
 #include <fastdds/dds/subscriber/qos/DataReaderQos.hpp>
 
+#include <advrf_dds_common/qos/reader_policy.hpp>
 #include <advrf_middleware_core/utils/log.hpp>
 
 class DDSSubscriberBase {
@@ -39,9 +40,19 @@ public:
     }
 
     bool init_dds(const std::string& topic_name,
-                  eprosima::fastdds::dds::DomainParticipant* participant){
+                  eprosima::fastdds::dds::DomainParticipant* participant,
+                  const advrf::dds_common::ReaderPolicy& policy = {}){
         try
         {
+            if (participant == nullptr) {
+                LOG_ERROR("DDS Sub Init Error: participant is null");
+                return false;
+            }
+            if (!policy.is_valid()) {
+                LOG_ERROR("DDS Sub Init Error: history depth is outside the supported range");
+                return false;
+            }
+
             participant_ = participant;
 
             eprosima::fastdds::dds::TypeSupport type(new MsgPubSubType());
@@ -65,7 +76,7 @@ public:
                 return false;
             }
 
-            eprosima::fastdds::dds::DataReaderQos const qos = reader_qos();
+            const auto qos = reader_qos(policy);
             reader_ = subscriber_->create_datareader(topic_, qos, nullptr);
             if (reader_ == nullptr) {
                 LOG_ERROR("DDS Pub Init Error: failed to create datareader");
@@ -81,11 +92,14 @@ public:
         }
     }
 
-    eprosima::fastdds::dds::DataReaderQos reader_qos() const {
+    eprosima::fastdds::dds::DataReaderQos reader_qos(const advrf::dds_common::ReaderPolicy& policy) const {
         auto qos = eprosima::fastdds::dds::DATAREADER_QOS_DEFAULT;
-        qos.reliability().kind = eprosima::fastdds::dds::BEST_EFFORT_RELIABILITY_QOS;
+        qos.reliability().kind =
+            policy.reliability == advrf::dds_common::Reliability::Reliable
+                ? eprosima::fastdds::dds::RELIABLE_RELIABILITY_QOS
+                : eprosima::fastdds::dds::BEST_EFFORT_RELIABILITY_QOS;
         qos.history().kind = eprosima::fastdds::dds::KEEP_LAST_HISTORY_QOS;
-        qos.history().depth = 1;
+        qos.history().depth = static_cast<int32_t>(policy.history_depth);
         return qos;
     }
 

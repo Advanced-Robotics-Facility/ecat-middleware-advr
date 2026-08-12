@@ -89,6 +89,10 @@ int main(int argc, char **argv)
 
     // subscribers
     auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>(config, dds_participant);
+    if (!dds_adapter_subscribers->is_initialized()) {
+        LOG_ERROR("Failed to initialize one or more DDS subscribers.");
+        return 1;
+    }
 
 
     // plugin_exec.register_adapter({

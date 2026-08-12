@@ -1,5 +1,7 @@
 #pragma once
 #include <cstdint>
+#include <utility>
+#include <vector>
 
 // protobuf service
 #include <advrf_interfaces_protobuf/repl_cmd.pb.h>
@@ -111,6 +113,22 @@ namespace convert::protobuf {
     void from_dds(
         const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
         iit::advrf::Ec_slave_pdo& pb);
+
+    template<typename DdsVector>
+    std::vector<iit::advrf::Ec_slave_pdo>
+    vector_from_dds(const DdsVector& msg)
+    {
+        std::vector<iit::advrf::Ec_slave_pdo> result;
+        result.reserve(msg.data().size());
+
+        for (const auto& element : msg.data()) {
+            iit::advrf::Ec_slave_pdo pdo;
+            from_dds(element, pdo);
+            result.emplace_back(std::move(pdo));
+        }
+
+        return result;
+    }
 };
 
 namespace convert::dds {
