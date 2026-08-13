@@ -6,7 +6,6 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
-#include <utility>
 #include <vector>
 
 namespace
@@ -14,9 +13,9 @@ namespace
 
 enum class SourceKind
 {
-    Pub,
-    Sub,
-    Repl
+    Rx,
+    Tx,
+    Service
 };
 
 struct SourceSpec
@@ -39,16 +38,16 @@ void print_help(const char* program)
         << "Usage:\n"
         << "  " << program << " [sources...] [options]\n\n"
         << "Sources (repeatable):\n"
-        << "  --pub  NAME       SharedProtoPubBridge shared memory\n"
-        << "  --sub  NAME       SharedProtoSubBridge shared memory\n"
-        << "  --repl NAME       SharedReplBridge shared memory\n\n"
+        << "  --rx  NAME       SharedProtoPubBridge shared memory\n"
+        << "  --tx  NAME       SharedProtoSubBridge shared memory\n"
+        << "  --service NAME       SharedReplBridge shared memory\n\n"
         << "Options:\n"
         << "  --rate HZ         Refresh rate (default: 10)\n"
         << "  --history         Start in history mode\n"
         << "  -h, --help        Show this help\n\n"
         << "Example:\n"
         << "  " << program
-        << " --pub /robot/pub --sub /robot/sub --repl /robot/repl --rate 20\n\n"
+        << " --rx /robot/pub --tx /robot/sub --service /robot/repl --rate 20\n\n"
         << "TUI keys:\n"
         << "  Tab / Shift-Tab   switch shared memory\n"
         << "  1..9              select shared memory directly\n"
@@ -86,20 +85,20 @@ CliOptions parse_cli(int argc, char** argv)
         {
             options.help = true;
         }
-        else if (arg == "--pub")
+        else if (arg == "--rx")
         {
             options.sources.push_back(
-                {SourceKind::Pub, require_value(argc, argv, i, arg)});
+                {SourceKind::Rx, require_value(argc, argv, i, arg)});
         }
-        else if (arg == "--sub")
+        else if (arg == "--tx")
         {
             options.sources.push_back(
-                {SourceKind::Sub, require_value(argc, argv, i, arg)});
+                {SourceKind::Tx, require_value(argc, argv, i, arg)});
         }
-        else if (arg == "--repl")
+        else if (arg == "--service")
         {
             options.sources.push_back(
-                {SourceKind::Repl, require_value(argc, argv, i, arg)});
+                {SourceKind::Service, require_value(argc, argv, i, arg)});
         }
         else if (arg == "--rate")
         {
@@ -130,9 +129,9 @@ std::string make_label(
 
     switch (kind)
     {
-        case SourceKind::Pub:  base = "PUB";  break;
-        case SourceKind::Sub:  base = "SUB";  break;
-        case SourceKind::Repl: base = "REPL"; break;
+        case SourceKind::Rx:  base = "RX";  break;
+        case SourceKind::Tx:  base = "TX";  break;
+        case SourceKind::Service: base = "SRV"; break;
     }
 
     if (occurrence > 1)
@@ -158,7 +157,7 @@ int main(int argc, char** argv)
         if (cli.sources.empty())
         {
             print_help(argv[0]);
-            std::cerr << "\nError: configure at least one --pub, --sub or --repl source.\n";
+            std::cerr << "\nError: configure at least one --rx, --tx or --service source.\n";
             return EXIT_FAILURE;
         }
 
@@ -172,21 +171,21 @@ int main(int argc, char** argv)
         {
             switch (source.kind)
             {
-                case SourceKind::Pub:
-                    app.add<ReadBridgePub>(
-                        make_label(SourceKind::Pub, ++pub_count),
+                case SourceKind::Rx:
+                    app.add<ReadBridgeRx>(
+                        make_label(SourceKind::Rx, ++pub_count),
                         source.shm_name);
                     break;
 
-                case SourceKind::Sub:
-                    app.add<ReadBridgeSub>(
-                        make_label(SourceKind::Sub, ++sub_count),
+                case SourceKind::Tx:
+                    app.add<ReadBridgeTx>(
+                        make_label(SourceKind::Tx, ++sub_count),
                         source.shm_name);
                     break;
 
-                case SourceKind::Repl:
-                    app.add<ReadBridgeRepl>(
-                        make_label(SourceKind::Repl, ++repl_count),
+                case SourceKind::Service:
+                    app.add<ReadBridgeService>(
+                        make_label(SourceKind::Service, ++repl_count),
                         source.shm_name);
                     break;
             }

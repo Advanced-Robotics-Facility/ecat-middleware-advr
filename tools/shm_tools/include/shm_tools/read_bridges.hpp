@@ -6,7 +6,7 @@
 #include <advrf_interfaces_protobuf/repl_cmd.pb.h>
 #include <shm_types.hpp>
 
-class ReadBridgePub : public BridgeInspector<SharedProtoPubBridge> {
+class ReadBridgeRx : public BridgeInspector<SharedProtoPubBridge> {
 public:
   using Base = BridgeInspector<SharedProtoPubBridge>;
   using Base::Base;
@@ -36,7 +36,7 @@ protected:
   }
 };
 
-class ReadBridgeSub : public BridgeInspector<SharedProtoSubBridge> {
+class ReadBridgeTx : public BridgeInspector<SharedProtoSubBridge> {
 public:
   using Base = BridgeInspector<SharedProtoSubBridge>;
   using Base::Base;
@@ -48,7 +48,7 @@ protected:
   }
 };
 
-class ReadBridgeRepl : public BridgeInspector<SharedReplBridge> {
+class ReadBridgeService : public BridgeInspector<SharedReplBridge> {
 public:
   using Base = BridgeInspector<SharedReplBridge>;
   using Base::Base;

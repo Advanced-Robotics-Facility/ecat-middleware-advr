@@ -20,7 +20,8 @@ public:
     NextSource,
     PreviousSource,
     SelectSource,
-    ToggleHistory
+    ToggleHistory,
+    Reconnect
   };
 
   struct Action {
@@ -82,11 +83,15 @@ public:
       prompt_filter();
       return {ActionKind::Redraw, 0};
 
+    case 'x':
+    case 'X':
+        filter_.clear();
+        reset_selection();
+        return {ActionKind::Redraw, 0};
+
     case 'c':
     case 'C':
-      filter_.clear();
-      reset_selection();
-      return {ActionKind::Redraw, 0};
+        return {ActionKind::Reconnect, 0};
 
     case KEY_UP:
     case 'k':
@@ -396,8 +401,8 @@ private:
 
   void draw_footer(int height, int width) const {
     const std::string footer =
-        " Tab/Shift-Tab SHM | 1-9 select | up/down queue | PgUp/PgDn detail | "
-        "p pause | h history | / filter | c clear | q quit ";
+    " Tab/Shift-Tab SHM | 1-9 select | up/down queue | PgUp/PgDn detail | "
+    "p pause | h history | c reconnect | / filter | x clear | q quit ";
 
     attron(A_REVERSE);
     mvhline(height - 1, 0, ' ', width);

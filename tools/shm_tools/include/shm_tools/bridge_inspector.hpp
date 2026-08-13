@@ -25,6 +25,7 @@ public:
 
   virtual InspectorSnapshot poll(bool history) = 0;
   virtual std::string_view shm_name() const noexcept = 0;
+  virtual void reconnect() = 0;
 };
 
 template <typename Bridge> class BridgeInspector : public IInspectorSource {
@@ -48,7 +49,20 @@ public:
     return make_snapshot(messages, history);
   }
 
-  std::string_view shm_name() const noexcept override { return shm_name_; }
+
+
+    std::string_view shm_name() const noexcept override { return shm_name_; }
+
+    void reconnect() override
+    {
+        queues_.clear();
+        stats_.clear();
+        bridge_ = nullptr;
+        initialized_ = false;
+        shm_.reset();
+        shm_ = SharedMemory<Bridge>::open_or_create(shm_name_);
+        initialize();
+    }
 
 protected:
   virtual void declare() = 0;

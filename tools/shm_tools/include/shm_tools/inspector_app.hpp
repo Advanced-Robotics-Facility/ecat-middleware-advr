@@ -98,6 +98,17 @@ public:
           case InspectorTui::ActionKind::Redraw:
             break;
 
+          case InspectorTui::ActionKind::Reconnect:
+            reconnect_source(active, options.history, snapshots, has_snapshot);
+
+            tui.reset_selection();
+
+            force_poll = false;
+
+            next_poll = std::chrono::steady_clock::now() + period;
+
+            break;
+
           case InspectorTui::ActionKind::None:
             break;
           }
@@ -137,6 +148,24 @@ private:
     }
 
     has_snapshot[index] = true;
+  }
+
+  void reconnect_source(std::size_t index, bool history,
+                        std::vector<InspectorSnapshot> &snapshots,
+                        std::vector<bool> &has_snapshot) {
+    try {
+      sources_[index].inspector->reconnect();
+      snapshots[index] = sources_[index].inspector->poll(history);
+      snapshots[index].error.clear();
+      has_snapshot[index] = true;
+    } catch (const std::exception &e) {
+      InspectorSnapshot failed;
+      failed.shm_name = std::string(sources_[index].inspector->shm_name());
+      failed.history = history;
+      failed.error = e.what();
+      snapshots[index] = std::move(failed);
+      has_snapshot[index] = true;
+    }
   }
 
   std::vector<Source> sources_;
