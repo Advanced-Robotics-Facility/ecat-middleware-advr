@@ -14,7 +14,9 @@
 
 #include <shm_utils.hpp>
 #include <shm_types.hpp>
-#include <shm_tools/monitor.hpp>
+
+#include "shm_tools/monitor.hpp"
+#include "shm_tools/inspector_tui.hpp"
 
 #include <google/protobuf/message.h>
 #include <google/protobuf/util/json_util.h>
@@ -28,9 +30,8 @@ struct InspectorOptions
     bool history{false};
     bool yaml{false};
     bool progress{false};
-
+    bool tui{false};
     int rate{10};
-
     std::vector<std::string> filter;
 };
 
@@ -44,31 +45,23 @@ public:
     using MessageMap  = std::unordered_map<std::string, MessageList>;
 
     explicit BridgeInspector(const std::string& shm_name);
-
     virtual ~BridgeInspector() = default;
-
     void run(const InspectorOptions& options);
 
 protected:
 
     virtual void declare() = 0;
-
     template<typename Proto, typename Queue>
     void register_queue(const std::string& name, Queue& queue);
-
     Bridge* bridge_{nullptr};
-
-    ShmProtoHelper proto_helper_;
 
 private:
     mutable Console console_;
-
     struct QueueDescriptor
     {
         std::string name;
         std::string proto_name;
         std::size_t capacity;
-
         std::function<void(MessageMap&, const InspectorOptions&)> reader;
         std::function<std::size_t()> size;
     };
@@ -76,52 +69,37 @@ private:
     struct QueueStats
     {
         std::size_t total_messages{0};
-
         std::chrono::steady_clock::time_point first_seen{};
         std::chrono::steady_clock::time_point last_seen{};
-
         bool initialized{false};
     };
 
     std::vector<QueueDescriptor> queues_;
     std::unordered_map<std::string, QueueStats> stats_;
-
     std::unique_ptr<SharedMemory<Bridge>> shm_;
     std::string shm_name_;
 
     void connect();
-
     MessageMap read(const InspectorOptions& options);
-
     void update_stats(const MessageMap& messages);
-
-    bool should_display(const std::string& queue,
-                        const InspectorOptions& options) const;
+    bool should_display(const std::string& queue, const InspectorOptions& options) const;
 
     static void clear_screen();
-
     void print_header(const std::string& title) const;
-
-    void display(const MessageMap& messages,
-                 const InspectorOptions& options) const;
-
-    void display_json(const MessageMap& messages,
-                  const InspectorOptions& options) const;
-
-    void display_yaml(const MessageMap& messages,
-                    const InspectorOptions& options) const;
-
-    void display_progress(const MessageMap& messages,
-                          const InspectorOptions& options) const;
-
+    void display(const MessageMap& messages, const InspectorOptions& options) const;
+    void display_json(const MessageMap& messages, const InspectorOptions& options) const;
+    void display_yaml(const MessageMap& messages, const InspectorOptions& options) const;
+    void display_progress(const MessageMap& messages, const InspectorOptions& options) const;
     void display_stats(const InspectorOptions& options) const;
+
+    InspectorSnapshot make_snapshot(const MessageMap& messages,const InspectorOptions& options) const;
+    void run_tui(InspectorOptions options);
 };
 
-
 template<typename Bridge>
-BridgeInspector<Bridge>::BridgeInspector(const std::string& shm_name)
+BridgeInspector<Bridge>::BridgeInspector(const std::string& shm_name): shm_name_(shm_name)
 {
-    shm_ = SharedMemory<Bridge>::open_or_create(shm_name);
+    shm_ = SharedMemory<Bridge>::open_or_create(shm_name_);
 }
 
 template<typename Bridge>
@@ -153,8 +131,7 @@ void BridgeInspector<Bridge>::register_queue(const std::string& name, Queue& que
             if (options.history)
             {
                 Proto proto;
-
-                proto_helper_.peek_all(
+                ShmProtoHelper::peek_all(
                     queue,
                     proto,
                     [&](const Proto& p)
@@ -167,8 +144,7 @@ void BridgeInspector<Bridge>::register_queue(const std::string& name, Queue& que
             }
 
             auto msg = std::make_unique<Proto>();
-
-            if (proto_helper_.peek_latest(queue, *msg))
+            if (ShmProtoHelper::peek_latest(queue, *msg))
             {
                 messages[name].push_back(std::move(msg));
             }
@@ -454,6 +430,13 @@ void BridgeInspector<Bridge>::run(
     connect();
     declare();
 
+    if (options.tui)
+    {
+        run_tui(options);
+        return;
+    }
+
+
     const auto period =
         std::chrono::milliseconds(
             1000 / std::max(options.rate, 1));
@@ -488,4 +471,162 @@ void BridgeInspector<Bridge>::run(
             std::this_thread::sleep_for(period);
 
     } while (!options.once);
+}
+
+template<typename Bridge>
+InspectorSnapshot
+BridgeInspector<Bridge>::make_snapshot(
+    const MessageMap& messages,
+    const InspectorOptions& options) const
+{
+    using namespace std::chrono;
+
+    InspectorSnapshot snapshot;
+
+    snapshot.shm_name = shm_name_;
+    snapshot.history = options.history;
+
+    const auto now = steady_clock::now();
+
+    for (const auto& queue : queues_)
+    {
+        if (!should_display(queue.name, options))
+            continue;
+
+        QueueSnapshot item;
+
+        item.name       = queue.name;
+        item.proto_name = queue.proto_name;
+        item.buffered   = queue.size();
+        item.capacity   = queue.capacity;
+
+        snapshot.total_buffered += item.buffered;
+
+        //
+        // Messages protobuf -> strings.
+        //
+        const auto message_it =
+            messages.find(queue.name);
+
+        if (message_it != messages.end())
+        {
+            for (const auto& message :
+                 message_it->second)
+            {
+                item.messages.push_back(
+                    message->DebugString());
+            }
+        }
+
+        //
+        // Stats.
+        //
+        const auto stats_it =
+            stats_.find(queue.name);
+
+        if (stats_it != stats_.end())
+        {
+            const auto& stats =
+                stats_it->second;
+
+            item.sampled_messages =
+                stats.total_messages;
+
+            if (stats.initialized)
+            {
+                const double elapsed =
+                    duration<double>(
+                        stats.last_seen -
+                        stats.first_seen)
+                        .count();
+
+                item.sampled_rate =
+                    elapsed > 0.0
+                        ? static_cast<double>(
+                              stats.total_messages) /
+                              elapsed
+                        : 0.0;
+
+                item.age_ms =
+                    duration_cast<milliseconds>(
+                        now - stats.last_seen)
+                        .count();
+            }
+        }
+
+        snapshot.queues.push_back(
+            std::move(item));
+    }
+
+    return snapshot;
+}
+
+
+template<typename Bridge>
+void BridgeInspector<Bridge>::run_tui(
+    InspectorOptions options)
+{
+    InspectorTui tui;
+    InspectorSnapshot snapshot;
+
+    const auto period =
+        std::chrono::milliseconds(
+            1000 / std::max(options.rate, 1));
+
+    bool running = true;
+
+    while (running)
+    {
+        const auto frame_start =
+            std::chrono::steady_clock::now();
+
+        //
+        // Poll SHM uniquement si non paused.
+        //
+        if (!tui.paused())
+        {
+            auto messages = read(options);
+
+            update_stats(messages);
+
+            snapshot =
+                make_snapshot(
+                    messages,
+                    options);
+        }
+
+        tui.draw(snapshot);
+
+        //
+        // On découpe l'attente en petites périodes
+        // afin que le clavier reste réactif même
+        // avec --rate 1.
+        //
+        while (running)
+        {
+            running = tui.process_input();
+
+            if (!running)
+                break;
+
+            if (tui.consume_history_toggle())
+            {
+                options.history =
+                    !options.history;
+
+                // Force le prochain refresh.
+                break;
+            }
+
+            const auto elapsed =
+                std::chrono::steady_clock::now()
+                - frame_start;
+
+            if (elapsed >= period)
+                break;
+
+            std::this_thread::sleep_for(
+                std::chrono::milliseconds(10));
+        }
+    }
 }

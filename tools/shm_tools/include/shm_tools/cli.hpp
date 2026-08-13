@@ -95,6 +95,7 @@ inline CLIArguments parse_arguments(int argc, char** argv)
         {"history", no_argument,       nullptr, 'h'},
         {"rate",    required_argument, nullptr, 'r'},
         {"key",     required_argument, nullptr, 'k'},
+        {"tui",     no_argument, nullptr, 't'},
         {nullptr,   0,                 nullptr,  0 }
     };
 
@@ -143,6 +144,10 @@ inline CLIArguments parse_arguments(int argc, char** argv)
 
         case 'p':
             args.options.progress = true;
+            break;
+
+        case 't':
+            args.options.tui = true;
             break;
 
         default:
