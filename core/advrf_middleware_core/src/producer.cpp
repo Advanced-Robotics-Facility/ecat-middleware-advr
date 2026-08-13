@@ -234,12 +234,33 @@ int main(int argc, char** argv)
 
     // Publisher SHM
     auto pub_shm = SharedMemory<SharedProtoPubBridge>::create(SHM_NRT_RX_PDO);
+    if (!pub_shm) {
+        std::cerr
+            << "[Producer] Failed to create shared memory '"
+            << SHM_NRT_RX_PDO
+            << "'. Another ECAT master/mock may already be running.\n";
+        return 1;
+    }
 
     // REPL SHM
     auto repl_shm = SharedMemory<SharedReplBridge>::create(SHM_REPL_NAME);
+    if (!repl_shm) {
+        std::cerr
+            << "[Producer] Failed to create shared memory '"
+            << SHM_REPL_NAME
+            << "'. Another ECAT master/mock may already be running.\n";
+        return 1;
+    }
 
     // SUB SHM
     auto sub_shm = SharedMemory<SharedProtoSubBridge>::create(SHM_TX_PDO);
+    if (!sub_shm) {
+        std::cerr
+            << "[Producer] Failed to create shared memory '"
+            << SHM_TX_PDO
+            << "'. Another ECAT master/mock may already be running.\n";
+        return 1;
+    }
 
     // Dynamic Discovery Generation Loop
     uint32_t slave_idx = 0;

@@ -36,7 +36,7 @@ public:
 
   explicit BridgeInspector(std::string shm_name)
       : shm_name_(std::move(shm_name)),
-        shm_(SharedMemory<Bridge>::open_or_create(shm_name_)) {}
+        shm_(SharedMemory<Bridge>::open(shm_name_)) {}
 
   ~BridgeInspector() override = default;
 
@@ -60,7 +60,7 @@ public:
         bridge_ = nullptr;
         initialized_ = false;
         shm_.reset();
-        shm_ = SharedMemory<Bridge>::open_or_create(shm_name_);
+        shm_ = SharedMemory<Bridge>::open(shm_name_);
         initialize();
     }
 
