@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <csignal>
+#include <filesystem>
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
@@ -82,7 +83,7 @@ int main(int argc, char **argv)
 
     advrf::plugin::PluginExec plugin_exec;
 
-    auto cfg = load_robot_config(ROBOT_CONFIG_DIR);
+    auto cfg = load_robot_config(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
     if (!cfg) return 1;
 
     auto* dds_participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
@@ -93,7 +94,7 @@ int main(int argc, char **argv)
         LOG_ERROR("Failed to create DDS DomainParticipant.");
         return 1;
     }
-    auto config = config::ConfigTopics({"advrf", cfg->robot_name});
+    auto config = config::ConfigTopics({cfg->ns, cfg->robot_name});
     // service
     //auto dds_adapter_service = std::make_shared<DDSAdapterService>(config, dds_participant);
 
