@@ -70,7 +70,7 @@ int main(int argc, char **argv)
     const auto options = parse_args(argc, argv);
 
     advrf::plugin::PluginExec plugin_exec;
-    auto cfg = load_robot_config(ADVRF_CONFIG_SHARE / "middleware" / "middleware.yaml");
+    auto cfg = load_robot_config(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
     if (!cfg)
         return 1;
 

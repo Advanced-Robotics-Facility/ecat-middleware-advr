@@ -31,7 +31,7 @@ int main(int argc, char** argv)
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);
 
-    auto cfg = load_robot_config(ADVRF_CONFIG_SHARE / "middleware" / "middleware.yaml");
+    auto cfg = load_robot_config(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
     if (!cfg) return 1;
 
     config::ConfigTopics topics({cfg->ns, cfg->robot_name});

@@ -29,7 +29,7 @@ int main(int argc, char** argv)
     std::signal(SIGTERM, on_signal);
 
 
-    const auto cfg = load_robot_config( ADVRF_CONFIG_SHARE / "middleware" / "middleware.yaml");
+    const auto cfg = load_robot_config( ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
     auto dds_participant = dds::domain::DomainParticipant{cfg->domain_id};
     auto config =config::ConfigTopics{{cfg->ns, cfg->robot_name}};
 

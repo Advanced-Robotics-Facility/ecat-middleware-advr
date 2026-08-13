@@ -22,5 +22,3 @@ public:
     private:
 };
 
-
-// pdo.type() == iit::advrf::Ec_slave_pdo::RX_XT_MOTOR

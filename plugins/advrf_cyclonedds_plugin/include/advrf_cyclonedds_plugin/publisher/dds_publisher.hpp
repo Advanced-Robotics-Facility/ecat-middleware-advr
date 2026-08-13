@@ -33,10 +33,16 @@ class DDSPublisher {
             }
         }
 
-        dds::pub::qos::DataWriterQos writer_qos() {
+        dds::pub::qos::DataWriterQos writer_qos()
+        {
+            dds::core::ByteSeq user_data = {
+                'a','d','v','r','f','=','1',';'
+            };
+
             return dds::pub::qos::DataWriterQos()
                 << dds::core::policy::Reliability::BestEffort()
-                << dds::core::policy::History::KeepLast(1);
+                << dds::core::policy::History::KeepLast(1)
+                << dds::core::policy::UserData(user_data);
         }
 
         void publish(const Msg& msg) {

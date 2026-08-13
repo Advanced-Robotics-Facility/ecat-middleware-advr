@@ -12,7 +12,7 @@ int main(int argc, char** argv)
 {
     advrf::log::Log::init();
 
-    const auto cfg = load_robot_config( ADVRF_CONFIG_SHARE / "middleware" / "middleware.yaml");
+    const auto cfg = load_robot_config( ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
     config::ConfigTopics topics({cfg->ns, cfg->robot_name});
     dds::domain::DomainParticipant participant(cfg->domain_id);
 

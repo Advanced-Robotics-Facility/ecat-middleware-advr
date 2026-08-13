@@ -50,12 +50,17 @@ public:
         auto qos = dds::sub::qos::DataReaderQos()
             << dds::core::policy::History::KeepLast(policy.history_depth);
 
+        dds::core::ByteSeq user_data = {
+                'a','d','v','r','f','=','1',';'
+            };
+
         if (policy.reliability == advrf::dds_common::Reliability::Reliable) {
             qos << dds::core::policy::Reliability::Reliable();
         } else {
             qos << dds::core::policy::Reliability::BestEffort();
         }
 
+        qos << dds::core::policy::UserData(user_data);
         return qos;
     }
 
