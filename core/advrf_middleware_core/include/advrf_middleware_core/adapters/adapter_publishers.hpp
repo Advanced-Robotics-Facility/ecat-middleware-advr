@@ -15,7 +15,6 @@
 #include "advrf_middleware_core/adapters/adapter_base.hpp"
 #include "advrf_middleware_core/utils/channel.hpp"
 #include "advrf_middleware_core/utils/log.hpp"
-#include "advrf_middleware_core/utils/pdo_utils.hpp"
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/utils/log.hpp>
