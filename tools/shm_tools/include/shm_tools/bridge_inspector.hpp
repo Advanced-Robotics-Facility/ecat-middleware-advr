@@ -1,632 +1,208 @@
 #pragma once
 
+#include "shm_tools/inspector_types.hpp"
+
+#include <algorithm>
 #include <chrono>
+#include <cstddef>
 #include <functional>
 #include <memory>
+#include <stdexcept>
 #include <string>
+#include <string_view>
 #include <unordered_map>
+#include <utility>
 #include <vector>
-#include <algorithm>
-#include <iomanip>
-#include <iostream>
-#include <thread>
-#include <yaml-cpp/yaml.h>
-
-#include <shm_utils.hpp>
-#include <shm_types.hpp>
-
-#include "shm_tools/monitor.hpp"
-#include "shm_tools/inspector_tui.hpp"
 
 #include <google/protobuf/message.h>
-#include <google/protobuf/util/json_util.h>
 
-struct InspectorOptions
-{
-    bool verbose{true};
-    bool json{false};
-    bool stats{false};
-    bool once{false};
-    bool history{false};
-    bool yaml{false};
-    bool progress{false};
-    bool tui{false};
-    int rate{10};
-    std::vector<std::string> filter;
+#include <shm_types.hpp>
+#include <shm_utils.hpp>
+
+class IInspectorSource {
+public:
+  virtual ~IInspectorSource() = default;
+
+  virtual InspectorSnapshot poll(bool history) = 0;
+  virtual std::string_view shm_name() const noexcept = 0;
 };
 
-template<typename Bridge>
-class BridgeInspector
-{
+template <typename Bridge> class BridgeInspector : public IInspectorSource {
 public:
+  using MessagePtr = std::unique_ptr<google::protobuf::Message>;
+  using MessageList = std::vector<MessagePtr>;
+  using MessageMap = std::unordered_map<std::string, MessageList>;
 
-    using MessagePtr  = std::unique_ptr<google::protobuf::Message>;
-    using MessageList = std::vector<MessagePtr>;
-    using MessageMap  = std::unordered_map<std::string, MessageList>;
+  explicit BridgeInspector(std::string shm_name)
+      : shm_name_(std::move(shm_name)),
+        shm_(SharedMemory<Bridge>::open_or_create(shm_name_)) {}
 
-    explicit BridgeInspector(const std::string& shm_name);
-    virtual ~BridgeInspector() = default;
-    void run(const InspectorOptions& options);
+  ~BridgeInspector() override = default;
+
+  InspectorSnapshot poll(bool history) override {
+    initialize();
+
+    auto messages = read(history);
+    update_stats(messages);
+
+    return make_snapshot(messages, history);
+  }
+
+  std::string_view shm_name() const noexcept override { return shm_name_; }
 
 protected:
+  virtual void declare() = 0;
 
-    virtual void declare() = 0;
-    template<typename Proto, typename Queue>
-    void register_queue(const std::string& name, Queue& queue);
-    Bridge* bridge_{nullptr};
+  template <typename Proto, typename Queue>
+  void register_queue(const std::string &name, Queue &queue) {
+    queues_.push_back(
+        {name, Proto::descriptor()->full_name(), Queue::capacity,
+
+         [name, &queue](MessageMap &messages, bool history) {
+           if (history) {
+             Proto proto;
+
+             ShmProtoHelper::peek_all(queue, proto, [&](const Proto &p) {
+               messages[name].push_back(std::make_unique<Proto>(p));
+             });
+
+             return;
+           }
+
+           auto msg = std::make_unique<Proto>();
+
+           if (ShmProtoHelper::peek_latest(queue, *msg)) {
+             messages[name].push_back(std::move(msg));
+           }
+         },
+
+         [&queue]() -> std::size_t {
+           return static_cast<std::size_t>(queue.size());
+         }});
+  }
+
+  Bridge *bridge_{nullptr};
 
 private:
-    mutable Console console_;
-    struct QueueDescriptor
-    {
-        std::string name;
-        std::string proto_name;
-        std::size_t capacity;
-        std::function<void(MessageMap&, const InspectorOptions&)> reader;
-        std::function<std::size_t()> size;
-    };
+  struct QueueDescriptor {
+    std::string name;
+    std::string proto_name;
+    std::size_t capacity{0};
+    std::function<void(MessageMap &, bool)> reader;
+    std::function<std::size_t()> size;
+  };
 
-    struct QueueStats
-    {
-        std::size_t total_messages{0};
-        std::chrono::steady_clock::time_point first_seen{};
-        std::chrono::steady_clock::time_point last_seen{};
-        bool initialized{false};
-    };
+  struct QueueStats {
+    std::size_t total_observed{0};
+    std::chrono::steady_clock::time_point first_seen{};
+    std::chrono::steady_clock::time_point last_seen{};
+    bool initialized{false};
+  };
 
-    std::vector<QueueDescriptor> queues_;
-    std::unordered_map<std::string, QueueStats> stats_;
-    std::unique_ptr<SharedMemory<Bridge>> shm_;
-    std::string shm_name_;
+  void initialize() {
+    if (initialized_)
+      return;
 
-    void connect();
-    MessageMap read(const InspectorOptions& options);
-    void update_stats(const MessageMap& messages);
-    bool should_display(const std::string& queue, const InspectorOptions& options) const;
-
-    static void clear_screen();
-    void print_header(const std::string& title) const;
-    void display(const MessageMap& messages, const InspectorOptions& options) const;
-    void display_json(const MessageMap& messages, const InspectorOptions& options) const;
-    void display_yaml(const MessageMap& messages, const InspectorOptions& options) const;
-    void display_progress(const MessageMap& messages, const InspectorOptions& options) const;
-    void display_stats(const InspectorOptions& options) const;
-
-    InspectorSnapshot make_snapshot(const MessageMap& messages,const InspectorOptions& options) const;
-    void run_tui(InspectorOptions options);
-};
-
-template<typename Bridge>
-BridgeInspector<Bridge>::BridgeInspector(const std::string& shm_name): shm_name_(shm_name)
-{
-    shm_ = SharedMemory<Bridge>::open_or_create(shm_name_);
-}
-
-template<typename Bridge>
-void BridgeInspector<Bridge>::connect()
-{
-    if (!shm_->is_ok())
-    {
-        throw std::runtime_error(
-            "Unable to open shared memory '" + shm_name_ + "'");
+    if (!shm_ || !shm_->is_ok()) {
+      throw std::runtime_error("Unable to open shared memory '" + shm_name_ +
+                               "'");
     }
 
     bridge_ = shm_->get();
-}
 
-template<typename Bridge>
-template<typename Proto, typename Queue>
-void BridgeInspector<Bridge>::register_queue(const std::string& name, Queue& queue)
-{
-    queues_.push_back(
-    {
-        name,
-        Proto::descriptor()->full_name(),
-        Queue::capacity,    
-
-        [this, name, &queue]
-        (MessageMap& messages,
-         const InspectorOptions& options)
-        {
-            if (options.history)
-            {
-                Proto proto;
-                ShmProtoHelper::peek_all(
-                    queue,
-                    proto,
-                    [&](const Proto& p)
-                    {
-                        messages[name].push_back(
-                            std::make_unique<Proto>(p));
-                    });
-
-                return;
-            }
-
-            auto msg = std::make_unique<Proto>();
-            if (ShmProtoHelper::peek_latest(queue, *msg))
-            {
-                messages[name].push_back(std::move(msg));
-            }
-        },
-         [&queue]()
-        {
-            return queue.size();
-        }
-    });
-}
-
-template<typename Bridge>
-typename BridgeInspector<Bridge>::MessageMap
-BridgeInspector<Bridge>::read(const InspectorOptions& options)
-{
-    MessageMap messages;
-
-    for (const auto& queue : queues_)
-    {
-        if (!should_display(queue.name, options))
-                continue;
-        queue.reader(messages, options);
+    if (!bridge_) {
+      throw std::runtime_error("Shared memory '" + shm_name_ +
+                               "' returned a null bridge");
     }
-
-    return messages;
-}
-
-template<typename Bridge>
-void BridgeInspector<Bridge>::update_stats(
-    const MessageMap& messages)
-{
-    const auto now = std::chrono::steady_clock::now();
-
-    for (const auto& [name, list] : messages)
-    {
-        auto& stats = stats_[name];
-        if (!stats.initialized)
-        {
-            stats.initialized = true;
-            stats.first_seen = now;
-        }
-
-        stats.last_seen = now;
-        stats.total_messages += list.size();
-    }
-}
-
-template<typename Bridge>
-bool BridgeInspector<Bridge>::should_display(
-    const std::string& queue,
-    const InspectorOptions& options) const
-{
-    return options.filter.empty() ||
-           std::find(options.filter.begin(),
-                     options.filter.end(),
-                     queue) != options.filter.end();
-}
-
-template<typename Bridge>
-void BridgeInspector<Bridge>::clear_screen()
-{
-    std::cout << "\033[2J\033[H";
-}
-
-template<typename Bridge>
-void BridgeInspector<Bridge>::print_header(const std::string& title) const
-{
-    console_.clear();
-    console_.title(title);
-    console_.field("Shared memory", shm_name_);
-    console_.field("Queues", queues_.size());
-    console_.blank();
-}
-
-
-
-template<typename Bridge>
-void BridgeInspector<Bridge>::display(
-    const MessageMap& messages,
-    const InspectorOptions& options) const
-{
-    print_header("Bridge Inspector");
-
-    std::size_t displayed_queues = 0;
-    std::size_t total_messages = 0;
-
-    for (const auto& queue : queues_)
-    {
-        if (!should_display(queue.name, options))
-            continue;
-
-        ++displayed_queues;
-
-        const auto it = messages.find(queue.name);
-        const MessageList* list = nullptr;
-        std::size_t count = 0;
-
-        if (it != messages.end())
-        {
-            list = &it->second;
-            count = list->size();
-        }
-
-        total_messages += count;
-        console_.section(queue.name);
-        console_.field("Type", queue.proto_name);
-        console_.field("Mode", options.history ? "History" : "Latest");
-        console_.field("Messages", count);
-
-        if (!options.verbose)
-        {
-            console_.blank();
-            continue;
-        }
-
-        if (count == 0)
-        {
-            console_.field("Status", "Empty");
-            console_.blank();
-            continue;
-        }
-
-        console_.blank();
-        for (std::size_t i = 0; i < list->size(); ++i)
-        {
-            if (options.history)
-            {
-                console_.section(queue.name + "/Message #" + std::to_string(i));
-            }
-
-            (*list)[i]->PrintDebugString();
-
-            if (i + 1 != list->size())
-                console_.blank();
-        }
-
-        console_.blank();
-    }
-
-    console_.separator('=');
-    console_.field("Queues", displayed_queues);
-    console_.field("Messages", total_messages);
-}
-    
-
-template<typename Bridge>
-void BridgeInspector<Bridge>::display_json(
-    const MessageMap& messages,
-    const InspectorOptions& options) const
-{
-    for (const auto& [name, list] : messages)
-    {
-        std::cout << name << '\n';
-        for (const auto& msg : list)
-        {
-            std::string json;
-            google::protobuf::util::MessageToJsonString(
-                *msg,
-                &json);
-            std::cout << json << "\n\n";
-        }
-    }
-}
-
-template<typename Bridge>
-void BridgeInspector<Bridge>::display_yaml(
-    const MessageMap& messages,
-    const InspectorOptions& options) const
-{
-    for (const auto& [name, list] : messages)
-    {
-        std::cout << name << '\n';
-        for (const auto& msg : list)
-        {
-            std::string json;
-            google::protobuf::util::MessageToJsonString(*msg, &json);
-            YAML::Node node = YAML::Load(json);
-            YAML::Emitter out;
-            out.SetIndent(4);
-            out.SetMapFormat(YAML::Block);
-            out.SetSeqFormat(YAML::Block);
-            out << node;
-            console_.print_indented(out.c_str(), 4);
-        }
-    }
-}
-
-template<typename Bridge>
-void BridgeInspector<Bridge>::display_stats(
-    const InspectorOptions& options) const
-{
-    using namespace std::chrono;
-    print_header("Bridge Statistics");
-    std::cout
-        << std::left
-        << std::setw(20) << "Queue"
-        << std::setw(18) << "Messages"
-        << std::setw(12) << "Msg/s"
-        << "Last seen\n";
-
-    std::cout
-        << "------------------------------------------------------------\n";
-
-    const auto now = steady_clock::now();
-
-    for (const auto& queue : queues_)
-    {
-        if (!should_display(queue.name, options))
-            continue;
-
-        const auto it = stats_.find(queue.name);
-
-        if (it == stats_.end())
-        {
-            std::cout
-                << std::setw(20) << queue.name
-                << std::setw(18) << 0
-                << std::setw(12) << 0.0
-                << "never\n";
-
-            continue;
-        }
-
-        const auto& stats = it->second;
-
-        const double elapsed =
-            duration<double>(
-                stats.last_seen - stats.first_seen).count();
-
-        const double rate =
-            elapsed > 0.0
-                ? static_cast<double>(stats.total_messages) / elapsed
-                : 0.0;
-
-        const auto age =
-            duration_cast<milliseconds>(
-                now - stats.last_seen).count();
-
-        std::cout
-            << std::setw(20) << queue.name
-            << std::setw(18) << stats.total_messages
-            << std::setw(12) << std::fixed << std::setprecision(1) << rate
-            << age << " ms\n";
-    }
-}
-
-template<typename Bridge>
-void BridgeInspector<Bridge>::display_progress(
-    const MessageMap& messages,
-    const InspectorOptions& options) const
-{
-    print_header("Bridge Progress");
-    std::size_t total = 0;
-
-    for (const auto& queue : queues_)
-    {
-   
-        const auto buffered = queue.size();
-        total += buffered;
-
-        std::cout
-            << std::left
-            << std::setw(24) << queue.name
-            << '['
-            << Console::progress_bar(buffered, queue.capacity, 32)
-            << "] "
-            << std::setw(3) << buffered
-            << '/'
-            << queue.capacity
-            << '\n';
-    }
-
-    std::cout << '\n';
-
-    console_.separator('=');
-    console_.field("Buffered messages", total);
-}
-
-template<typename Bridge>
-void BridgeInspector<Bridge>::run(
-    const InspectorOptions& options)
-{
-    connect();
+    queues_.clear();
     declare();
 
-    if (options.tui)
-    {
-        run_tui(options);
-        return;
+    initialized_ = true;
+  }
+
+  MessageMap read(bool history) {
+    MessageMap messages;
+
+    for (const auto &queue : queues_)
+      queue.reader(messages, history);
+
+    return messages;
+  }
+
+  void update_stats(const MessageMap &messages) {
+    const auto now = std::chrono::steady_clock::now();
+
+    for (const auto &[name, list] : messages) {
+      if (list.empty())
+        continue;
+
+      auto &stats = stats_[name];
+
+      if (!stats.initialized) {
+        stats.initialized = true;
+        stats.first_seen = now;
+      }
+
+      stats.last_seen = now;
+      stats.total_observed += list.size();
     }
+  }
 
-
-    const auto period =
-        std::chrono::milliseconds(
-            1000 / std::max(options.rate, 1));
-
-    do
-    {
-        auto messages = read(options);
-        update_stats(messages);
-
-        if (options.stats)
-        {
-            display_stats(options);
-        }
-        else if (options.json)
-        {
-            display_json(messages, options);
-        }
-        else if (options.yaml)
-        {
-            display_yaml(messages, options);
-        }
-        else if (options.progress)
-        {
-            display_progress(messages, options);
-        }
-        else
-        {
-            display(messages, options);
-        }
-
-        if (!options.once)
-            std::this_thread::sleep_for(period);
-
-    } while (!options.once);
-}
-
-template<typename Bridge>
-InspectorSnapshot
-BridgeInspector<Bridge>::make_snapshot(
-    const MessageMap& messages,
-    const InspectorOptions& options) const
-{
+  InspectorSnapshot make_snapshot(const MessageMap &messages,
+                                  bool history) const {
     using namespace std::chrono;
 
     InspectorSnapshot snapshot;
-
     snapshot.shm_name = shm_name_;
-    snapshot.history = options.history;
+    snapshot.history = history;
 
     const auto now = steady_clock::now();
 
-    for (const auto& queue : queues_)
-    {
-        if (!should_display(queue.name, options))
-            continue;
+    snapshot.queues.reserve(queues_.size());
 
-        QueueSnapshot item;
+    for (const auto &queue : queues_) {
+      QueueSnapshot item;
 
-        item.name       = queue.name;
-        item.proto_name = queue.proto_name;
-        item.buffered   = queue.size();
-        item.capacity   = queue.capacity;
+      item.name = queue.name;
+      item.proto_name = queue.proto_name;
+      item.buffered = queue.size();
+      item.capacity = queue.capacity;
 
-        snapshot.total_buffered += item.buffered;
+      snapshot.total_buffered += item.buffered;
 
-        //
-        // Messages protobuf -> strings.
-        //
-        const auto message_it =
-            messages.find(queue.name);
+      if (const auto it = messages.find(queue.name); it != messages.end()) {
+        item.messages.reserve(it->second.size());
 
-        if (message_it != messages.end())
-        {
-            for (const auto& message :
-                 message_it->second)
-            {
-                item.messages.push_back(
-                    message->DebugString());
-            }
+        for (const auto &message : it->second) {
+          item.messages.push_back(message->DebugString());
         }
+      }
 
-        //
-        // Stats.
-        //
-        const auto stats_it =
-            stats_.find(queue.name);
+      if (const auto it = stats_.find(queue.name);
+          it != stats_.end() && it->second.initialized) {
+        const auto &stats = it->second;
 
-        if (stats_it != stats_.end())
-        {
-            const auto& stats =
-                stats_it->second;
+        item.observed_messages = stats.total_observed;
 
-            item.sampled_messages =
-                stats.total_messages;
+        const double elapsed = duration<double>(now - stats.first_seen).count();
 
-            if (stats.initialized)
-            {
-                const double elapsed =
-                    duration<double>(
-                        stats.last_seen -
-                        stats.first_seen)
-                        .count();
+        item.observed_rate =
+            elapsed > 0.0 ? static_cast<double>(stats.total_observed) / elapsed
+                          : 0.0;
 
-                item.sampled_rate =
-                    elapsed > 0.0
-                        ? static_cast<double>(
-                              stats.total_messages) /
-                              elapsed
-                        : 0.0;
+        item.age_ms =
+            duration_cast<milliseconds>(now - stats.last_seen).count();
+      }
 
-                item.age_ms =
-                    duration_cast<milliseconds>(
-                        now - stats.last_seen)
-                        .count();
-            }
-        }
-
-        snapshot.queues.push_back(
-            std::move(item));
+      snapshot.queues.push_back(std::move(item));
     }
 
     return snapshot;
-}
+  }
 
-
-template<typename Bridge>
-void BridgeInspector<Bridge>::run_tui(
-    InspectorOptions options)
-{
-    InspectorTui tui;
-    InspectorSnapshot snapshot;
-
-    const auto period =
-        std::chrono::milliseconds(
-            1000 / std::max(options.rate, 1));
-
-    bool running = true;
-
-    while (running)
-    {
-        const auto frame_start =
-            std::chrono::steady_clock::now();
-
-        //
-        // Poll SHM uniquement si non paused.
-        //
-        if (!tui.paused())
-        {
-            auto messages = read(options);
-
-            update_stats(messages);
-
-            snapshot =
-                make_snapshot(
-                    messages,
-                    options);
-        }
-
-        tui.draw(snapshot);
-
-        //
-        // On découpe l'attente en petites périodes
-        // afin que le clavier reste réactif même
-        // avec --rate 1.
-        //
-        while (running)
-        {
-            running = tui.process_input();
-
-            if (!running)
-                break;
-
-            if (tui.consume_history_toggle())
-            {
-                options.history =
-                    !options.history;
-
-                // Force le prochain refresh.
-                break;
-            }
-
-            const auto elapsed =
-                std::chrono::steady_clock::now()
-                - frame_start;
-
-            if (elapsed >= period)
-                break;
-
-            std::this_thread::sleep_for(
-                std::chrono::milliseconds(10));
-        }
-    }
-}
+  bool initialized_{false};
+  std::vector<QueueDescriptor> queues_;
+  std::unordered_map<std::string, QueueStats> stats_;
+  std::string shm_name_;
+  std::unique_ptr<SharedMemory<Bridge>> shm_;
+};

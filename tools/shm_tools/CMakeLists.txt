@@ -9,27 +9,23 @@ find_package(Curses REQUIRED)
 find_package(advrf_middleware_core REQUIRED)
 find_package(advrf_interfaces_protobuf REQUIRED)
 
-#
-# Bridge Inspector
-#
-
-add_executable(bridge_inspector
+add_executable(shm_inspector
     src/main.cpp
 )
 
-target_include_directories(bridge_inspector
+target_include_directories(shm_inspector
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CURSES_INCLUDE_DIRS}
 )
 
-target_link_libraries(bridge_inspector
+target_link_libraries(shm_inspector
     PRIVATE
         advrf_interfaces_protobuf
         advrf_middleware_core
          ${CURSES_LIBRARIES}
 )
 
-install(TARGETS bridge_inspector
+install(TARGETS shm_inspector
     RUNTIME DESTINATION bin
 )
