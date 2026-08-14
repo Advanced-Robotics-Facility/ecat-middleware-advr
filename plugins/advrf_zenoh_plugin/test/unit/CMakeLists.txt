@@ -1,14 +1,23 @@
-add_executable(zenoh_protobuf_serialization
-    protobuf_serialization.cpp
-)
+include(CTest)
 
-target_compile_features(zenoh_protobuf_serialization PRIVATE cxx_std_17)
-target_link_libraries(zenoh_protobuf_serialization
-    PRIVATE
-        advrf_zenoh_plugin
-)
+function(plugin_test TEST_NAME TEST_SOURCE)
+    add_executable(${TEST_NAME}
+        ${TEST_SOURCE}
+    )
 
-add_test(
-    NAME zenoh_protobuf_serialization
-    COMMAND zenoh_protobuf_serialization
+    target_link_libraries(${TEST_NAME}
+        PRIVATE
+            advrf_middleware_core
+            advrf_zenoh_plugin
+    )
+
+    add_test(
+        NAME ${TEST_NAME}
+        COMMAND $<TARGET_FILE:${TEST_NAME}>
+    )
+endfunction()
+
+plugin_test(
+    001_proto_serialization
+    001_proto_serialization/001_proto_serialization.cpp
 )

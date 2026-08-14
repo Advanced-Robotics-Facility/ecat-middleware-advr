@@ -1,28 +1,46 @@
-add_executable(ros2_compliant_pub
-    002_pub.cpp
+add_executable(002_ros2_pub
+    002_ros2_pub.cpp
 )
 
-add_executable(ros2_compliant_sub
-    002_sub.cpp
+target_compile_features(002_ros2_pub 
+    PRIVATE 
+        cxx_std_17
 )
 
-target_compile_features(ros2_compliant_pub PRIVATE cxx_std_17)
-target_compile_features(ros2_compliant_sub PRIVATE cxx_std_17)
-
-target_link_libraries(ros2_compliant_pub
+target_link_libraries(002_ros2_pub
     PRIVATE
         zenohcxx::zenohc
         fastcdr
         advrf_zenoh_plugin
 )
 
-target_link_libraries(ros2_compliant_sub
+install(
+    TARGETS 002_ros2_pub
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+# ---
+
+add_executable(002_ros2_sub
+    002_ros2_sub.cpp
+)
+
+target_compile_features(002_ros2_sub 
+    PRIVATE 
+        cxx_std_17
+)
+
+target_link_libraries(002_ros2_sub
     PRIVATE
         zenohcxx::zenohc
         fastcdr
         advrf_zenoh_plugin
 )
 
+install(
+    TARGETS 002_ros2_sub
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 
 # Note: To run everything with ROS2, you must ->
 #   a. Middleware side 

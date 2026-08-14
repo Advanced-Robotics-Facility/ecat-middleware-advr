@@ -1,20 +1,39 @@
-add_executable(client
+add_executable(003_client
     003_client.cpp
 )
 
-add_executable(server
+target_compile_features(003_client 
+    PRIVATE 
+        cxx_std_17
+)
+
+target_link_libraries(003_client
+    PRIVATE
+        zenohcxx::zenohc
+)
+
+install(
+    TARGETS 003_client
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+# ---
+
+add_executable(003_server
     003_server.cpp
 )
 
-target_compile_features(client PRIVATE cxx_std_17)
-target_compile_features(server PRIVATE cxx_std_17)
+target_compile_features(003_server 
+    PRIVATE 
+        cxx_std_17
+)
 
-target_link_libraries(client
+target_link_libraries(003_server
     PRIVATE
         zenohcxx::zenohc
 )
 
-target_link_libraries(server
-    PRIVATE
-        zenohcxx::zenohc
+install(
+    TARGETS 003_server
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
