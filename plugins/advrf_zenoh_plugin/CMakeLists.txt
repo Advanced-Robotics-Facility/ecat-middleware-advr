@@ -20,7 +20,8 @@ option(ZENOH_ROS2_SUPPORT
 )
 
 if(ZENOH_ROS2_SUPPORT)
-    find_package(fastcdr REQUIRED)
+    find_package(advrf_interfaces_dds REQUIRED)
+    find_package(advrf_dds_common REQUIRED)
 endif()
 
 add_library(advrf_zenoh_plugin SHARED
@@ -31,14 +32,15 @@ add_library(advrf_zenoh_plugin SHARED
 
 if(ZENOH_ROS2_SUPPORT)
     target_sources(advrf_zenoh_plugin PRIVATE
-        src/ros2_cdr.cpp
+        src/ros2cdr.cpp
     )
 
     target_link_libraries(advrf_zenoh_plugin PRIVATE
-        fastcdr
+        advrf_interfaces_dds::fastdds
+        advrf_dds_common::fastdds
     )
 
-    target_compile_definitions(advrf_zenoh_plugin PRIVATE
+    target_compile_definitions(advrf_zenoh_plugin PUBLIC
         ZENOH_ROS2_SUPPORT=1
     )
 endif()

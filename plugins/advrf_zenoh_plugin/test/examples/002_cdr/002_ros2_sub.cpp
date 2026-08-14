@@ -8,7 +8,7 @@
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 
-#include "advrf_zenoh_plugin/serialization/ros2_cdr.hpp"
+#include "advrf_zenoh_plugin/serialization/ros2cdr.hpp"
 
 namespace
 {
@@ -23,7 +23,7 @@ void decode_and_print_imu(const zenoh::Bytes& payload)
 {
     iit::advrf::Header header;
     iit::advrf::ImuVN_rx_pdo imu;
-    if (!advrf::zenoh_plugin::ros2_cdr::deserialize(
+    if (!advrf::zenoh_plugin::ros2cdr::deserialize(
             payload, header, imu))
     {
         std::cerr << "<failed to decode IMU sample>\n";

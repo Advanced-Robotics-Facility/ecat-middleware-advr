@@ -39,22 +39,17 @@ bool ZenohAdapterPublishers::init(const config::ConfigTopics& topics,
                                   zenoh::Session& session,
                                   WireFormat wire_format)
 {
-    if (wire_format == WireFormat::Ros2Cdr)
-    {
-        LOG_ERROR("ROS 2 CDR support was selected, but its publishers are not implemented yet.");
-        return false;
-    }
-
-    auto register_topic = [this, &session](std::vector<ChannelRx> channels,
-                                           std::vector<EcatId> ids,
-                                           const std::string& key)
+    auto register_topic = [this, &session, wire_format]
+        (std::vector<ChannelRx> channels,
+        std::vector<EcatId> ids,
+        const std::string& key)
     {
         if (ids.empty())
             return true;
 
         auto& publisher = register_publisher<ZenohAdapterBridgePublisher>(
             std::move(channels), ids);
-        return publisher.init(session, key);
+        return publisher.init(session, key, wire_format);
     };
 
     const auto joint_ids = extract_ids(robot.joints);

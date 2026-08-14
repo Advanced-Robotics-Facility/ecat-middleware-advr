@@ -11,6 +11,8 @@
   <depend>advrf_interfaces_protobuf</depend>
   <depend>advrf_middleware_core</depend>
   <depend>advrf_zenoh_lib</depend>
+  <depend>advrf_interfaces_dds</depend>
+  <depend>advrf_dds_common</depend>
   <depend>yaml-cpp</depend>
 
   <buildtool_depend>cmake</buildtool_depend>

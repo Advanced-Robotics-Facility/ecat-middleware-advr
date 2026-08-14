@@ -9,7 +9,7 @@
 #include <ecat_master_future/shm/config.hpp>
 #include <ecat_master_future/shm/shared_memory.hpp>
 #include <ecat_master_future/shm/proto_helper.hpp>
-#include "advrf_zenoh_plugin/serialization/ros2_cdr.hpp"
+#include "advrf_zenoh_plugin/serialization/ros2cdr.hpp"
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 
@@ -67,7 +67,7 @@ int main()
 
         while (running) {
             proto_helper.drain(bridge.payload.imu, pdo, [&](const iit::advrf::Ec_slave_pdo& msg) {
-                if(!advrf::zenoh_plugin::ros2_cdr::serialize(msg.header(), msg.imuvn_rx_pdo(), payload)) {
+                if(!advrf::zenoh_plugin::ros2cdr::serialize(msg.header(), msg.imuvn_rx_pdo(), payload)) {
                     std::cerr << "Failed to serialize Imu PDO as ROS2 CDR.\n";
                     return;
                 }

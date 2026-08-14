@@ -13,7 +13,7 @@
 #include <advrf_middleware_core/utils/log.hpp>
 
 #include "advrf_zenoh_plugin/adapters/zenoh_adapter_publishers.hpp"
-#include "advrf_zenoh_plugin/adapters/zenoh_adapter_subscribers.hpp"
+//#include "advrf_zenoh_plugin/adapters/zenoh_adapter_subscribers.hpp"
 #include "advrf_zenoh_plugin/config/wire_format.hpp"
 //#include "advrf_zenoh_plugin/adapters/zenoh_adapter_services.hpp"
 namespace
@@ -118,7 +118,6 @@ int main(int argc, char** argv)
         zenoh::init_log_from_env_or("error");
         auto session = zenoh::Session::open(zenoh::Config::create_default());
         auto config = config::ConfigTopics{{robot->ns, robot->robot_name}};
-
 
         auto publishers = std::make_shared<advrf::zenoh_plugin::ZenohAdapterPublishers>();
         if (!publishers->init(config, *robot, session, options.wire_format)) {

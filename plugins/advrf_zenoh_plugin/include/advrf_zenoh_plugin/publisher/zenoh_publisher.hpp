@@ -8,8 +8,6 @@
 
 #include <advrf_middleware_core/utils/log.hpp>
 
-#include "advrf_zenoh_plugin/serialization/protobuf.hpp"
-
 namespace advrf::zenoh_plugin
 {
 
@@ -20,18 +18,12 @@ public:
         : publisher_(session.declare_publisher(zenoh::KeyExpr(topic_name)))
     {}
 
-    template<typename Message>
-    bool publish(const Message& message)
+    bool publish(std::vector<std::uint8_t> payload,
+                 const zenoh::Encoding& encoding)
     {
-        std::vector<std::uint8_t> payload;
-        if (!protobuf::serialize(message, payload)) {
-            LOG_ERROR("Failed to serialize Protobuf payload for Zenoh topic_name '{}'.", publisher_.get_keyexpr().as_string_view());
-            return false;
-        }
-
         try {
             zenoh::Publisher::PutOptions options;
-            options.encoding = zenoh::Encoding::Predefined::application_protobuf();
+            options.encoding = encoding;
             publisher_.put(zenoh::Bytes(std::move(payload)), std::move(options));
             return true;
         } catch (const zenoh::ZException& error) {
