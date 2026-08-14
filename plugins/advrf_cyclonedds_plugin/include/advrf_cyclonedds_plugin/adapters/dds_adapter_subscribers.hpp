@@ -21,7 +21,7 @@
 
 
 template <typename Msg>
-class DDSAdapterBridgeSubscriber
+class DDSPdoSubscriber
     : public IConnectRosGraphBridge,
       public DDSSubscriber<Msg>
 {
@@ -59,7 +59,7 @@ private:
         std::function<std::vector<iit::advrf::Ec_slave_pdo>(const Msg&)> converter)
     {
         auto subscriber =
-            std::make_shared<DDSAdapterBridgeSubscriber<Msg>>();
+            std::make_shared<DDSPdoSubscriber<Msg>>();
 
         if (!subscriber->init_dds(
                 topic_name,
@@ -97,7 +97,7 @@ private:
         std::function<iit::advrf::Ec_slave_pdo(const Msg&)> converter)
     {
         auto subscriber =
-            std::make_shared<DDSAdapterBridgeSubscriber<Msg>>();
+            std::make_shared<DDSPdoSubscriber<Msg>>();
 
         if (!subscriber->init_dds(
                 topic_name,
