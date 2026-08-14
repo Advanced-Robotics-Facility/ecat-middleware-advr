@@ -6,11 +6,11 @@
 #include <memory>
 #include <string>
 #include <type_traits>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
-#include <shm_utils.hpp>
 #include <shm_types.hpp>
+#include <shm_utils.hpp>
 
 #include "advrf_middleware_core/adapters/adapter_base.hpp"
 #include "advrf_middleware_core/utils/channel.hpp"
@@ -19,299 +19,246 @@
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/utils/log.hpp>
 
+inline int get_ecat_id(const std::string &component_name) {
+  const std::size_t pos = component_name.rfind('_');
 
-inline int get_ecat_id(const std::string& component_name)
-{
-    const std::size_t pos = component_name.rfind('_');
+  if (pos == std::string::npos || pos + 1 >= component_name.size()) {
+    LOG_ERROR("Format ecat name not correct, {}", component_name);
+    return -1;
+  }
 
-    if (pos == std::string::npos || pos + 1 >= component_name.size()) {
-        LOG_ERROR("Format ecat name not correct, {}", component_name);
-        return -1;
-    }
+  try {
+    return std::stoi(component_name.substr(pos + 1));
+  } catch (...) {
+    LOG_ERROR("Failed to convert ecat id from string, {}",
+              component_name.substr(pos + 1));
 
-    try {
-        return std::stoi(component_name.substr(pos + 1));
-    }
-    catch (...) {
-        LOG_ERROR(
-            "Failed to convert ecat id from string, {}",
-            component_name.substr(pos + 1));
-
-        return -1;
-    }
+    return -1;
+  }
 }
 
 namespace middleware_adapter::message {
 
-class AdapterPublishers : public AdapterBase
-{
+class AdapterPublishers : public AdapterBase {
 public:
-    using Pdo = iit::advrf::Ec_slave_pdo;
-    using EcatId = std::uint32_t;
+  using Pdo = iit::advrf::Ec_slave_pdo;
+  using EcatId = std::uint32_t;
 
-    static constexpr std::size_t MaxEcatIds = 256;
-    static constexpr std::size_t ChannelCount =
-        static_cast<std::size_t>(ChannelRx::Count);
+  static constexpr std::size_t MaxEcatIds = 256;
+  static constexpr std::size_t ChannelCount =
+      static_cast<std::size_t>(ChannelRx::Count);
 
-    struct CachedPdo
-    {
-        bool valid = false;
-        bool updated_this_cycle = false;
-        EcatId ecat_id = 0;
-        Pdo pdo;
-    };
+  struct CachedPdo {
+    bool valid = false;
+    bool updated_this_cycle = false;
+    EcatId ecat_id = 0;
+    Pdo pdo;
+  };
 
-    struct ChannelCache
-    {
-        std::array<CachedPdo, MaxEcatIds> entries;
-        std::vector<EcatId> active_ids;
-    };
+  struct ChannelCache {
+    std::array<CachedPdo, MaxEcatIds> entries;
+    std::vector<EcatId> active_ids;
+  };
 
-    using Cache = std::array<ChannelCache, ChannelCount>;
-    using IdMask = std::bitset<MaxEcatIds>;
+  using Cache = std::array<ChannelCache, ChannelCount>;
+  using IdMask = std::bitset<MaxEcatIds>;
 
-    class IPublisher
-    {
-    public:
-        virtual ~IPublisher() = default;
+  class IPublisher {
+  public:
+    virtual ~IPublisher() = default;
 
-        virtual void begin_cycle() = 0;
-        virtual void consume(const Pdo& pdo) = 0;
-        virtual void end_cycle(bool valid) = 0;
+    virtual void begin_cycle() = 0;
+    virtual void consume(const Pdo &pdo) = 0;
+    virtual void end_cycle(bool valid) = 0;
 
-        void set_names(std::unordered_map<uint32_t, std::string> m) { id_to_name_ = std::move(m); }
-    
-    protected:
-        std::unordered_map<uint32_t, std::string> id_to_name_;
-    };
-
-    struct Subscription
-    {
-        IPublisher* publisher = nullptr;
-        std::vector<ChannelRx> channels;
-
-    private:
-        friend class AdapterPublishers;
-
-        IdMask ids_allowed;
-        IdMask ids_seen;
-        bool accept_all_ids = true;
-    };
-
-    AdapterPublishers(){}
-
-    ~AdapterPublishers() override = default;
-
-    ShmRxReader& shm() noexcept
-    {
-        return shm_;
+    void set_names(std::unordered_map<uint32_t, std::string> m) {
+      id_to_name_ = std::move(m);
     }
 
-    const ShmRxReader& shm() const noexcept
-    {
-        return shm_;
-    }
+  protected:
+    std::unordered_map<uint32_t, std::string> id_to_name_;
+  };
 
-    void spin_once() override
-    {
-        fill_cache();
-        dispatch();
-    }
+  struct Subscription {
+    IPublisher *publisher = nullptr;
+    std::vector<ChannelRx> channels;
 
-    bool start() override
-    {
-        return shm_.connect(SHM_NRT_RX_PDO, ShmAttachMode::Open);
-    }
+  private:
+    friend class AdapterPublishers;
 
-    bool is_ok() const override
-    {
-        return shm_.is_ok();
-    }
+    IdMask ids_allowed;
+    IdMask ids_seen;
+    bool accept_all_ids = true;
+  };
+
+  AdapterPublishers() {}
+
+  ~AdapterPublishers() override = default;
+
+  ShmRxReader &shm() noexcept { return shm_; }
+
+  const ShmRxReader &shm() const noexcept { return shm_; }
+
+  void spin_once() override {
+    fill_cache();
+    dispatch();
+  }
+
+  bool start() override {
+    return shm_.connect(SHM_NRT_RX_PDO, ShmAttachMode::Open);
+  }
+
+  bool is_ok() const override { return shm_.is_ok(); }
+
+  void close() override { shm_.close(); }
 
 protected:
-    protected:
-    ShmRxReader shm_;
+protected:
+  ShmRxReader shm_;
 
-    template<typename PublisherType>
-    PublisherType& register_publisher(
-        std::vector<ChannelRx> channels,
-        const std::vector<EcatId>& ids_allowed = {})
-    {
-        static_assert(
-            std::is_base_of_v<IPublisher, PublisherType>,
-            "PublisherType must derive from IPublisher");
+  template <typename PublisherType>
+  PublisherType &
+  register_publisher(std::vector<ChannelRx> channels,
+                     const std::vector<EcatId> &ids_allowed = {}) {
+    static_assert(std::is_base_of_v<IPublisher, PublisherType>,
+                  "PublisherType must derive from IPublisher");
 
-        auto publisher = std::make_unique<PublisherType>();
-        auto* publisher_ptr = publisher.get();
+    auto publisher = std::make_unique<PublisherType>();
+    auto *publisher_ptr = publisher.get();
 
-        Subscription subscription;
-        subscription.publisher = publisher_ptr;
-        subscription.channels = std::move(channels);
-        subscription.accept_all_ids = ids_allowed.empty();
+    Subscription subscription;
+    subscription.publisher = publisher_ptr;
+    subscription.channels = std::move(channels);
+    subscription.accept_all_ids = ids_allowed.empty();
 
-        for (const EcatId id : ids_allowed) {
-            if (id >= MaxEcatIds) {
-                LOG_ERROR(
-                    "Configured ECAT ID {} exceeds maximum supported ID {}",
-                    id,
-                    MaxEcatIds - 1);
+    for (const EcatId id : ids_allowed) {
+      if (id >= MaxEcatIds) {
+        LOG_ERROR("Configured ECAT ID {} exceeds maximum supported ID {}", id,
+                  MaxEcatIds - 1);
 
-                continue;
-            }
+        continue;
+      }
 
-            if (subscription.ids_allowed.test(id)) {
-                LOG_ERROR("Duplicate configured ECAT ID {}", id);
-                continue;
-            }
+      if (subscription.ids_allowed.test(id)) {
+        LOG_ERROR("Duplicate configured ECAT ID {}", id);
+        continue;
+      }
 
-            subscription.ids_allowed.set(id);
-        }
-
-        subscriptions_.push_back(std::move(subscription));
-        publishers_.push_back(std::move(publisher));
-
-        return *publisher_ptr;
+      subscription.ids_allowed.set(id);
     }
 
-    // API unit test
+    subscriptions_.push_back(std::move(subscription));
+    publishers_.push_back(std::move(publisher));
 
-    ChannelCache& mutable_channel_cache(ChannelRx channel) noexcept
-    {
-        return cache_[channel_index(channel)];
-    }
+    return *publisher_ptr;
+  }
 
-    void dispatch_cached_data()
-    {
-        dispatch();
-    }
+  // API unit test
+
+  ChannelCache &mutable_channel_cache(ChannelRx channel) noexcept {
+    return cache_[channel_index(channel)];
+  }
+
+  void dispatch_cached_data() { dispatch(); }
 
 private:
-    inline static constexpr std::array<ChannelRx, ChannelCount> all_channels_{
-        ChannelRx::Imu,
-        ChannelRx::Motor,
-        ChannelRx::Gripper,
-        ChannelRx::Pump,
-        ChannelRx::PowerBoard,
-        ChannelRx::ForceTorque,
-        ChannelRx::Valve
-    };
+  inline static constexpr std::array<ChannelRx, ChannelCount> all_channels_{
+      ChannelRx::Imu,  ChannelRx::Motor,      ChannelRx::Gripper,
+      ChannelRx::Pump, ChannelRx::PowerBoard, ChannelRx::ForceTorque,
+      ChannelRx::Valve};
 
-    std::vector<std::unique_ptr<IPublisher>> publishers_;
-    std::vector<Subscription> subscriptions_;
-    Cache cache_;
+  std::vector<std::unique_ptr<IPublisher>> publishers_;
+  std::vector<Subscription> subscriptions_;
+  Cache cache_;
 
-    static constexpr std::size_t channel_index(ChannelRx channel) noexcept
-    {
-        return static_cast<std::size_t>(channel);
-    }
+  static constexpr std::size_t channel_index(ChannelRx channel) noexcept {
+    return static_cast<std::size_t>(channel);
+  }
 
-    ChannelCache& channel_cache(ChannelRx channel) noexcept
-    {
-        return cache_[channel_index(channel)];
-    }
+  ChannelCache &channel_cache(ChannelRx channel) noexcept {
+    return cache_[channel_index(channel)];
+  }
 
-    const ChannelCache& channel_cache(ChannelRx channel) const noexcept
-    {
-        return cache_[channel_index(channel)];
-    }
+  const ChannelCache &channel_cache(ChannelRx channel) const noexcept {
+    return cache_[channel_index(channel)];
+  }
 
-    void fill_cache()
-    {
-        for (const ChannelRx channel : all_channels_)
-        {
-            const auto device = device_for(channel);
+  void fill_cache() {
+    for (const ChannelRx channel : all_channels_) {
+      const auto device = device_for(channel);
 
-            if (!device)
-            {
-                LOG_ERROR(
-                    "No device mapped for ChannelRx {}",
-                    static_cast<int>(channel));
-                continue;
-            }
+      if (!device) {
+        LOG_ERROR("No device mapped for ChannelRx {}",
+                  static_cast<int>(channel));
+        continue;
+      }
 
-            auto& cache = channel_cache(channel);
-            Pdo pdo;
+      auto &cache = channel_cache(channel);
+      Pdo pdo;
 
-            shm_.drain(
-                *device,
-                pdo,
-                [&](const Pdo& received)
-                {
-                    const int parsed_id =
-                        get_ecat_id(received.header().str_id());
+      shm_.drain(*device, pdo, [&](const Pdo &received) {
+        const int parsed_id = get_ecat_id(received.header().str_id());
 
-                    if (parsed_id < 0)
-                    {
-                        LOG_ERROR(
-                            "Format error for PDO frame with ID {}",
-                            received.header().str_id());
-                        return;
-                    }
-
-                    const auto id =
-                        static_cast<EcatId>(parsed_id);
-
-                    if (id >= MaxEcatIds)
-                    {
-                        LOG_ERROR(
-                            "ECAT ID {} exceeds maximum supported ID {}",
-                            id,
-                            MaxEcatIds - 1);
-                        return;
-                    }
-
-                    auto& entry = cache.entries[id];
-
-                    if (!entry.valid)
-                        cache.active_ids.push_back(id);
-
-                    entry.valid = true;
-                    entry.ecat_id = id;
-                    entry.pdo = received;
-                });
+        if (parsed_id < 0) {
+          LOG_ERROR("Format error for PDO frame with ID {}",
+                    received.header().str_id());
+          return;
         }
-    }
 
-    void dispatch()
-    {
-        for (auto& subscription : subscriptions_) {
-            subscription.ids_seen.reset();
-            subscription.publisher->begin_cycle();
+        const auto id = static_cast<EcatId>(parsed_id);
 
-            for (const ChannelRx channel : subscription.channels) {
-                dispatch_cache(
-                    channel_cache(channel),
-                    subscription);
-            }
-
-            const bool valid =
-                subscription.accept_all_ids
-                    ? subscription.ids_seen.any()
-                    : subscription.ids_seen == subscription.ids_allowed;
-
-            subscription.publisher->end_cycle(valid);
+        if (id >= MaxEcatIds) {
+          LOG_ERROR("ECAT ID {} exceeds maximum supported ID {}", id,
+                    MaxEcatIds - 1);
+          return;
         }
+
+        auto &entry = cache.entries[id];
+
+        if (!entry.valid)
+          cache.active_ids.push_back(id);
+
+        entry.valid = true;
+        entry.ecat_id = id;
+        entry.pdo = received;
+      });
     }
+  }
 
-    static void dispatch_cache(
-        const ChannelCache& cache,
-        Subscription& subscription)
-    {
-        for (EcatId id : cache.active_ids) {
+  void dispatch() {
+    for (auto &subscription : subscriptions_) {
+      subscription.ids_seen.reset();
+      subscription.publisher->begin_cycle();
 
-            const auto& entry = cache.entries[id];
+      for (const ChannelRx channel : subscription.channels) {
+        dispatch_cache(channel_cache(channel), subscription);
+      }
 
-            if (!subscription.accept_all_ids &&
-                !subscription.ids_allowed.test(id))
-                continue;
+      const bool valid =
+          subscription.accept_all_ids
+              ? subscription.ids_seen.any()
+              : subscription.ids_seen == subscription.ids_allowed;
 
-            if (subscription.ids_seen.test(id))
-                continue;
-
-            subscription.ids_seen.set(id);
-            subscription.publisher->consume(entry.pdo);
-        }
+      subscription.publisher->end_cycle(valid);
     }
+  }
+
+  static void dispatch_cache(const ChannelCache &cache,
+                             Subscription &subscription) {
+    for (EcatId id : cache.active_ids) {
+
+      const auto &entry = cache.entries[id];
+
+      if (!subscription.accept_all_ids && !subscription.ids_allowed.test(id))
+        continue;
+
+      if (subscription.ids_seen.test(id))
+        continue;
+
+      subscription.ids_seen.set(id);
+      subscription.publisher->consume(entry.pdo);
+    }
+  }
 };
 
 } // namespace middleware_adapter::message

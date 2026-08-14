@@ -74,33 +74,34 @@ int main(int argc, char **argv)
     if (!cfg)
         return 1;
 
-    auto dds_participant = dds::domain::DomainParticipant(cfg->domain_id);
     auto config = config::ConfigTopics{{cfg->ns, cfg->robot_name}};
-
+    
     // service
-    //auto dds_adapter_service = std::make_shared<DDSAdapterService>(config, dds_participant);
+    auto dds_participant_service = dds::domain::DomainParticipant(cfg->domain_id);
+    auto dds_adapter_service = std::make_shared<DDSAdapterService>(config, *cfg, dds_participant_service);
 
     // publishers
+    auto dds_participant_pub = dds::domain::DomainParticipant(cfg->domain_id);
     auto dds_adapter_publishers = std::make_shared<DDSAdapterPublishers>();
-    if (!dds_adapter_publishers->init(config, *cfg, dds_participant))
+    if (!dds_adapter_publishers->init(config, *cfg, dds_participant_pub))
     {
         LOG_ERROR("Failed to bind to target DDS channels.");
         return 1;
     }
 
     // subscribers
-    auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>(config, dds_participant);
+    auto dds_participant_sub = dds::domain::DomainParticipant(cfg->domain_id);
+    auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>(config, *cfg, dds_participant_sub);
     if (!dds_adapter_subscribers->is_initialized()) {
         LOG_ERROR("Failed to initialize one or more DDS subscribers.");
         return 1;
     }
 
-
-    // plugin_exec.register_adapter({
-    //     "dds_adapter_service",
-    //     dds_adapter_service,
-    //     period_from_rate(options.rate_service)
-    // });
+    plugin_exec.register_adapter({
+        "dds_adapter_service",
+        dds_adapter_service,
+        period_from_rate(options.rate_service)
+    });
 
     plugin_exec.register_adapter({
         "dds_adapter_publishers",

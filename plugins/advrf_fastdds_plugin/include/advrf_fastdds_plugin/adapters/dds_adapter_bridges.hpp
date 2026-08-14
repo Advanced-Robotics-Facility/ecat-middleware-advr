@@ -7,11 +7,13 @@
 
 #include <advrf_middleware_core/adapters/adapter_publishers.hpp>
 #include <advrf_middleware_core/utils/log.hpp>
+#include "advrf_fastdds_plugin/ros_metadata/ros_graph_bridge.hpp"
 
 template <typename Msg, typename MsgPubSubType>
 class DDSAdapterBridgePublisher
     : public DDSPublisher<Msg, MsgPubSubType>
-    , public middleware_adapter::message::AdapterPublishers::IPublisher
+    , public middleware_adapter::message::AdapterPublishers::IPublisher,
+    public IConnectRosGraphBridge
 {
 public:
     using Pdo  = iit::advrf::Ec_slave_pdo;
@@ -55,6 +57,10 @@ public:
         if (ret != eprosima::fastdds::dds::RETCODE_OK) {
             LOG_ERROR("[DDSAdapterBridges] write() retcode: {}", ret);            
         }
+    }
+
+    void connect_ros_graph_bridge(FastRosGraphBridge &bridge) override {
+        bridge.add_writer(this->dds_writer());
     }
 
 protected:

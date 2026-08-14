@@ -87,6 +87,11 @@ public:
         return shm_.is_ok();
     }
 
+    void close() override
+    {
+        shm_.close();
+    }
+
 
 protected:
     ShmServiceClient shm_;

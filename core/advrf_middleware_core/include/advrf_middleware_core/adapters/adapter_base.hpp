@@ -6,4 +6,5 @@ class AdapterBase {
         virtual bool start() = 0;
         virtual void spin_once() = 0;
         virtual bool is_ok() const = 0;
+        virtual void close() = 0;
 };

@@ -46,6 +46,31 @@ std::unordered_map<uint32_t, std::string> build_name_map(const RobotConfig& cfg)
     return out;
 }
 
+
+void DDSAdapterPublishers::init_ros_graph_bridge(
+    const RobotConfig& robot_config,
+    eprosima::fastdds::dds::DomainParticipant* dp)
+{
+    if (!robot_config.declare_to_ros) {
+        return;
+    }
+
+    const std::string node_namespace = FastRosGraphBridge::build_node_namespace(
+        robot_config.ns,
+        robot_config.robot_name
+    );
+
+    ros_graph_bridge_ = std::make_unique<FastRosGraphBridge>(
+        dp,
+        "rx_node",
+        node_namespace
+    );
+
+    for (auto& connectable : ros_connectables_) {
+        connectable.get().connect_ros_graph_bridge(*ros_graph_bridge_);
+    }
+}
+
 bool DDSAdapterPublishers::init(
     const config::ConfigTopics& config_topics, 
     const RobotConfig& robot_config,
@@ -69,76 +94,128 @@ bool DDSAdapterPublishers::init(
         LOG_INFO("Mapping ecat_id {} to name {}", id_name_pair.first, id_name_pair.second);
     }
 
+   
+    // ---------------------------------------------------------------------
+    // Joint publishers
+    // ---------------------------------------------------------------------
+
     if (!joint_ids.empty()) {
-        auto& publisher = register_publisher<JointStatePublisher>({ChannelRx::Motor, ChannelRx::Gripper, ChannelRx::Valve}, joint_ids);
-        publisher.set_names(id_to_name);
-        publisher.init(config_topics.state.jointState(), dp);
+        create_publisher<JointStatePublisher>(
+            {
+                ChannelRx::Motor,
+                ChannelRx::Gripper,
+                ChannelRx::Valve
+            },
+            joint_ids,
+            id_to_name,
+            config_topics.rx.jointState(),
+            dp
+        );
     }
 
     if (!motor_ids.empty()) {
-        auto& publisher = register_publisher<MotorsPublisher>({ChannelRx::Motor}, motor_ids);
-        publisher.set_names(id_to_name);
-        publisher.init(config_topics.state.motor(), dp);
-    }
-
-    if (!valve_ids.empty()) {
-        auto& publisher = register_publisher<ValvePublisher>({ChannelRx::Valve}, valve_ids);
-        publisher.set_names(id_to_name);
-        publisher.init(config_topics.state.valve(), dp);
+        create_publisher<MotorsPublisher>(
+            {ChannelRx::Motor},
+            motor_ids,
+            id_to_name,
+            config_topics.rx.motor(),
+            dp
+        );
     }
 
     if (!gripper_ids.empty()) {
-        auto& publisher = register_publisher<GripperPublisher>({ChannelRx::Gripper}, gripper_ids);
-        publisher.set_names(id_to_name);
-        publisher.init(config_topics.state.gripper(), dp);
+        create_publisher<GripperPublisher>(
+            {ChannelRx::Gripper},
+            gripper_ids,
+            id_to_name,
+            config_topics.rx.gripper(),
+            dp
+        );
     }
 
-    if (!imu_ids.empty()) {
-        for (const auto& imu : robot_config.imus) {
-            if (imu.ecat_id < 0) continue;
-            auto& publisher = register_publisher<ImuPublisher>(
-                {ChannelRx::Imu}, {static_cast<EcatId>(imu.ecat_id)}
-            );
-            publisher.set_names(id_to_name);
-            publisher.init(config_topics.state.imu(imu.name), dp);
-        }
+    if (!valve_ids.empty()) {
+        create_publisher<ValvePublisher>(
+            {ChannelRx::Valve},
+            valve_ids,
+            id_to_name,
+            config_topics.rx.valve(),
+            dp
+        );
     }
 
-    if (!power_board_ids.empty()) {
-        for (const auto& pb : robot_config.power_boards) {
-            if (pb.ecat_id < 0) continue;
-            auto& publisher = register_publisher<PowerBoardPublisher>(
-                {ChannelRx::PowerBoard}, 
-                {static_cast<EcatId>(pb.ecat_id)}
-            );
-            publisher.set_names(id_to_name);
-            publisher.init(config_topics.state.powerBoard(pb.name), dp);
+    // ---------------------------------------------------------------------
+    // IMUs
+    // ---------------------------------------------------------------------
+
+    for (const auto& imu : robot_config.imus) {
+        if (imu.ecat_id < 0) {
+            continue;
         }
+
+        create_publisher<ImuPublisher>(
+            {ChannelRx::Imu},
+            {static_cast<EcatId>(imu.ecat_id)},
+            id_to_name,
+            config_topics.rx.imu(imu.name),
+            dp
+        );
     }
 
-    if (!pump_ids.empty()) {
-        for (const auto& pump : robot_config.pumps) {
-            if (pump.ecat_id < 0) continue;
-            auto& publisher = register_publisher<PumpPublisher>(
-                {ChannelRx::Pump}, 
-                {static_cast<EcatId>(pump.ecat_id)}
-            );
-            publisher.set_names(id_to_name);
-            publisher.init(config_topics.state.pump(pump.name), dp);
+    // ---------------------------------------------------------------------
+    // Power boards
+    // ---------------------------------------------------------------------
+
+    for (const auto& power_board : robot_config.power_boards) {
+        if (power_board.ecat_id < 0) {
+            continue;
         }
+
+        create_publisher<PowerBoardPublisher>(
+            {ChannelRx::PowerBoard},
+            {static_cast<EcatId>(power_board.ecat_id)},
+            id_to_name,
+            config_topics.rx.powerBoard(power_board.name),
+            dp
+        );
     }
 
-    if (!force_torque_ids.empty()) {
-        for (const auto& ft : robot_config.force_torques) {
-            if (ft.ecat_id < 0) continue;
-            auto& publisher = register_publisher<ForceTorquePublisher>(
-                {ChannelRx::ForceTorque}, 
-                {static_cast<EcatId>(ft.ecat_id)}
-            );
-            publisher.set_names(id_to_name);
-            publisher.init(config_topics.state.forceTorque(ft.name), dp);
+    // ---------------------------------------------------------------------
+    // Pumps
+    // ---------------------------------------------------------------------
+
+    for (const auto& pump : robot_config.pumps) {
+        if (pump.ecat_id < 0) {
+            continue;
         }
+
+        create_publisher<PumpPublisher>(
+            {ChannelRx::Pump},
+            {static_cast<EcatId>(pump.ecat_id)},
+            id_to_name,
+            config_topics.rx.pump(pump.name),
+            dp
+        );
     }
+
+    // ---------------------------------------------------------------------
+    // Force / Torque
+    // ---------------------------------------------------------------------
+
+    for (const auto& force_torque : robot_config.force_torques) {
+        if (force_torque.ecat_id < 0) {
+            continue;
+        }
+
+        create_publisher<ForceTorquePublisher>(
+            {ChannelRx::ForceTorque},
+            {static_cast<EcatId>(force_torque.ecat_id)},
+            id_to_name,
+            config_topics.rx.forceTorque(force_torque.name),
+            dp
+        );
+    }
+
+    init_ros_graph_bridge(robot_config, dp);
     
     return true;
 }

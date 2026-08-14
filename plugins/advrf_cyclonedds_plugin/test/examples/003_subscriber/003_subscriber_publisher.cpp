@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 
     DDSPublisher<MotorVectorMsg> publisher;
     publisher.init_dds(
-        topics.command.motorXtCmd(),
+        topics.tx.motorXtCmd(),
         participant
     );
 

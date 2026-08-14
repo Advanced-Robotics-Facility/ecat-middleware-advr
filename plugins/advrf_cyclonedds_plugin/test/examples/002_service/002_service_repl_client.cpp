@@ -1,7 +1,9 @@
 #include <dds/dds.hpp>
+#include <filesystem>
 
 #include <advrf_interfaces/srv/ReplCmd.hpp>
 #include <advrf_middleware_core/utils/log.hpp>
+#include <advrf_middleware_core/config/robot_config.hpp>
 
 #include "advrf_cyclonedds_plugin/service/service_client.hpp"
 #include "advrf_middleware_core/config/config_topics.hpp"
@@ -12,11 +14,12 @@ using ResponseDDS = advrf_interfaces::srv::dds_::ReplCmd_Response_;
 int main()
 {
     advrf::log::Log::init();
-    dds::domain::DomainParticipant participant(42);
-    config::ConfigTopics topics({"advrf", "robot"});
+    const auto cfg = load_robot_config( ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
+    auto dds_participant = dds::domain::DomainParticipant{cfg->domain_id};
+    auto config = config::ConfigTopics{{cfg->ns, cfg->robot_name}};
     ServiceClient<RequestDDS, ResponseDDS> client(
-        participant, topics.replCmd.request(), 
-        topics.replCmd.reply());
+        dds_participant, config.service.request(), 
+        config.service.reply());
 
     RequestDDS request{};
     request.request().type() = static_cast<uint8_t>(4); // ECAT_MASTER_CMD, matching CmdType enum value

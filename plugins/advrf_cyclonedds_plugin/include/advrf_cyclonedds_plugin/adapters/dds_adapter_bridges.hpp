@@ -4,10 +4,13 @@
 #include "advrf_cyclonedds_plugin/publisher/dds_publisher.hpp"
 #include <advrf_dds_common/converter/converter.hpp>
 
+#include "advrf_cyclonedds_plugin/ros_metadata/ros_graph_bridge.hpp"
+
 template <typename Msg>
 class DDSAdapterBridgePublisher
-    : public DDSPublisher<Msg>
-    , public middleware_adapter::message::AdapterPublishers::IPublisher
+    : public DDSPublisher<Msg>,
+      public IConnectRosGraphBridge,
+      public middleware_adapter::message::AdapterPublishers::IPublisher
 {
 public:
     using Pdo  = iit::advrf::Ec_slave_pdo;
@@ -49,6 +52,10 @@ public:
         catch (const dds::core::Exception& e) {
             LOG_ERROR("[DDSAdapterPublisher] Write error: {}", e.what());
         }
+    }
+
+    void connect_ros_graph_bridge(CycloneDDSRosGraphBridge &bridge) override {
+        bridge.add_writer(this->writer_);
     }
 
 protected:

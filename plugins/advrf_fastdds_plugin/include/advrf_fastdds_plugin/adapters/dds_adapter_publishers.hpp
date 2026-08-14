@@ -5,6 +5,7 @@
 #include <advrf_middleware_core/adapters/adapter_publishers.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
 #include <advrf_middleware_core/config/robot_config.hpp>
+#include <advrf_fastdds_plugin/ros_metadata/ros_graph_bridge.hpp>   
 
 using AdapterPublishers = middleware_adapter::message::AdapterPublishers;
 using IPublisher = middleware_adapter::message::AdapterPublishers::IPublisher;
@@ -12,12 +13,34 @@ using Subscription = middleware_adapter::message::AdapterPublishers::Subscriptio
 
 class DDSAdapterPublishers : public AdapterPublishers {
 public:
-    DDSAdapterPublishers() = default;
-    ~DDSAdapterPublishers() override = default;
+    bool init(
+        const config::ConfigTopics& config_topics,
+        const RobotConfig& robot_config,
+        eprosima::fastdds::dds::DomainParticipant* dp
+    );
 
-    bool init(const config::ConfigTopics& config_topics, 
-              const RobotConfig& robot_config,
-              eprosima::fastdds::dds::DomainParticipant* dp);
+private:
+    template<typename Publisher, typename Topic>
+    Publisher& create_publisher(
+        std::initializer_list<ChannelRx> channels,
+        const std::vector<EcatId>& ids,
+        const std::unordered_map<uint32_t, std::string>& names,
+        const Topic& topic,
+        eprosima::fastdds::dds::DomainParticipant* dp
+    )
+    {
+        auto& publisher = register_publisher<Publisher>(channels, ids);
+        publisher.set_names(names);
+        publisher.init(topic, dp);
+        ros_connectables_.emplace_back(publisher);
+        return publisher;
+    }
 
-    private:
+    void init_ros_graph_bridge(
+        const RobotConfig& robot_config,
+        eprosima::fastdds::dds::DomainParticipant* dp
+    );
+
+    std::unique_ptr<FastRosGraphBridge> ros_graph_bridge_;
+    std::vector<std::reference_wrapper<IConnectRosGraphBridge>> ros_connectables_;
 };

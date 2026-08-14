@@ -17,6 +17,7 @@ struct RobotConfig {
     std::string robot_name {"NoNe"};
     uint32_t domain_id {0};
     std::string ns {""};
+    bool declare_to_ros {false};
 
     std::vector<JointConfig> joints;  
     std::vector<JointConfig> motors;   
@@ -69,6 +70,7 @@ inline std::optional<RobotConfig> load_robot_config(const std::string& yaml_path
                          0u;
 
         cfg.ns = dds && dds["namespace"] ? dds["namespace"].as<std::string>(): "";
+        cfg.declare_to_ros = dds && dds["declare_to_ros"] ? dds["declare_to_ros"].as<bool>() : false;
 
         const YAML::Node joints = robot["joints"] ? robot["joints"] : root["joints"];
         if (joints) {

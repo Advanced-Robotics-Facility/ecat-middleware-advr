@@ -29,3 +29,4 @@ joints:
 dds:
   namespace: advrf
   domain: 42
+  declare_to_ros: true

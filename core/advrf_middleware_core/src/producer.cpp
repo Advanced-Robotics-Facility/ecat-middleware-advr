@@ -313,10 +313,8 @@ int main(int argc, char** argv)
     }
     std::cout << "=========================================\n\n";
 
-    ShmProtoHelper repl_proto_helper;
     iit::advrf::Repl_cmd cmd_msg;
      
-    ShmProtoHelper proto_helper;
     double t = 0.0;
     uint64_t sample_count = 0;
     bool bridge_seen = false;
@@ -324,7 +322,7 @@ int main(int argc, char** argv)
     auto next_tick = std::chrono::steady_clock::now();
     while (keep_running) {
         
-        repl_proto_helper.drain(repl_shm->bridge().payload.request, cmd_msg, [&](const iit::advrf::Repl_cmd& cmd) {
+        ShmProtoHelper::drain(repl_shm->bridge().payload.request, cmd_msg, [&](const iit::advrf::Repl_cmd& cmd) {
       
             iit::advrf::Cmd_reply reply;
             reply.mutable_request_id()->CopyFrom(cmd.request_id());
@@ -364,7 +362,7 @@ int main(int argc, char** argv)
                 }
             }
 
-            if (!repl_proto_helper.push(repl_shm->bridge().payload.reply, reply)) {
+            if (!ShmProtoHelper::push(repl_shm->bridge().payload.reply, reply)) {
                 std::cerr << "[Producer] Failed to push repl reply (queue full)" << '\n';
             }
         });
@@ -374,25 +372,25 @@ int main(int argc, char** argv)
 
             switch (slave.type) {
                 case DeviceTypeRx::IMU:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::IMU), make_imu_pdo(t, sample_count, slave.board_id));
+                    ShmProtoHelper::push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::IMU), make_imu_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceTypeRx::MOTOR:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::MOTOR), make_motor_pdo(t, sample_count, slave.board_id));
+                    ShmProtoHelper::push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::MOTOR), make_motor_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceTypeRx::GRIPPER:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::GRIPPER), make_gripper_pdo(t, sample_count, slave.board_id));
+                    ShmProtoHelper::push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::GRIPPER), make_gripper_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceTypeRx::POWER_BOARD:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::POWER_BOARD), make_pb_pdo(t, sample_count, slave.board_id));
+                    ShmProtoHelper::push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::POWER_BOARD), make_pb_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceTypeRx::PUMP:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::PUMP), make_pump_pdo(t, sample_count, slave.board_id));
+                    ShmProtoHelper::push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::PUMP), make_pump_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceTypeRx::FORCE_TORQUE:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::FORCE_TORQUE), make_ft_pdo(t, sample_count, slave.board_id));
+                    ShmProtoHelper::push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::FORCE_TORQUE), make_ft_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceTypeRx::VALVE:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::VALVE), make_valve_pdo(t, sample_count, slave.board_id));
+                    ShmProtoHelper::push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::VALVE), make_valve_pdo(t, sample_count, slave.board_id));
                     break;
                 default:
                     break;

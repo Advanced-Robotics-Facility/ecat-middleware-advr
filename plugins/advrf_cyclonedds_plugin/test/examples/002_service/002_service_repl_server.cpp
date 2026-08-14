@@ -13,13 +13,11 @@
 namespace
 {
     volatile std::sig_atomic_t keep_running = 1;
-
     void on_signal(int)
     {
         keep_running = 0;
     }
 }
-
 
 int main(int argc, char** argv)
 {
@@ -28,7 +26,6 @@ int main(int argc, char** argv)
     std::signal(SIGINT, on_signal);
     std::signal(SIGTERM, on_signal);
 
-
     const auto cfg = load_robot_config( ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
     auto dds_participant = dds::domain::DomainParticipant{cfg->domain_id};
     auto config =config::ConfigTopics{{cfg->ns, cfg->robot_name}};
@@ -36,9 +33,10 @@ int main(int argc, char** argv)
     if (!cfg)
         return 1;
 
-    DDSAdapterService dds_adapter_service{
+    DDSAdapterService dds_adapter_service(
         config,
-        dds_participant};
+        *cfg,
+        dds_participant);
 
     if (!dds_adapter_service.start())
     {
@@ -46,10 +44,7 @@ int main(int argc, char** argv)
         return 1;
     }
 
-
     LOG_INFO("DDS service adapter started");
-
-
     while (keep_running)
     {
         if (!dds_adapter_service.is_ok())
@@ -57,15 +52,12 @@ int main(int argc, char** argv)
             LOG_ERROR("DDS service adapter connection lost");
             break;
         }
-
         dds_adapter_service.spin_once();
-
         std::this_thread::sleep_for(
             std::chrono::milliseconds{100});
     }
 
-
-    dds_adapter_service.shm().close();
+    dds_adapter_service.close();
 
     return 0;
 }

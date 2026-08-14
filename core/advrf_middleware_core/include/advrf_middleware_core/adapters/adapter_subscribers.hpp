@@ -25,6 +25,11 @@ namespace middleware_adapter::message {
             return shm_.is_ok();
         }
 
+        void close() override
+        {
+            shm_.close();
+        }
+
     protected:
         template<typename Proto>
         bool push(

@@ -1,21 +1,22 @@
-add_executable(005_subscriber_publisher
-    005_subscriber_publisher.cpp
+add_executable(001_publisher_from_shm
+    001_publisher_from_shm.cpp
 )
 
-target_compile_features(005_subscriber_publisher
+target_compile_features(001_publisher_from_shm
     PRIVATE
         cxx_std_17
 )
 
-target_link_libraries(005_subscriber_publisher
+target_link_libraries(001_publisher_from_shm
     PRIVATE
         advrf_cyclonedds_plugin
         advrf_interfaces_dds::cyclonedds
         advrf_middleware_core
         advrf_config
+        yaml-cpp::yaml-cpp
 )
 
 install(
-    TARGETS 005_subscriber_publisher
+    TARGETS 001_publisher_from_shm
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )

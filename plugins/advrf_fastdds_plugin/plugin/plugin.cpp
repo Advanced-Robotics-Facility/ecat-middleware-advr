@@ -86,40 +86,39 @@ int main(int argc, char **argv)
     auto cfg = load_robot_config(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
     if (!cfg) return 1;
 
-    auto* dds_participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
+    
+    auto config = config::ConfigTopics({cfg->ns, cfg->robot_name});
+    
+    // publishers
+    auto* dds_participant_pub = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
         cfg->domain_id,
         eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT
     );
-    if (dds_participant == nullptr) {
-        LOG_ERROR("Failed to create DDS DomainParticipant.");
+    auto dds_adapter_publishers = std::make_shared<DDSAdapterPublishers>();
+    if (!dds_adapter_publishers->init(config, *cfg, dds_participant_pub)) {
+        LOG_ERROR("Failed to bind to target DDS channels.");
         return 1;
     }
-    auto config = config::ConfigTopics({cfg->ns, cfg->robot_name});
-    // service
-    //auto dds_adapter_service = std::make_shared<DDSAdapterService>(config, dds_participant);
-
-    // publishers
-    auto dds_adapter_publishers = std::make_shared<DDSAdapterPublishers>();
     
     // subscribers
-    auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>(config, dds_participant);
+    auto* dds_participant_sub = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
+        cfg->domain_id,
+        eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT
+    );
+    auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>(config, *cfg, dds_participant_sub);
     if (!dds_adapter_subscribers->is_initialized()) {
         LOG_ERROR("Failed to initialize one or more DDS subscribers.");
         return 1;
     }
+
+    // service
+     auto* dds_participant_service = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
+        cfg->domain_id,
+        eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT
+    );
+    auto dds_adapter_service = std::make_shared<DDSAdapterService>(config, *cfg, dds_participant_service);
+
    
-    if (!dds_adapter_publishers->init(config, *cfg, dds_participant)) {
-        LOG_ERROR("Failed to bind to target DDS channels.");
-        return 1;
-    }
-
-    // plugin_exec.register_adapter({
-    //     "dds_adapter_service",
-    //     dds_adapter_service,
-    //     period_from_rate(options.rate_service)
-    // });
-    // LOG_INFO("Service registered");
-
     plugin_exec.register_adapter({
         "dds_adapter_publishers",
         dds_adapter_publishers,
@@ -132,8 +131,12 @@ int main(int argc, char **argv)
         dds_adapter_subscribers,
         period_from_rate(options.rate_subscribers)
     });
-    LOG_INFO("Subscribers registered");
 
+    plugin_exec.register_adapter({
+        "dds_adapter_service",
+        dds_adapter_service,
+        period_from_rate(options.rate_service)
+    });
 
     LOG_INFO("Publisher rate: {} Hz", options.rate_publishers);
     LOG_INFO("Service rate: {} Hz", options.rate_service);
@@ -141,7 +144,9 @@ int main(int argc, char **argv)
 
     plugin_exec.start();
 
-    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(dds_participant);
+    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(dds_participant_pub);
+    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(dds_participant_sub);
+    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(dds_participant_service);
 
     return 0;
 }
