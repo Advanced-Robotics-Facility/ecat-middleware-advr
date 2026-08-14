@@ -1,4 +1,4 @@
-#include "advrf_cyclonedds_plugin/adapters/dds_adapter_bridges.hpp"
+#include "advrf_fastdds_plugin/adapters/dds_pdo_publisher.hpp"
 #include "advrf_middleware_core/utils/name_resolver.hpp"
 
 bool ImuPublisher::process(const iit::advrf::Ec_slave_pdo& pdo) {
@@ -8,7 +8,7 @@ bool ImuPublisher::process(const iit::advrf::Ec_slave_pdo& pdo) {
             break;
         default:
             LOG_WARN("Unexpected PDO type for ImuPublisher: {}", static_cast<int>(pdo.type()));
-            return false; // Exit early if the PDO type is not handled
+            return false;
     }
 
     convert::dds::from_protobuf(pdo, message().header());
@@ -34,6 +34,7 @@ bool JointStatePublisher::process(const iit::advrf::Ec_slave_pdo& pdo) {
             LOG_WARN("Unexpected PDO type for JointStatePublisher: {}", static_cast<int>(pdo.type()));
             return false; // Exit early if the PDO type is not handled
     }
+    
     message().name().push_back(resolve_name(pdo.header().str_id(), id_to_name_));
     convert::dds::from_protobuf(pdo, message().header());
     return true;

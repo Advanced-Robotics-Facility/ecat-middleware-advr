@@ -13,14 +13,12 @@ using ResponseDDS = advrf_interfaces::srv::dds_::ReplCmd_Response_;
 using RequestProtobuf = iit::advrf::Repl_cmd;
 using ResponseProtobuf = iit::advrf::Cmd_reply;
 
-
 template <typename Request, typename Response>
 class DDSAdapterBridgeService
     : public IConnectRosGraphBridge,
       public ServiceServer<Request, Response>
 {
 public:
-
     DDSAdapterBridgeService(
         dds::domain::DomainParticipant& participant,
         const std::string& request_topic_name,

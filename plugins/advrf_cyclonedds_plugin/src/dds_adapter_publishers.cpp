@@ -1,5 +1,5 @@
 #include "advrf_cyclonedds_plugin/adapters/dds_adapter_publishers.hpp"
-#include "advrf_cyclonedds_plugin/adapters/dds_adapter_bridges.hpp"
+#include "advrf_cyclonedds_plugin/adapters/dds_pdo_publisher.hpp"
 
 #include <cstdint>
 #include <string>

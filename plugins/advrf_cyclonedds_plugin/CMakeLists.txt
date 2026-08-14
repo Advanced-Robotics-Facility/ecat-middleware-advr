@@ -22,7 +22,7 @@ include(CMakePackageConfigHelpers)
 
 add_library(advrf_cyclonedds_plugin SHARED
     src/dds_adapter_publishers.cpp
-    src/dds_adapter_bridges.cpp
+    src/dds_pdo_publisher.cpp
     src/dds_adapter_service.cpp
     src/dds_adapter_subscribers.cpp
 )

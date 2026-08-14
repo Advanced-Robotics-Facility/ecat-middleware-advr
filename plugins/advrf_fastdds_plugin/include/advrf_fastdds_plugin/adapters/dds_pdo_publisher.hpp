@@ -10,7 +10,7 @@
 #include "advrf_fastdds_plugin/ros_metadata/ros_graph_bridge.hpp"
 
 template <typename Msg, typename MsgPubSubType>
-class DDSAdapterBridgePublisher
+class DDSPdoPublisher
     : public DDSPublisher<Msg, MsgPubSubType>
     , public middleware_adapter::message::AdapterPublishers::IPublisher,
     public IConnectRosGraphBridge
@@ -18,8 +18,8 @@ class DDSAdapterBridgePublisher
 public:
     using Pdo  = iit::advrf::Ec_slave_pdo;
 
-    DDSAdapterBridgePublisher() = default;
-    ~DDSAdapterBridgePublisher() override = default;
+    DDSPdoPublisher() = default;
+    ~DDSPdoPublisher() override = default;
 
     bool init(const std::string& topic_name,
               eprosima::fastdds::dds::DomainParticipant* participant)
@@ -110,42 +110,42 @@ using ForceTorqueMsgPubSubType = ::advrf_interfaces::msg::dds_::ForceTorque_PubS
 using ValveMsgPubSubType = ::advrf_interfaces::msg::dds_::Valve_PubSubType;
 using GripperMsgPubSubType = ::advrf_interfaces::msg::dds_::Gripper_PubSubType;
 
-class ImuPublisher : public DDSAdapterBridgePublisher<ImuMsg, ImuMsgPubSubType> {
+class ImuPublisher : public DDSPdoPublisher<ImuMsg, ImuMsgPubSubType> {
 protected:
     bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
 };  
 
-class JointStatePublisher : public DDSAdapterBridgePublisher<JointStateMsg, JointStateMsgPubSubType> {
+class JointStatePublisher : public DDSPdoPublisher<JointStateMsg, JointStateMsgPubSubType> {
 protected:
     bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
 };  
 
-class MotorsPublisher : public DDSAdapterBridgePublisher<MotorMsg, MotorMsgPubSubType> {
+class MotorsPublisher : public DDSPdoPublisher<MotorMsg, MotorMsgPubSubType> {
 protected:
     bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
 };  
 
-class PowerBoardPublisher : public DDSAdapterBridgePublisher<PowerBoardMsg, PowerBoardMsgPubSubType> {
+class PowerBoardPublisher : public DDSPdoPublisher<PowerBoardMsg, PowerBoardMsgPubSubType> {
 protected:
     bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
 };  
 
-class PumpPublisher : public DDSAdapterBridgePublisher<PumpMsg, PumpMsgPubSubType> {
+class PumpPublisher : public DDSPdoPublisher<PumpMsg, PumpMsgPubSubType> {
 protected:
     bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
 };  
 
-class ForceTorquePublisher : public DDSAdapterBridgePublisher<ForceTorqueMsg, ForceTorqueMsgPubSubType> {
+class ForceTorquePublisher : public DDSPdoPublisher<ForceTorqueMsg, ForceTorqueMsgPubSubType> {
 protected:
     bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
 };  
 
-class ValvePublisher : public DDSAdapterBridgePublisher<ValveMsg, ValveMsgPubSubType> {
+class ValvePublisher : public DDSPdoPublisher<ValveMsg, ValveMsgPubSubType> {
 protected:
     bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
 };  
 
-class GripperPublisher : public DDSAdapterBridgePublisher<GripperMsg, GripperMsgPubSubType> {
+class GripperPublisher : public DDSPdoPublisher<GripperMsg, GripperMsgPubSubType> {
 protected:
     bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
 };  

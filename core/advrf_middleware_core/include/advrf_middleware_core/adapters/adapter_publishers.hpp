@@ -109,7 +109,6 @@ public:
   }
 
   bool is_ok() const override { return shm_.is_ok(); }
-
   void close() override { shm_.close(); }
 
 protected:
