@@ -12,6 +12,7 @@ find_package(advrf_zenoh_lib REQUIRED)
 find_package(advrf_middleware_core REQUIRED)
 find_package(advrf_interfaces_protobuf REQUIRED)
 find_package(yaml-cpp REQUIRED)
+find_package(advrf_config CONFIG REQUIRED)
 
 option(ZENOH_ROS2_SUPPORT
     "Build ROS2 CDR interoperability support"
@@ -24,7 +25,7 @@ endif()
 
 add_library(advrf_zenoh_plugin SHARED
     src/zenoh_adapter_publishers.cpp
-    src/zenoh_adapter_subscribers.cpp
+    #src/zenoh_adapter_subscribers.cpp
     #src/zenoh_adapter_services.cpp
 )
 

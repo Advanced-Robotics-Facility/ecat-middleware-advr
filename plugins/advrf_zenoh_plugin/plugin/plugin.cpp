@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
+#include <filesystem>
 #include <string>
 
 #include <zenoh.hxx>
@@ -110,17 +111,17 @@ int main(int argc, char** argv)
     try
     {
         const auto options = parse_args(argc, argv);
-        const auto robot = load_robot_config(ROBOT_CONFIG_DIR);
+        auto robot = load_robot_config(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
         if (!robot)
             return 1;
 
         zenoh::init_log_from_env_or("error");
         auto session = zenoh::Session::open(zenoh::Config::create_default());
-        advrf::plugin::PluginExec plugin_exec;
-        const config::ConfigTopics topics({"advrf", robot->robot_name});
+        auto config = config::ConfigTopics{{robot->ns, robot->robot_name}};
+
 
         auto publishers = std::make_shared<advrf::zenoh_plugin::ZenohAdapterPublishers>();
-        if (!publishers->init(topics, *robot, session, options.wire_format)) {
+        if (!publishers->init(config, *robot, session, options.wire_format)) {
             LOG_ERROR("Failed to initialize Zenoh state publishers.");
             return 1;
         }
@@ -128,6 +129,8 @@ int main(int argc, char** argv)
         //auto subscribers = std::make_shared<advrf::zenoh_plugin::ZenohAdapterSubscribers>(topics, session);
         //auto service = std::make_shared<advrf::zenoh_plugin::ZenohAdapterService>(topics, session);
 
+        advrf::plugin::PluginExec plugin_exec;
+        
         plugin_exec.register_adapter({
             "zenoh_adapter_publishers",
             publishers,

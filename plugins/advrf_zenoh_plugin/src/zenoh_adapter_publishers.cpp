@@ -1,4 +1,7 @@
 #include "advrf_zenoh_plugin/adapters/zenoh_adapter_publishers.hpp"
+#include <utility>
+#include <vector>
+
 #include <advrf_middleware_core/utils/log.hpp>
 #include "advrf_zenoh_plugin/adapters/zenoh_adapter_bridge.hpp"
 
@@ -42,14 +45,15 @@ bool ZenohAdapterPublishers::init(const config::ConfigTopics& topics,
         return false;
     }
 
-    auto register_topic = [this, &session](std::vector<Channel> channels,
+    auto register_topic = [this, &session](std::vector<ChannelRx> channels,
                                            std::vector<EcatId> ids,
                                            const std::string& key)
     {
         if (ids.empty())
             return true;
 
-        auto& publisher = register_publisher<ZenohAdapterBridgePublisher>(std::move(channels), ids);
+        auto& publisher = register_publisher<ZenohAdapterBridgePublisher>(
+            std::move(channels), ids);
         return publisher.init(session, key);
     };
 
@@ -60,19 +64,19 @@ bool ZenohAdapterPublishers::init(const config::ConfigTopics& topics,
 
     bool success = true;
     success &= register_topic(
-        {ChannelToShm::Motor, ChannelToShm::Gripper, ChannelToShm::Valve},
+        {ChannelRx::Motor, ChannelRx::Gripper, ChannelRx::Valve},
         joint_ids,
         topics.state.jointState());
     success &= register_topic(
-        {ChannelToShm::Motor}, motor_ids, topics.state.motor());
+        {ChannelRx::Motor}, motor_ids, topics.state.motor());
     success &= register_topic(
-        {ChannelToShm::Valve}, valve_ids, topics.state.valve());
+        {ChannelRx::Valve}, valve_ids, topics.state.valve());
     success &= register_topic(
-        {ChannelToShm::Gripper}, gripper_ids, topics.state.gripper());
+        {ChannelRx::Gripper}, gripper_ids, topics.state.gripper());
 
     auto register_devices = [&register_topic](
         const std::vector<JointConfig>& devices,
-        Channel channel,
+        ChannelRx channel,
         const auto& make_key)
     {
         bool result = true;
@@ -91,21 +95,21 @@ bool ZenohAdapterPublishers::init(const config::ConfigTopics& topics,
 
     success &= register_devices(
         robot.imus,
-        ChannelToShm::Imu,
+        ChannelRx::Imu,
         [&topics](const std::string& name) { return topics.state.imu(name); });
     success &= register_devices(
         robot.power_boards,
-        ChannelToShm::PowerBoard,
+        ChannelRx::PowerBoard,
         [&topics](const std::string& name) {
             return topics.state.powerBoard(name);
         });
     success &= register_devices(
         robot.pumps,
-        ChannelToShm::Pump,
+        ChannelRx::Pump,
         [&topics](const std::string& name) { return topics.state.pump(name); });
     success &= register_devices(
         robot.force_torques,
-        ChannelToShm::ForceTorque,
+        ChannelRx::ForceTorque,
         [&topics](const std::string& name) {
             return topics.state.forceTorque(name);
         });

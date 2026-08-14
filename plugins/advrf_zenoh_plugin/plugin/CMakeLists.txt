@@ -7,6 +7,7 @@ target_link_libraries(zenoh_plugin
         advrf_zenoh_plugin
         advrf_middleware_core
         yaml-cpp::yaml-cpp
+        advrf_config
 )
 
 target_compile_definitions(zenoh_plugin PRIVATE
@@ -19,4 +20,7 @@ if(ZENOH_ROS2_SUPPORT)
     )
 endif()
 
-install(TARGETS zenoh_plugin RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(
+    TARGETS zenoh_plugin 
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
