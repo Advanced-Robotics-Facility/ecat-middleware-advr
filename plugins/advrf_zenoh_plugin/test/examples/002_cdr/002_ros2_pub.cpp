@@ -62,12 +62,14 @@ int main()
 
         ShmProtoHelper proto_helper;
         iit::advrf::Ec_slave_pdo pdo;
+        const advrf::zenoh_plugin::serialization::Ros2CdrSerializer serializer(
+            advrf::zenoh_plugin::serialization::Ros2MessageType::Imu);
 
         std::vector<std::uint8_t> payload;
 
         while (running) {
             proto_helper.drain(bridge.payload.imu, pdo, [&](const iit::advrf::Ec_slave_pdo& msg) {
-                if(!advrf::zenoh_plugin::ros2cdr::serialize(msg.header(), msg.imuvn_rx_pdo(), payload)) {
+                if (!serializer.serialize_cycle({msg}, payload)) {
                     std::cerr << "Failed to serialize Imu PDO as ROS2 CDR.\n";
                     return;
                 }

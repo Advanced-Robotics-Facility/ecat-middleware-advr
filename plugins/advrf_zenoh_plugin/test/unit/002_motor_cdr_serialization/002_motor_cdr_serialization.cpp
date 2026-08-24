@@ -49,8 +49,9 @@ int main()
 
     const std::vector<iit::advrf::Ec_slave_pdo> motors{first, second};
     std::vector<std::uint8_t> payload;
-    assert(advrf::zenoh_plugin::serialization::ros2cdr::serialize(
-        motors, payload));
+    const advrf::zenoh_plugin::serialization::Ros2CdrSerializer serializer(
+        advrf::zenoh_plugin::serialization::Ros2MessageType::Motor);
+    assert(serializer.serialize_cycle(motors, payload));
     assert(!payload.empty());
 
     eprosima::fastcdr::FastBuffer buffer(

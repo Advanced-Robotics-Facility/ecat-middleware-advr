@@ -1,70 +1,61 @@
 #pragma once
 
 #include <cstdint>
-#include <utility>
-#include <variant>
-#include <vector>
 #include <stdexcept>
-#include <type_traits>
+#include <vector>
 
 #include "advrf_zenoh_plugin/config/wire_format.hpp"
 #include "advrf_zenoh_plugin/serialization/protobuf.hpp"
 #include "advrf_zenoh_plugin/serialization/ros2cdr.hpp"
 
-namespace advrf::zenoh_plugin::serialization {
+namespace advrf::zenoh_plugin::serialization
+{
 
-class Serializer {
+class Serializer
+{
 public:
-    explicit Serializer(WireFormat wire_format) {
-        switch (wire_format) {
-            case WireFormat::Protobuf:
-                serializer_.emplace<ProtobufSerializer>();
-                break;
-            case WireFormat::Ros2Cdr:
-#ifdef ZENOH_ROS2_SUPPORT
-                serializer_.emplace<Ros2CdrSerializer>();
-#else
+    Serializer(WireFormat wire_format, Ros2MessageType ros2_message_type)
+        : wire_format_(wire_format)
+        , ros2_(ros2_message_type)
+    {
+#ifndef ZENOH_ROS2_SUPPORT
+        if (wire_format_ == WireFormat::Ros2Cdr)
             throw std::runtime_error("ROS 2 CDR support was not compiled in.");
 #endif
-                break;
-        }
     }
 
-    template <typename Message>
+    template<typename Message>
     bool serialize(const Message& message,
                    std::vector<std::uint8_t>& payload) const
     {
-        return std::visit(
-            [&](const auto& serializer)
-            {
-                return serializer.serialize(
-                    message,
-                    payload
-                );
-            },
-            serializer_
-        );
+        if (wire_format_ != WireFormat::Protobuf)
+        {
+            payload.clear();
+            return false;
+        }
+
+        return protobuf_.serialize(message, payload);
     }
 
-    bool serialize_cycle(const std::vector<iit::advrf::Ec_slave_pdo>& messages,
-                         std::vector<std::uint8_t>& payload) const
+    bool serialize_cycle(
+        const std::vector<iit::advrf::Ec_slave_pdo>& messages,
+        std::vector<std::uint8_t>& payload) const
     {
-        return std::visit(
-            [&](const auto& serializer)
-            {
-                using SerializerType = std::decay_t<decltype(serializer)>;
-                if constexpr (std::is_same_v<SerializerType, Ros2CdrSerializer>)
-                    return serializer.serialize(messages, payload);
+#ifdef ZENOH_ROS2_SUPPORT
+        if (wire_format_ == WireFormat::Ros2Cdr)
+            return ros2_.serialize_cycle(messages, payload);
+#else
+        (void)messages;
+#endif
 
-                payload.clear();
-                return false;
-            },
-            serializer_
-        );
+        payload.clear();
+        return false;
     }
 
 private:
-    std::variant<ProtobufSerializer, Ros2CdrSerializer> serializer_;
+    WireFormat wire_format_;
+    ProtobufSerializer protobuf_;
+    Ros2CdrSerializer ros2_;
 };
 
 }

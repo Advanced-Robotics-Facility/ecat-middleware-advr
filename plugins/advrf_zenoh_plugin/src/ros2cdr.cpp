@@ -1,105 +1,241 @@
 #include "advrf_zenoh_plugin/serialization/ros2cdr.hpp"
-#include "advrf_zenoh_plugin/serialization/cdr_utils.hpp"
 
-#include <cstdint>
 #include <string>
 
 #include <advrf_dds_common/converter/converter.hpp>
+
+#include <advrf_interfaces/msg/ForceTorque.hpp>
+#include <advrf_interfaces/msg/ForceTorqueCdrAux.hpp>
+#include <advrf_interfaces/msg/Gripper.hpp>
+#include <advrf_interfaces/msg/GripperCdrAux.hpp>
 #include <advrf_interfaces/msg/Imu.hpp>
 #include <advrf_interfaces/msg/ImuCdrAux.hpp>
 #include <advrf_interfaces/msg/Motor.hpp>
 #include <advrf_interfaces/msg/MotorCdrAux.hpp>
+#include <advrf_interfaces/msg/PowerBoard.hpp>
+#include <advrf_interfaces/msg/PowerBoardCdrAux.hpp>
+#include <advrf_interfaces/msg/Pump.hpp>
+#include <advrf_interfaces/msg/PumpCdrAux.hpp>
+#include <advrf_interfaces/msg/Valve.hpp>
+#include <advrf_interfaces/msg/ValveCdrAux.hpp>
+#include <sensor_msgs/msg/JointState.hpp>
+#include <sensor_msgs/msg/JointStateCdrAux.hpp>
 
-namespace advrf::zenoh_plugin::serialization::ros2cdr
+#include "advrf_zenoh_plugin/serialization/cdr_utils.hpp"
+
+namespace advrf::zenoh_plugin::serialization
 {
 namespace
 {
 
-struct MotorSample
-{
-    const iit::advrf::Header* header;
-    const iit::advrf::Cia402_rx_pdo* motor;
-};
+using Pdo = iit::advrf::Ec_slave_pdo;
+using Payload = std::vector<std::uint8_t>;
 
-bool serialize_motors(const std::vector<MotorSample>& samples,
-                      std::vector<std::uint8_t>& payload)
+bool has_valid_header(const Pdo& pdo)
+{
+    return pdo.has_header() && pdo.header().has_stamp();
+}
+
+template<typename Message>
+void set_header(Message& message, const Pdo& pdo, bool include_frame_id)
+{
+    const auto& source = pdo.header();
+    auto& target = message.header();
+    target.stamp().sec() = source.stamp().sec();
+    target.stamp().nanosec() = source.stamp().nsec();
+    target.frame_id() = include_frame_id ? source.str_id() : std::string{};
+}
+
+template<typename Message, typename Append>
+bool serialize_aggregate(const std::vector<Pdo>& pdos,
+                         Payload& payload,
+                         Append&& append)
 {
     payload.clear();
-    if (samples.empty()) return false;
+    if (pdos.empty()) return false;
 
-    for (const auto& sample : samples)
-    {
-        if (sample.header == nullptr || 
-            sample.motor == nullptr ||
-            !sample.header->has_stamp()
-        )
-            return false;
-    }
-
-    advrf_interfaces::msg::dds_::Motor_ message;
-
-    for (const auto& sample : samples)
-    {
-        convert::dds::from_protobuf(*sample.motor, message);
-        message.name().push_back(sample.header->str_id());
-    }
-
-    const auto& stamp = samples.back().header->stamp();
-    message.header().stamp().sec() = stamp.sec();
-    message.header().stamp().nanosec() = stamp.nsec();
-    message.header().frame_id().clear();
-
-    return write_cdr(payload, [&](auto& cdr)
-    {
-        eprosima::fastcdr::serialize(cdr, message);
-    });
-}
-
-} 
-
-bool serialize(const iit::advrf::Header& header,
-               const iit::advrf::ImuVN_rx_pdo& imu,
-               std::vector<std::uint8_t>& payload)
-{
-    advrf_interfaces::msg::dds_::Imu_ message;
-    convert::dds::from_protobuf(imu, message);
-
-    const auto& stamp = header.stamp();
-    message.header().stamp().sec() = stamp.sec();
-    message.header().stamp().nanosec() = stamp.nsec();
-    message.header().frame_id() = header.str_id();
-
-    return write_cdr(payload, [&](auto& cdr)
-    {
-        eprosima::fastcdr::serialize(cdr, message);
-    });
-}
-
-bool serialize(const iit::advrf::Header& header,
-               const iit::advrf::Cia402_rx_pdo& motor,
-               std::vector<std::uint8_t>& payload)
-{
-    return serialize_motors({MotorSample{&header, &motor}}, payload);
-}
-
-bool serialize(const std::vector<iit::advrf::Ec_slave_pdo>& pdos,
-               std::vector<std::uint8_t>& payload)
-{
-    std::vector<MotorSample> samples;
-    samples.reserve(pdos.size());
-
+    Message message;
     for (const auto& pdo : pdos)
     {
-        if (pdo.type() != iit::advrf::Ec_slave_pdo::RX_CIA402)
-        {
-            payload.clear();
+        if (!has_valid_header(pdo) || !append(pdo, message))
             return false;
-        }
-
-        samples.push_back(MotorSample{&pdo.header(), &pdo.cia402_rx_pdo()});
     }
 
-    return serialize_motors(samples, payload);
+    set_header(message, pdos.back(), false);
+    return ros2cdr::serialize_idl(message, payload);
+}
+
+template<typename Message, typename Convert>
+bool serialize_device(const std::vector<Pdo>& pdos,
+                      Pdo::Type expected_type,
+                      Payload& payload,
+                      Convert&& convert)
+{
+    payload.clear();
+    if (pdos.size() != 1 || pdos.front().type() != expected_type ||
+        !has_valid_header(pdos.front()))
+        return false;
+
+    const auto& pdo = pdos.front();
+    Message message;
+    convert(pdo, message);
+    set_header(message, pdo, true);
+    return ros2cdr::serialize_idl(message, payload);
+}
+
+bool serialize_joint_state(const std::vector<Pdo>& pdos, Payload& payload)
+{
+    using Message = sensor_msgs::msg::dds_::JointState_;
+    return serialize_aggregate<Message>(pdos, payload,
+        [](const Pdo& pdo, Message& message)
+        {
+            switch (pdo.type())
+            {
+                case Pdo::RX_CIA402:
+                    convert::dds::from_protobuf(pdo.cia402_rx_pdo(), message);
+                    break;
+                case Pdo::RX_XT_MOTOR:
+                    convert::dds::from_protobuf(pdo.motor_xt_rx_pdo(), message);
+                    break;
+                case Pdo::RX_MOTOR:
+                    convert::dds::from_protobuf(pdo.motor_rx_pdo(), message);
+                    break;
+                case Pdo::RX_GRIPPER:
+                    convert::dds::from_protobuf(pdo.gripper_rx_pdo(), message);
+                    break;
+                case Pdo::RX_HYQ_KNEE:
+                    convert::dds::from_protobuf(pdo.hyqknee_rx_pdo(), message);
+                    break;
+                default:
+                    return false;
+            }
+
+            message.name().push_back(pdo.header().str_id());
+            return true;
+        });
+}
+
+bool serialize_motor(const std::vector<Pdo>& pdos, Payload& payload)
+{
+    using Message = advrf_interfaces::msg::dds_::Motor_;
+    return serialize_aggregate<Message>(pdos, payload,
+        [](const Pdo& pdo, Message& message)
+        {
+            switch (pdo.type())
+            {
+                case Pdo::RX_CIA402:
+                    convert::dds::from_protobuf(pdo.cia402_rx_pdo(), message);
+                    break;
+                case Pdo::RX_XT_MOTOR:
+                    convert::dds::from_protobuf(pdo.motor_xt_rx_pdo(), message);
+                    break;
+                case Pdo::RX_MOTOR:
+                    convert::dds::from_protobuf(pdo.motor_rx_pdo(), message);
+                    break;
+                default:
+                    return false;
+            }
+
+            message.name().push_back(pdo.header().str_id());
+            return true;
+        });
+}
+
+bool serialize_valve(const std::vector<Pdo>& pdos, Payload& payload)
+{
+    using Message = advrf_interfaces::msg::dds_::Valve_;
+    return serialize_aggregate<Message>(pdos, payload,
+        [](const Pdo& pdo, Message& message)
+        {
+            if (pdo.type() != Pdo::RX_HYQ_KNEE) return false;
+            convert::dds::from_protobuf(pdo.hyqknee_rx_pdo(), message);
+            message.name().push_back(pdo.header().str_id());
+            return true;
+        });
+}
+
+bool serialize_gripper(const std::vector<Pdo>& pdos, Payload& payload)
+{
+    using Message = advrf_interfaces::msg::dds_::Gripper_;
+    return serialize_aggregate<Message>(pdos, payload,
+        [](const Pdo& pdo, Message& message)
+        {
+            if (pdo.type() != Pdo::RX_GRIPPER) return false;
+            convert::dds::from_protobuf(pdo.gripper_rx_pdo(), message);
+            message.name().push_back(pdo.header().str_id());
+            return true;
+        });
+}
+
+bool serialize_imu(const std::vector<Pdo>& pdos, Payload& payload)
+{
+    using Message = advrf_interfaces::msg::dds_::Imu_;
+    return serialize_device<Message>(pdos, Pdo::RX_IMU_VN, payload,
+        [](const Pdo& pdo, Message& message)
+        {
+            convert::dds::from_protobuf(pdo.imuvn_rx_pdo(), message);
+        });
+}
+
+bool serialize_power_board(const std::vector<Pdo>& pdos, Payload& payload)
+{
+    using Message = advrf_interfaces::msg::dds_::PowerBoard_;
+    return serialize_device<Message>(pdos, Pdo::RX_POW_F28M36, payload,
+        [](const Pdo& pdo, Message& message)
+        {
+            convert::dds::from_protobuf(pdo.powf28m36_rx_pdo(), message);
+        });
+}
+
+bool serialize_pump(const std::vector<Pdo>& pdos, Payload& payload)
+{
+    using Message = advrf_interfaces::msg::dds_::Pump_;
+    return serialize_device<Message>(pdos, Pdo::RX_HYQ_HPU, payload,
+        [](const Pdo& pdo, Message& message)
+        {
+            convert::dds::from_protobuf(pdo.hyqhpu_rx_pdo(), message);
+            message.name() = pdo.header().str_id();
+        });
+}
+
+bool serialize_force_torque(const std::vector<Pdo>& pdos, Payload& payload)
+{
+    using Message = advrf_interfaces::msg::dds_::ForceTorque_;
+    return serialize_device<Message>(pdos, Pdo::RX_FT6, payload,
+        [](const Pdo& pdo, Message& message)
+        {
+            convert::dds::from_protobuf(pdo.ft6_rx_pdo(), message);
+        });
 }
 
 } 
+
+bool Ros2CdrSerializer::serialize_cycle(
+    const std::vector<Pdo>& pdos,
+    Payload& payload) const
+{
+    switch (message_type_)
+    {
+        case Ros2MessageType::JointState:
+            return serialize_joint_state(pdos, payload);
+        case Ros2MessageType::Motor:
+            return serialize_motor(pdos, payload);
+        case Ros2MessageType::Valve:
+            return serialize_valve(pdos, payload);
+        case Ros2MessageType::Gripper:
+            return serialize_gripper(pdos, payload);
+        case Ros2MessageType::Imu:
+            return serialize_imu(pdos, payload);
+        case Ros2MessageType::PowerBoard:
+            return serialize_power_board(pdos, payload);
+        case Ros2MessageType::Pump:
+            return serialize_pump(pdos, payload);
+        case Ros2MessageType::ForceTorque:
+            return serialize_force_torque(pdos, payload);
+    }
+
+    payload.clear();
+    return false;
+}
+
+}

@@ -25,14 +25,15 @@ public:
 
     bool init(zenoh::Session& session, 
               const std::string& topic_name,
-              WireFormat wire_format)
+              WireFormat wire_format,
+              serialization::Ros2MessageType ros2_message_type)
     {
         try {
             topic_name_ = topic_name;
             wire_format_ = wire_format;
 
             publisher_.emplace(session, topic_name_);
-            serializer_.emplace(wire_format_);
+            serializer_.emplace(wire_format_, ros2_message_type);
 
             LOG_INFO("Topic Created: {}", topic_name_);
             return true;

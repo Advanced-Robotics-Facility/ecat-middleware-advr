@@ -6,9 +6,10 @@
 
 #include <zenoh.hxx>
 
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
-
-#include "advrf_zenoh_plugin/serialization/ros2cdr.hpp"
+#include <fastcdr/Cdr.h>
+#include <fastcdr/FastBuffer.h>
+#include <advrf_interfaces/msg/Imu.hpp>
+#include <advrf_interfaces/msg/ImuCdrAux.hpp>
 
 namespace
 {
@@ -21,23 +22,28 @@ void stop(int)
 
 void decode_and_print_imu(const zenoh::Bytes& payload)
 {
-    iit::advrf::Header header;
-    iit::advrf::ImuVN_rx_pdo imu;
-    if (!advrf::zenoh_plugin::ros2cdr::deserialize(
-            payload, header, imu))
-    {
-        std::cerr << "<failed to decode IMU sample>\n";
-        return;
-    }
+    auto bytes = payload.as_vector();
+    eprosima::fastcdr::FastBuffer buffer(
+        reinterpret_cast<char*>(bytes.data()), bytes.size());
+    eprosima::fastcdr::Cdr cdr(buffer);
+    cdr.read_encapsulation();
 
-    std::cout << "IMU [" << header.str_id() << "] stamp="
-              << header.stamp().sec() << "." << header.stamp().nsec()
-              << " accel=(" << imu.x_acc() << ", " << imu.y_acc() << ", "
-              << imu.z_acc() << ")"
-              << " gyro=(" << imu.x_rate() << ", " << imu.y_rate() << ", "
-              << imu.z_rate() << ")"
-              << " quat=(" << imu.x_quat() << ", " << imu.y_quat() << ", "
-              << imu.z_quat() << ", " << imu.w_quat() << ")\n";
+    advrf_interfaces::msg::dds_::Imu_ imu;
+    eprosima::fastcdr::deserialize(cdr, imu);
+
+    std::cout << "IMU [" << imu.header().frame_id() << "] stamp="
+              << imu.header().stamp().sec() << "."
+              << imu.header().stamp().nanosec()
+              << " accel=(" << imu.linear_acceleration().x() << ", "
+              << imu.linear_acceleration().y() << ", "
+              << imu.linear_acceleration().z() << ")"
+              << " gyro=(" << imu.angular_velocity().x() << ", "
+              << imu.angular_velocity().y() << ", "
+              << imu.angular_velocity().z() << ")"
+              << " quat=(" << imu.orientation().x() << ", "
+              << imu.orientation().y() << ", "
+              << imu.orientation().z() << ", "
+              << imu.orientation().w() << ")\n";
 }
 }
 

@@ -11,6 +11,7 @@ target_link_libraries(002_ros2_pub
     PRIVATE
         zenohcxx::zenohc
         fastcdr
+        advrf_interfaces_dds::cdr
         advrf_zenoh_plugin
 )
 
@@ -34,6 +35,7 @@ target_link_libraries(002_ros2_sub
     PRIVATE
         zenohcxx::zenohc
         fastcdr
+        advrf_interfaces_dds::cdr
         advrf_zenoh_plugin
 )
 

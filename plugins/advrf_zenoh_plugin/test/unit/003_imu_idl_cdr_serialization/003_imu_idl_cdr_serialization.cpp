@@ -28,9 +28,15 @@ int main()
     imu.set_fault(40);
     imu.set_rtt(50);
 
+    iit::advrf::Ec_slave_pdo pdo;
+    pdo.set_type(iit::advrf::Ec_slave_pdo::RX_IMU_VN);
+    *pdo.mutable_header() = header;
+    *pdo.mutable_imuvn_rx_pdo() = imu;
+
     std::vector<std::uint8_t> payload;
-    assert(advrf::zenoh_plugin::serialization::ros2cdr::serialize(
-        header, imu, payload));
+    const advrf::zenoh_plugin::serialization::Ros2CdrSerializer serializer(
+        advrf::zenoh_plugin::serialization::Ros2MessageType::Imu);
+    assert(serializer.serialize_cycle({pdo}, payload));
 
     eprosima::fastcdr::FastBuffer buffer(
         reinterpret_cast<char*>(payload.data()), payload.size());

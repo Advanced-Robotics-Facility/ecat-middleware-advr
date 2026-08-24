@@ -12,6 +12,7 @@ namespace
 
 using Adapter = ZenohAdapterPublishers;
 using EcatId = Adapter::EcatId;
+using Ros2MessageType = serialization::Ros2MessageType;
 
 std::vector<EcatId> extract_ids(const std::vector<JointConfig>& entries)
 {
@@ -42,14 +43,15 @@ bool ZenohAdapterPublishers::init(const config::ConfigTopics& topics,
     auto register_topic = [this, &session, wire_format]
         (std::vector<ChannelRx> channels,
         std::vector<EcatId> ids,
-        const std::string& key)
+        const std::string& key,
+        Ros2MessageType ros2_message_type)
     {
         if (ids.empty())
             return true;
 
         auto& publisher = register_publisher<ZenohAdapterBridgePublisher>(
             std::move(channels), ids);
-        return publisher.init(session, key, wire_format);
+        return publisher.init(session, key, wire_format, ros2_message_type);
     };
 
     const auto joint_ids = extract_ids(robot.joints);
@@ -61,18 +63,23 @@ bool ZenohAdapterPublishers::init(const config::ConfigTopics& topics,
     success &= register_topic(
         {ChannelRx::Motor, ChannelRx::Gripper, ChannelRx::Valve},
         joint_ids,
-        topics.state.jointState());
+        topics.state.jointState(),
+        Ros2MessageType::JointState);
     success &= register_topic(
-        {ChannelRx::Motor}, motor_ids, topics.state.motor());
+        {ChannelRx::Motor}, motor_ids, topics.state.motor(),
+        Ros2MessageType::Motor);
     success &= register_topic(
-        {ChannelRx::Valve}, valve_ids, topics.state.valve());
+        {ChannelRx::Valve}, valve_ids, topics.state.valve(),
+        Ros2MessageType::Valve);
     success &= register_topic(
-        {ChannelRx::Gripper}, gripper_ids, topics.state.gripper());
+        {ChannelRx::Gripper}, gripper_ids, topics.state.gripper(),
+        Ros2MessageType::Gripper);
 
     auto register_devices = [&register_topic](
         const std::vector<JointConfig>& devices,
         ChannelRx channel,
-        const auto& make_key)
+        const auto& make_key,
+        Ros2MessageType ros2_message_type)
     {
         bool result = true;
         for (const auto& device : devices)
@@ -83,7 +90,8 @@ bool ZenohAdapterPublishers::init(const config::ConfigTopics& topics,
             result &= register_topic(
                 {channel},
                 {static_cast<EcatId>(device.ecat_id)},
-                make_key(device.name));
+                make_key(device.name),
+                ros2_message_type);
         }
         return result;
     };
@@ -91,23 +99,23 @@ bool ZenohAdapterPublishers::init(const config::ConfigTopics& topics,
     success &= register_devices(
         robot.imus,
         ChannelRx::Imu,
-        [&topics](const std::string& name) { return topics.state.imu(name); });
+        [&topics](const std::string& name) { return topics.state.imu(name); },
+        Ros2MessageType::Imu);
     success &= register_devices(
         robot.power_boards,
         ChannelRx::PowerBoard,
-        [&topics](const std::string& name) {
-            return topics.state.powerBoard(name);
-        });
+        [&topics](const std::string& name) { return topics.state.powerBoard(name); },
+        Ros2MessageType::PowerBoard);
     success &= register_devices(
         robot.pumps,
         ChannelRx::Pump,
-        [&topics](const std::string& name) { return topics.state.pump(name); });
+        [&topics](const std::string& name) { return topics.state.pump(name); },
+        Ros2MessageType::Pump);
     success &= register_devices(
         robot.force_torques,
         ChannelRx::ForceTorque,
-        [&topics](const std::string& name) {
-            return topics.state.forceTorque(name);
-        });
+        [&topics](const std::string& name) { return topics.state.forceTorque(name); },
+        Ros2MessageType::ForceTorque);
 
     return success;
 }
