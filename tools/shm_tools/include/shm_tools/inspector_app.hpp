@@ -54,7 +54,7 @@ public:
 
       if (force_poll || !has_snapshot[active] ||
           (!tui.paused() && now >= next_poll)) {
-        poll_source(active, options.history, snapshots, has_snapshot);
+        poll_source(active, options.history, options.keep_last_queue, snapshots, has_snapshot);
         force_poll = false;
         next_poll = std::chrono::steady_clock::now() + period;
       }
@@ -99,12 +99,9 @@ public:
             break;
 
           case InspectorTui::ActionKind::Reconnect:
-            reconnect_source(active, options.history, snapshots, has_snapshot);
-
+            reconnect_source(active, options.history, options.keep_last_queue, snapshots, has_snapshot);
             tui.reset_selection();
-
             force_poll = false;
-
             next_poll = std::chrono::steady_clock::now() + period;
 
             break;
@@ -133,11 +130,18 @@ private:
     std::unique_ptr<IInspectorSource> inspector;
   };
 
-  void poll_source(std::size_t index, bool history,
+  void poll_source(std::size_t index, bool history, bool keep_last_queue,
                    std::vector<InspectorSnapshot> &snapshots,
                    std::vector<bool> &has_snapshot) {
     try {
-      snapshots[index] = sources_[index].inspector->poll(history);
+      auto snapshot = sources_[index].inspector->poll(history, keep_last_queue);
+      if(!keep_last_queue){
+        snapshots[index] = std::move(snapshot);
+      }else if(snapshot.total_buffered > 0){
+        snapshots[index] = std::move(snapshot);
+      }else if(snapshots[index].total_buffered == 0){
+        snapshots[index] = std::move(snapshot);
+      }
       snapshots[index].error.clear();
     } catch (const std::exception &e) {
       InspectorSnapshot failed;
@@ -150,12 +154,12 @@ private:
     has_snapshot[index] = true;
   }
 
-  void reconnect_source(std::size_t index, bool history,
+  void reconnect_source(std::size_t index, bool history, bool keep_last_queue,  
                         std::vector<InspectorSnapshot> &snapshots,
                         std::vector<bool> &has_snapshot) {
     try {
       sources_[index].inspector->reconnect();
-      snapshots[index] = sources_[index].inspector->poll(history);
+      snapshots[index] = sources_[index].inspector->poll(history, keep_last_queue);
       snapshots[index].error.clear();
       has_snapshot[index] = true;
     } catch (const std::exception &e) {

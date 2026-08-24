@@ -8,6 +8,7 @@ struct InspectorOptions
 {
     int rate{10};
     bool history{false};
+    bool keep_last_queue{false};
 };
 
 struct QueueSnapshot
@@ -29,5 +30,6 @@ struct InspectorSnapshot
     std::vector<QueueSnapshot> queues;
     std::size_t total_buffered{0};
     bool history{false};
+    bool keep_last_queue{false};
     std::string error;
 };

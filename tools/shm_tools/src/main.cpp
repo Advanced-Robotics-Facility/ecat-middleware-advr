@@ -29,6 +29,7 @@ struct CliOptions
     std::vector<SourceSpec> sources;
     int rate{10};
     bool history{false};
+    bool keep_last_queue{false};
     bool help{false};
 };
 
@@ -76,11 +77,9 @@ std::string require_value(
 CliOptions parse_cli(int argc, char** argv)
 {
     CliOptions options;
-
     for (int i = 1; i < argc; ++i)
     {
         const std::string arg = argv[i];
-
         if (arg == "-h" || arg == "--help")
         {
             options.help = true;
@@ -111,6 +110,10 @@ CliOptions parse_cli(int argc, char** argv)
         else if (arg == "--history")
         {
             options.history = true;
+        }
+        else if (arg == "--keep-last-queue")
+        {
+            options.keep_last_queue = true;
         }
         else
         {
@@ -194,6 +197,7 @@ int main(int argc, char** argv)
         InspectorOptions options;
         options.rate = cli.rate;
         options.history = cli.history;
+        options.keep_last_queue = cli.keep_last_queue;
 
         return app.run(options);
     }
