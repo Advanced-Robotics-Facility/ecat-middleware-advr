@@ -5,6 +5,11 @@ project(advrf_zmq_plugin
     LANGUAGES C CXX
 )
 
+if(NOT BUILD_ZMQ)
+    message(STATUS "ZMQ build disabled")
+    return()
+endif()
+
 find_package(advrf_zmq_lib REQUIRED)
 find_package(advrf_middleware_core REQUIRED)
 find_package(advrf_interfaces_protobuf REQUIRED)

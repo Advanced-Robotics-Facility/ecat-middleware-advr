@@ -5,6 +5,8 @@ int main(int argc, char **argv) {
    Config config = Config::create_default();
    auto session = Session::open(std::move(config));
 
+   std::cout << "Client started...\n";
+
    auto replies = session.get(KeyExpr("demo/example/simple"), "", channels::FifoChannel(16));
    while (true) {
       auto res = replies.recv();
@@ -21,6 +23,4 @@ int main(int argc, char **argv) {
       }
 
    }
-
-   std::cout << "Ok.\n";
 }

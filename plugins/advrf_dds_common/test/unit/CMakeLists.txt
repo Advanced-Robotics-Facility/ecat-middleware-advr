@@ -11,6 +11,11 @@ function(new_test TEST_NAME TEST_SOURCE)
             PRIVATE
                 advrf_dds_common_fastdds
         )
+    elseif(TARGET advrf_dds_common_cdr)
+        target_link_libraries(${TEST_NAME}
+            PRIVATE
+                advrf_dds_common_cdr
+        )
     else()
         message(FATAL_ERROR "No DDS common backend target available")
     endif()

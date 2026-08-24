@@ -5,6 +5,11 @@ project(advrf_zenoh_plugin
     LANGUAGES CXX
 )
 
+if(NOT BUILD_ZENOH)
+    message(STATUS "Zenoh build disabled")
+    return()
+endif()
+
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
@@ -36,8 +41,8 @@ if(ZENOH_ROS2_SUPPORT)
     )
 
     target_link_libraries(advrf_zenoh_plugin PRIVATE
-        advrf_interfaces_dds::fastdds
-        advrf_dds_common::fastdds
+        advrf_interfaces_dds::cdr
+        advrf_dds_common::cdr
     )
 
     target_compile_definitions(advrf_zenoh_plugin PUBLIC

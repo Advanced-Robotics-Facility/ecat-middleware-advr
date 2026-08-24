@@ -1,4 +1,6 @@
 @PACKAGE_INIT@
+include(CMakeFindDependencyMacro)
+
 # Force usage of zenoh-c/zenoh-cpp installed inside this same prefix.
 set(_advrf_vendor_prefix "${PACKAGE_PREFIX_DIR}")
 
@@ -16,5 +18,12 @@ find_package(fastcdr REQUIRED
     PATHS "${_advrf_vendor_prefix}"
     NO_DEFAULT_PATH
 )
+
+find_dependency(Java 1.8 COMPONENTS Runtime)
+
+set_and_check(ADVRF_FASTDDSGEN_JAR
+    "${_advrf_vendor_prefix}/share/advrf_zenoh_lib/fastddsgen/fastddsgen.jar"
+)
+set(ADVRF_FASTDDSGEN_EXECUTABLE "${Java_JAVA_EXECUTABLE}")
 
 check_required_components(advrf_zenoh_lib)

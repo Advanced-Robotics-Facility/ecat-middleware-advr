@@ -10,6 +10,7 @@ include(CMakePackageConfigHelpers)
 
 option(BUILD_FASTDDS "Build FastDDS backend" OFF)
 option(BUILD_CYCLONEDDS "Build CycloneDDS backend" OFF)
+option(BUILD_ZENOH "Build the CDR-only backend used by Zenoh" OFF)
 
 find_package(advrf_interfaces_dds REQUIRED)
 find_package(advrf_interfaces_protobuf REQUIRED)
@@ -64,9 +65,13 @@ if(BUILD_CYCLONEDDS)
     advrf_dds_common_add_backend(cyclonedds)
 endif()
 
+if(BUILD_ZENOH)
+    advrf_dds_common_add_backend(cdr)
+endif()
+
 if(NOT ADVRF_DDS_COMMON_TARGETS)
     message(FATAL_ERROR
-        "advrf_interfaces_dds does not provide an enabled DDS backend target."
+        "advrf_interfaces_dds does not provide an enabled conversion backend target."
     )
 endif()
 

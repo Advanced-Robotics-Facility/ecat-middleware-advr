@@ -8,10 +8,11 @@ project(advrf_interfaces_dds
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 option(BUILD_FASTDDS "Build FastDDS backend" OFF)
 option(BUILD_CYCLONEDDS "Build CycloneDDS backend" OFF)
+option(BUILD_ZENOH "Build Zenoh backend" OFF)
 
-if(NOT BUILD_FASTDDS AND NOT BUILD_CYCLONEDDS)
+if(NOT BUILD_FASTDDS AND NOT BUILD_CYCLONEDDS AND NOT BUILD_ZENOH)
     message(FATAL_ERROR
-        "At least one DDS backend must be enabled."
+        "At least one DDS (or Zenoh) backend must be enabled."
     )
 endif()
 
@@ -39,6 +40,24 @@ if(BUILD_FASTDDS)
 
     endif()
 
+endif()
+
+#
+# Zenoh
+#
+
+if(BUILD_ZENOH)
+    message(STATUS "[advrf_interfaces_dds] Configuring CDR-only Zenoh types")
+
+    find_package(advrf_zenoh_lib REQUIRED)
+    find_package(fastcdr REQUIRED)
+
+    if(NOT ADVRF_FASTDDSGEN_EXECUTABLE
+       OR NOT ADVRF_FASTDDSGEN_JAR)
+        message(FATAL_ERROR
+            "advrf_zenoh_lib did not provide FastDDSGen."
+        )
+    endif()
 endif()
 
 #
@@ -77,7 +96,7 @@ set(DDS_INTERFACE_PACKAGES
     advrf_interfaces
 )
 
-if(BUILD_FASTDDS)
+if(BUILD_FASTDDS OR BUILD_ZENOH)
     set(FASTDDS_GENERATED_OUTPUTS "")
 
     file(GLOB_RECURSE FASTDDS_IDL_FILES
@@ -130,6 +149,9 @@ if(BUILD_FASTDDS)
         DEPENDS ${FASTDDS_GENERATED_OUTPUTS}
     )
 
+endif()
+
+if(BUILD_FASTDDS)
     add_library(advrf_interfaces_dds_fastdds INTERFACE)
     add_library(advrf_interfaces_dds::fastdds ALIAS advrf_interfaces_dds_fastdds)
 
@@ -139,6 +161,20 @@ if(BUILD_FASTDDS)
 
     install(
         TARGETS advrf_interfaces_dds_fastdds
+        EXPORT advrf_interfaces_ddsTargets
+    )
+endif()
+
+if(BUILD_ZENOH)
+    add_library(advrf_interfaces_dds_cdr INTERFACE)
+    add_library(advrf_interfaces_dds::cdr ALIAS advrf_interfaces_dds_cdr)
+
+    set_target_properties(advrf_interfaces_dds_cdr PROPERTIES
+        EXPORT_NAME cdr
+    )
+
+    install(
+        TARGETS advrf_interfaces_dds_cdr
         EXPORT advrf_interfaces_ddsTargets
     )
 endif()
@@ -192,7 +228,7 @@ foreach(package IN LISTS DDS_INTERFACE_PACKAGES)
         message(STATUS "    ${rel}")
     endforeach()
 
-    # --- Bloc FastDDS ---
+    # --- FastDDS ---
     if(BUILD_FASTDDS)
         set(target_fastdds "${package}_fastdds")
         set(ALL_GEN_SOURCES "")
@@ -240,7 +276,53 @@ foreach(package IN LISTS DDS_INTERFACE_PACKAGES)
         )
     endif()
 
-    # --- Bloc CycloneDDS ---
+    # --- Zenoh --- 
+    if(BUILD_ZENOH)
+        set(target_cdr "${package}_cdr")
+        set(cdr_wrapper_sources "")
+
+        foreach(IDL_FILE IN LISTS package_idls_real)
+            file(RELATIVE_PATH IDL_RELATIVE "${DDS_IDL_DIR}" "${IDL_FILE}")
+            get_filename_component(IDL_RELATIVE_DIR "${IDL_RELATIVE}" DIRECTORY)
+            get_filename_component(MSG_NAME "${IDL_FILE}" NAME_WE)
+
+            set(wrapper_dir
+                "${CMAKE_CURRENT_BINARY_DIR}/generated/cdr_sources/${IDL_RELATIVE_DIR}"
+            )
+            set(wrapper_source "${wrapper_dir}/${MSG_NAME}CdrAux.cxx")
+            file(MAKE_DIRECTORY "${wrapper_dir}")
+            file(GENERATE
+                OUTPUT "${wrapper_source}"
+                CONTENT "#include \"${IDL_RELATIVE_DIR}/${MSG_NAME}CdrAux.ipp\"\n"
+            )
+            list(APPEND cdr_wrapper_sources "${wrapper_source}")
+        endforeach()
+
+        add_library(${target_cdr} STATIC ${cdr_wrapper_sources})
+        add_dependencies(${target_cdr} fastdds_idl_generate)
+
+        target_compile_features(${target_cdr} PUBLIC cxx_std_17)
+        target_include_directories(${target_cdr}
+            PUBLIC
+                $<BUILD_INTERFACE:${FASTDDS_GENERATED_DIR}>
+                $<BUILD_INTERFACE:${DDS_IDL_DIR}>
+                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/cdr>
+        )
+        target_link_libraries(${target_cdr} PUBLIC fastcdr)
+
+        install(
+            TARGETS ${target_cdr}
+            EXPORT advrf_interfaces_ddsTargets
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cdr
+        )
+
+        target_link_libraries(advrf_interfaces_dds_cdr INTERFACE ${target_cdr})
+    endif()
+
+    # --- CycloneDDS ---
     if(BUILD_CYCLONEDDS)
         set(target_cyclonedds "${package}_cyclonedds")
 
@@ -311,7 +393,7 @@ foreach(package IN LISTS DDS_INTERFACE_PACKAGES)
 endforeach()
 
 #
-# Dependances d'inter-packages FastDDS
+# Inter-packages dependencies FastDDS
 #
 if(BUILD_FASTDDS)
     # Fast DDS-Gen emits calls into the generated support code of included
@@ -330,6 +412,31 @@ if(BUILD_FASTDDS)
     install(
         DIRECTORY "${FASTDDS_GENERATED_DIR}/"
         DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/fastdds"
+        FILES_MATCHING
+            PATTERN "*.hpp"
+            PATTERN "*.h"
+            PATTERN "*.ipp"
+    )
+endif()
+
+if(BUILD_ZENOH)
+    target_link_libraries(std_msgs_cdr PUBLIC builtin_interfaces_cdr)
+    target_link_libraries(sensor_msgs_cdr
+        PUBLIC
+            std_msgs_cdr
+            geometry_msgs_cdr
+    )
+    target_link_libraries(advrf_interfaces_cdr
+        PUBLIC
+            builtin_interfaces_cdr
+            std_msgs_cdr
+            geometry_msgs_cdr
+            rcl_interfaces_cdr
+    )
+
+    install(
+        DIRECTORY "${FASTDDS_GENERATED_DIR}/"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/cdr"
         FILES_MATCHING
             PATTERN "*.hpp"
             PATTERN "*.h"

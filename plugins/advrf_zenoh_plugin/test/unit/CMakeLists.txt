@@ -37,6 +37,6 @@ if(ZENOH_ROS2_SUPPORT)
 
     target_link_libraries(003_imu_idl_cdr_serialization PRIVATE
         fastcdr
-        advrf_interfaces_dds::fastdds
+        advrf_interfaces_dds::cdr
     )
 endif()
