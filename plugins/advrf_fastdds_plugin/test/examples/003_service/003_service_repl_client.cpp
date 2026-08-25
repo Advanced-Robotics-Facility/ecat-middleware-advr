@@ -33,8 +33,8 @@ int main()
 
     ServiceClient<RequestDDS, RequestPubSubType, ResponseDDS, ResponsePubSubType> client(
         participant,
-        topics.replCmd.request(),
-        topics.replCmd.reply()
+        topics.service.request(),
+        topics.service.reply()
     );
 
     RequestDDS request{};

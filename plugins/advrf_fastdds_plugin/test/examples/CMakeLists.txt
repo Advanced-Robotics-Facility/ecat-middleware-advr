@@ -2,6 +2,9 @@ add_subdirectory(001_publisher)
 add_subdirectory(002_subscriber)
 add_subdirectory(003_service)
 
+
+MESSAGE(STATUS "FASTDDSEXAMPLES \n\n\n Build type: ${CMAKE_BUILD_TYPE}")
+
 # prefix executables with "fastdds_examples_"
 function(prefix_executables dir prefix)
     get_property(targets DIRECTORY "${dir}" PROPERTY BUILDSYSTEM_TARGETS)

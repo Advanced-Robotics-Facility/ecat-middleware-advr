@@ -44,8 +44,8 @@ int main(int argc, char** argv)
         LOG_ERROR("Failed to create DDS participant");
         return 1;
     }
-
-    DDSAdapterService dds_adapter_service(config, participant);
+    
+    DDSAdapterService dds_adapter_service(config, *cfg, participant);
         
     if(!dds_adapter_service.shm().connect(SHM_SERVICE, ShmAttachMode::Open))
     {
