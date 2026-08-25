@@ -6,7 +6,7 @@
 #include <advrf_middleware_core/config/robot_config.hpp>
 #include "advrf_cyclonedds_plugin/publisher/dds_publisher.hpp"
 #include "advrf_middleware_core/config/config_topics.hpp"
-#include <advrf_interfaces/msg/MotorXtTxPdo.hpp>
+#include <advrf_interfaces/msg/MotorTxPdo.hpp>
 
 int main(int argc, char** argv)
 {
@@ -16,8 +16,8 @@ int main(int argc, char** argv)
     config::ConfigTopics topics({cfg->ns, cfg->robot_name});
     dds::domain::DomainParticipant participant(cfg->domain_id);
 
-    using MotorMsg = advrf_interfaces::msg::dds_::MotorXtTxPdo_;
-    using MotorVectorMsg = advrf_interfaces::msg::dds_::MotorXtTxPdoVector_;
+    using MotorMsg = advrf_interfaces::msg::dds_::MotorTxPdo_;
+    using MotorVectorMsg = advrf_interfaces::msg::dds_::MotorTxPdoVector_;
 
     DDSPublisher<MotorVectorMsg> publisher;
     publisher.init_dds(

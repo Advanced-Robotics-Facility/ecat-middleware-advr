@@ -4,6 +4,7 @@
 #    add_subdirectory(002_cdr)
 #endif()
 add_subdirectory(003_service)
+add_subdirectory(004_subscriber)
 
 # prefix executables with "zenoh_examples_"
 function(prefix_executables dir prefix)

@@ -27,9 +27,14 @@ int main()
     assert(decoded.header().index() == 42);
     assert(decoded.imuvn_rx_pdo().x_acc() == 1.25);
 
+    const advrf::zenoh_plugin::deserialization::ProtobufDeserializer deserializer;
+    iit::advrf::Ec_slave_pdo deserialized;
+    assert(deserializer.deserialize(payload, deserialized));
+    assert(deserialized.SerializeAsString() == source.SerializeAsString());
+
     const std::vector<std::uint8_t> invalid{0xff, 0xff, 0xff};
     iit::advrf::Ec_slave_pdo rejected;
-    assert(!rejected.ParseFromArray(invalid.data(), static_cast<int>(invalid.size())));
+    assert(!deserializer.deserialize(invalid, rejected));
 
     return 0;
 }

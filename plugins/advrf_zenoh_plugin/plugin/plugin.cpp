@@ -13,7 +13,7 @@
 #include <advrf_middleware_core/utils/log.hpp>
 
 #include "advrf_zenoh_plugin/adapters/zenoh_adapter_publishers.hpp"
-//#include "advrf_zenoh_plugin/adapters/zenoh_adapter_subscribers.hpp"
+#include "advrf_zenoh_plugin/adapters/zenoh_adapter_subscribers.hpp"
 #include "advrf_zenoh_plugin/config/wire_format.hpp"
 //#include "advrf_zenoh_plugin/adapters/zenoh_adapter_services.hpp"
 namespace
@@ -125,7 +125,8 @@ int main(int argc, char** argv)
             return 1;
         }
 
-        //auto subscribers = std::make_shared<advrf::zenoh_plugin::ZenohAdapterSubscribers>(topics, session);
+        auto subscribers = std::make_shared<advrf::zenoh_plugin::ZenohAdapterSubscribers>(
+            config, session, options.wire_format);
         //auto service = std::make_shared<advrf::zenoh_plugin::ZenohAdapterService>(topics, session);
 
         advrf::plugin::PluginExec plugin_exec;
@@ -134,10 +135,10 @@ int main(int argc, char** argv)
             "zenoh_adapter_publishers",
             publishers,
             period_from_rate(options.rate_publishers)});
-        // plugin_exec.register_adapter({
-        //     "zenoh_adapter_subscribers",
-        //     subscribers,
-        //     period_from_rate(options.rate_subscribers)});
+        plugin_exec.register_adapter({
+            "zenoh_adapter_subscribers",
+            subscribers,
+            period_from_rate(options.rate_subscribers)});
         // plugin_exec.register_adapter({
         //     "zenoh_adapter_service",
         //     service,

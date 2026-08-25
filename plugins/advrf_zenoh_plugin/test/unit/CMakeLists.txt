@@ -39,4 +39,14 @@ if(ZENOH_ROS2_SUPPORT)
         fastcdr
         advrf_interfaces_dds::cdr
     )
+
+    plugin_test(
+        004_command_cdr_deserialization
+        004_command_cdr_deserialization/004_command_cdr_deserialization.cpp
+    )
+
+    target_link_libraries(004_command_cdr_deserialization PRIVATE
+        fastcdr
+        advrf_interfaces_dds::cdr
+    )
 endif()

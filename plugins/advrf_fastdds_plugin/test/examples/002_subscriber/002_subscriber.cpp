@@ -10,12 +10,12 @@
 #include "advrf_fastdds_plugin/publisher/dds_publisher.hpp"
 #include "advrf_middleware_core/config/config_topics.hpp"
 #include <advrf_middleware_core/config/robot_config.hpp>
-#include <advrf_interfaces/msg/MotorXtTxPdo.hpp>
-#include <advrf_interfaces/msg/MotorXtTxPdoPubSubTypes.hpp>
+#include <advrf_interfaces/msg/MotorTxPdo.hpp>
+#include <advrf_interfaces/msg/MotorTxPdoPubSubTypes.hpp>
 
-using MotorVectorXtTxMsg = advrf_interfaces::msg::dds_::MotorXtTxPdoVector_;
-using MotorXtTxMsg = advrf_interfaces::msg::dds_::MotorXtTxPdo_;
-using MotorXtTxPubSubType = advrf_interfaces::msg::dds_::MotorXtTxPdoVector_PubSubType;
+using MotorVectorXtTxMsg = advrf_interfaces::msg::dds_::MotorTxPdoVector_;
+using MotorXtTxMsg = advrf_interfaces::msg::dds_::MotorTxPdo_;
+using MotorXtTxPubSubType = advrf_interfaces::msg::dds_::MotorTxPdoVector_PubSubType;
 
 static volatile std::sig_atomic_t running = 1;
 

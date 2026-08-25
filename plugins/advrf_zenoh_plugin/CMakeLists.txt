@@ -31,7 +31,7 @@ endif()
 
 add_library(advrf_zenoh_plugin SHARED
     src/zenoh_adapter_publishers.cpp
-    #src/zenoh_adapter_subscribers.cpp
+    src/zenoh_adapter_subscribers.cpp
     #src/zenoh_adapter_services.cpp
 )
 

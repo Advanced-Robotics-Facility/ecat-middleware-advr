@@ -1,7 +1,5 @@
 #include "advrf_fastdds_plugin/adapters/dds_adapter_subscribers.hpp"
-#include <advrf_interfaces/msg/MotorXtTxPdo.hpp>
 #include <advrf_interfaces/msg/MotorTxPdo.hpp>
-#include <advrf_interfaces/msg/MotorXtTxPdoPubSubTypes.hpp>
 #include <advrf_interfaces/msg/MotorTxPdoPubSubTypes.hpp>
 
 DDSAdapterSubscribers::DDSAdapterSubscribers(const config::ConfigTopics& config_topics, 
@@ -10,12 +8,13 @@ DDSAdapterSubscribers::DDSAdapterSubscribers(const config::ConfigTopics& config_
     : reader_policy_(reader_policy) {
 
         register_subscriber<
-            advrf_interfaces::msg::dds_::MotorXtTxPdoVector_,
-            advrf_interfaces::msg::dds_::MotorXtTxPdoVector_PubSubType
+            advrf_interfaces::msg::dds_::MotorTxPdoVector_,
+            advrf_interfaces::msg::dds_::MotorTxPdoVector_PubSubType
         >(
             config_topics.command.motorXtCmd(), participant, 
-            ChannelTx::Motor, [](const advrf_interfaces::msg::dds_::MotorXtTxPdoVector_& msg) {
-                return convert::protobuf::vector_from_dds(msg);
+            ChannelTx::Motor, [](const advrf_interfaces::msg::dds_::MotorTxPdoVector_& msg) {
+                return convert::protobuf::vector_from_dds(
+                    msg, iit::advrf::Ec_slave_pdo::TX_XT_MOTOR);
             });
 
         register_subscriber<

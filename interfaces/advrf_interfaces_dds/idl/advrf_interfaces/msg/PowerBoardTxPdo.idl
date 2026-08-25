@@ -1,0 +1,20 @@
+#pragma once
+
+module advrf_interfaces {
+  module msg {
+    module dds_ {
+      struct PowerBoardTxPdo_
+      {
+        uint32 master_command;
+        uint32 fault_ack;
+        uint32 op_idx_aux;
+        float aux;
+      };
+
+      struct PowerBoardTxPdoVector_
+      {
+        sequence<PowerBoardTxPdo_> data;
+      };
+    };
+  };
+};

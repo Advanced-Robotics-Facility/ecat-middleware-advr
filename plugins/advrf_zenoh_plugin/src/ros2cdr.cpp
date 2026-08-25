@@ -18,6 +18,18 @@
 #include <advrf_interfaces/msg/PumpCdrAux.hpp>
 #include <advrf_interfaces/msg/Valve.hpp>
 #include <advrf_interfaces/msg/ValveCdrAux.hpp>
+#include <advrf_interfaces/msg/ForceTorqueTxPdo.hpp>
+#include <advrf_interfaces/msg/ForceTorqueTxPdoCdrAux.hpp>
+#include <advrf_interfaces/msg/GripperTxPdo.hpp>
+#include <advrf_interfaces/msg/GripperTxPdoCdrAux.hpp>
+#include <advrf_interfaces/msg/MotorTxPdo.hpp>
+#include <advrf_interfaces/msg/MotorTxPdoCdrAux.hpp>
+#include <advrf_interfaces/msg/PowerBoardTxPdo.hpp>
+#include <advrf_interfaces/msg/PowerBoardTxPdoCdrAux.hpp>
+#include <advrf_interfaces/msg/PumpTxPdo.hpp>
+#include <advrf_interfaces/msg/PumpTxPdoCdrAux.hpp>
+#include <advrf_interfaces/msg/ValveTxPdo.hpp>
+#include <advrf_interfaces/msg/ValveTxPdoCdrAux.hpp>
 #include <sensor_msgs/msg/JointState.hpp>
 #include <sensor_msgs/msg/JointStateCdrAux.hpp>
 
@@ -35,6 +47,228 @@ bool has_valid_header(const Pdo& pdo)
 {
     return pdo.has_header() && pdo.header().has_stamp();
 }
+
+}
+}
+
+namespace advrf::zenoh_plugin::deserialization
+{
+namespace
+{
+
+using Pdo = iit::advrf::Ec_slave_pdo;
+using Payload = std::vector<std::uint8_t>;
+
+template<typename Message, typename Convert>
+bool deserialize_vector(const Payload& payload,
+                        std::vector<Pdo>& pdos,
+                        Convert&& convert)
+{
+    pdos.clear();
+    Message message;
+    if (!ros2cdr::deserialize_idl(payload, message) || message.data().empty())
+        return false;
+
+    pdos.reserve(message.data().size());
+    for (const auto& command : message.data())
+    {
+        Pdo pdo;
+        convert(command, pdo);
+        pdos.emplace_back(std::move(pdo));
+    }
+    return true;
+}
+
+bool deserialize_joint(const Payload& payload, std::vector<Pdo>& pdos)
+{
+    using Message = advrf_interfaces::msg::dds_::MotorTxPdoVector_;
+    return deserialize_vector<Message>(payload, pdos,
+        [](const auto& command, Pdo& pdo)
+        {
+            pdo.set_type(Pdo::TX_CIA402);
+            pdo.mutable_header()->set_index(command.ecat_id());
+            auto* target = pdo.mutable_cia402_tx_pdo();
+            target->set_target_torque(command.tor_ref());
+            target->set_target_pos(command.pos_ref());
+            target->set_target_vel(command.vel_ref());
+            target->set_target_current(command.cur_ref());
+            target->set_gain_0(command.gain_0());
+            target->set_gain_1(command.gain_1());
+            target->set_gain_2(command.gain_2());
+            target->set_gain_3(command.gain_3());
+            target->set_gain_4(command.gain_4());
+        });
+}
+
+bool deserialize_motor(const Payload& payload, std::vector<Pdo>& pdos)
+{
+    using Message = advrf_interfaces::msg::dds_::MotorTxPdoVector_;
+    return deserialize_vector<Message>(payload, pdos,
+        [](const auto& command, Pdo& pdo)
+        {
+            pdo.set_type(Pdo::TX_MOTOR);
+            pdo.mutable_header()->set_index(command.ecat_id());
+            auto* target = pdo.mutable_motor_tx_pdo();
+            target->set_pos_ref(command.pos_ref());
+            target->set_fault_ack(command.fault_ack());
+            target->set_gainp(static_cast<std::int32_t>(command.gain_0()));
+            target->set_gaind(static_cast<std::int32_t>(command.gain_1()));
+            target->set_ts(command.ts());
+        });
+}
+
+bool deserialize_motor_xt(const Payload& payload, std::vector<Pdo>& pdos)
+{
+    using Message = advrf_interfaces::msg::dds_::MotorTxPdoVector_;
+    return deserialize_vector<Message>(payload, pdos,
+        [](const auto& command, Pdo& pdo)
+        {
+            pdo.set_type(Pdo::TX_XT_MOTOR);
+            pdo.mutable_header()->set_index(command.ecat_id());
+            auto* target = pdo.mutable_motor_xt_tx_pdo();
+            target->set_pos_ref(command.pos_ref());
+            target->set_vel_ref(command.vel_ref());
+            target->set_tor_ref(command.tor_ref());
+            target->set_gain_0(command.gain_0());
+            target->set_gain_1(command.gain_1());
+            target->set_gain_2(command.gain_2());
+            target->set_gain_3(command.gain_3());
+            target->set_gain_4(command.gain_4());
+            target->set_fault_ack(command.fault_ack());
+            target->set_ts(command.ts());
+            target->set_op_idx_aux(command.op_idx_aux());
+            target->set_aux(command.aux());
+        });
+}
+
+bool deserialize_valve(const Payload& payload, std::vector<Pdo>& pdos)
+{
+    using Message = advrf_interfaces::msg::dds_::ValveTxPdoVector_;
+    return deserialize_vector<Message>(payload, pdos,
+        [](const auto& command, Pdo& pdo)
+        {
+            pdo.set_type(Pdo::TX_HYQ_KNEE);
+            auto* target = pdo.mutable_hyqknee_tx_pdo();
+            target->set_current_ref(command.current_ref());
+            target->set_position_ref(command.position_ref());
+            target->set_force_ref(command.force_ref());
+            target->set_gain_0(command.gain_0());
+            target->set_gain_1(command.gain_1());
+            target->set_gain_2(command.gain_2());
+            target->set_gain_3(command.gain_3());
+            target->set_gain_4(command.gain_4());
+            target->set_fault_ack(command.fault_ack());
+            target->set_ts(command.ts());
+            target->set_op_idx_aux(command.op_idx_aux());
+            target->set_aux(command.aux());
+        });
+}
+
+bool deserialize_gripper(const Payload& payload, std::vector<Pdo>& pdos)
+{
+    using Message = advrf_interfaces::msg::dds_::GripperTxPdoVector_;
+    return deserialize_vector<Message>(payload, pdos,
+        [](const auto& command, Pdo& pdo)
+        {
+            pdo.set_type(Pdo::TX_GRIPPER);
+            auto* target = pdo.mutable_gripper_tx_pdo();
+            target->set_target_pos(command.target_pos());
+            target->set_target_vel(command.target_vel());
+            target->set_target_torque(command.target_torque());
+            target->set_gain_0(command.gain_0());
+            target->set_gain_1(command.gain_1());
+            target->set_gain_2(command.gain_2());
+            target->set_gain_3(command.gain_3());
+            target->set_gain_4(command.gain_4());
+        });
+}
+
+bool deserialize_pump(const Payload& payload, std::vector<Pdo>& pdos)
+{
+    using Message = advrf_interfaces::msg::dds_::PumpTxPdoVector_;
+    return deserialize_vector<Message>(payload, pdos,
+        [](const auto& command, Pdo& pdo)
+        {
+            pdo.set_type(Pdo::TX_HYQ_HPU);
+            auto* target = pdo.mutable_hyqhpu_tx_pdo();
+            target->set_pump_target(command.pump_target());
+            target->set_pressure_p_gain(command.pressure_p_gain());
+            target->set_pressure_i_gain(command.pressure_i_gain());
+            target->set_pressure_d_gain(command.pressure_d_gain());
+            target->set_pressure_i_limit(command.pressure_i_limit());
+            target->set_fault_ack(command.fault_ack());
+            target->set_solenoidout(command.solenoid_out());
+            target->set_ts(command.ts());
+            target->set_op_idx_aux(command.op_idx_aux());
+            target->set_aux(command.aux());
+        });
+}
+
+bool deserialize_power_board(const Payload& payload, std::vector<Pdo>& pdos)
+{
+    using Message = advrf_interfaces::msg::dds_::PowerBoardTxPdoVector_;
+    return deserialize_vector<Message>(payload, pdos,
+        [](const auto& command, Pdo& pdo)
+        {
+            pdo.set_type(Pdo::TX_POW_F28M36);
+            auto* target = pdo.mutable_powf28m36_tx_pdo();
+            target->set_master_command(command.master_command());
+            target->set_fault_ack(command.fault_ack());
+            target->set_op_idx_aux(command.op_idx_aux());
+            target->set_aux(command.aux());
+        });
+}
+
+bool deserialize_force_torque(const Payload& payload, std::vector<Pdo>& pdos)
+{
+    using Message = advrf_interfaces::msg::dds_::ForceTorqueTxPdoVector_;
+    return deserialize_vector<Message>(payload, pdos,
+        [](const auto& command, Pdo& pdo)
+        {
+            pdo.set_type(Pdo::TX_FT6);
+            auto* target = pdo.mutable_ft6_tx_pdo();
+            target->set_ts(command.ts());
+            target->set_op_idx_aux(command.op_idx_aux());
+            target->set_aux(command.aux());
+        });
+}
+
+}
+
+bool Ros2CdrDeserializer::deserialize_cycle(
+    const Payload& payload,
+    std::vector<Pdo>& pdos) const
+{
+    switch (message_type_)
+    {
+        case Ros2CommandType::Joint:
+            return deserialize_joint(payload, pdos);
+        case Ros2CommandType::Motor:
+            return deserialize_motor(payload, pdos);
+        case Ros2CommandType::MotorXt:
+            return deserialize_motor_xt(payload, pdos);
+        case Ros2CommandType::Valve:
+            return deserialize_valve(payload, pdos);
+        case Ros2CommandType::Gripper:
+            return deserialize_gripper(payload, pdos);
+        case Ros2CommandType::Pump:
+            return deserialize_pump(payload, pdos);
+        case Ros2CommandType::PowerBoard:
+            return deserialize_power_board(payload, pdos);
+        case Ros2CommandType::ForceTorque:
+            return deserialize_force_torque(payload, pdos);
+    }
+
+    pdos.clear();
+    return false;
+}
+
+}
+
+namespace advrf::zenoh_plugin::serialization
+{
+namespace
+{
 
 template<typename Message>
 void set_header(Message& message, const Pdo& pdo, bool include_frame_id)

@@ -1,6 +1,8 @@
 #pragma once
 
+#include <deque>
 #include <functional>
+#include <mutex>
 #include <string>
 
 #include <zenoh.hxx>
@@ -12,45 +14,87 @@
 namespace advrf::zenoh_plugin
 {
 
+class IZenohSubscriber
+{
+public:
+    virtual ~IZenohSubscriber() = default;
+    virtual void spin_once() = 0;
+};
+
 template<typename Message>
-class ZenohSubscriber
+class ZenohSubscriber final : public IZenohSubscriber
 {
 public:
     using Callback = std::function<void(const Message&)>;
+    using Deserializer =
+        std::function<bool(const std::vector<std::uint8_t>&, Message&)>;
 
     ZenohSubscriber(zenoh::Session& session,
                     const std::string& key,
-                    Callback callback)
-        : subscriber_(session.declare_subscriber(
+                    Callback callback,
+                    Deserializer deserializer =
+                        [](const std::vector<std::uint8_t>& payload,
+                           Message& message)
+                        {
+                            const deserialization::ProtobufDeserializer decoder;
+                            return decoder.deserialize(payload, message);
+                        })
+        : callback_(std::move(callback))
+        , deserializer_(std::move(deserializer))
+        , subscriber_(session.declare_subscriber(
             zenoh::KeyExpr(key),
-            [key, callback = std::move(callback)](zenoh::Sample& sample)
-                mutable
+            [this, key](zenoh::Sample& sample)
             {
                 Message message;
                 const auto payload = sample.get_payload().as_vector();
 
-                if (!protobuf::deserialize(payload, message))
+                if (!deserializer_(payload, message))
                 {
                     LOG_ERROR("Failed to deserialize Protobuf payload for Zenoh key '{}'.", key);
                     return;
                 }
 
-                if (!callback)
-                    return;
-
-                try {
-                    callback(message);
-                } catch (const std::exception& error) {
-                    LOG_ERROR("Zenoh subscriber callback for key '{}' failed: {}", key, error.what());
-                } catch (...) {
-                    LOG_ERROR("Zenoh subscriber callback for key '{}' failed with an unknown error.", key);
-                }
+                std::lock_guard<std::mutex> lock(mutex_);
+                pending_.emplace_back(std::move(message));
             },
             zenoh::closures::none))
     {}
 
+    void spin_once() override
+    {
+        std::deque<Message> pending;
+
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            pending.swap(pending_);
+        }
+
+        for (const auto& message : pending)
+        {
+            if (!callback_)
+                continue;
+
+            try
+            {
+                callback_(message);
+            }
+            catch (const std::exception& error)
+            {
+                LOG_ERROR("Zenoh subscriber callback failed: {}", error.what());
+            }
+            catch (...)
+            {
+                LOG_ERROR("Zenoh subscriber callback failed with an unknown error.");
+            }
+        }
+    }
+
 private:
+    Callback callback_;
+    Deserializer deserializer_;
+    std::mutex mutex_;
+    std::deque<Message> pending_;
     zenoh::Subscriber<void> subscriber_;
 };
 
-} 
+}

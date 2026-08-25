@@ -25,6 +25,8 @@ enum class ChannelTx : std::size_t
     Pump,
     Valve,
     Gripper,
+    PowerBoard,
+    ForceTorque,
     Count
 };
 
@@ -42,7 +44,9 @@ const std::map<ChannelTx, DeviceTypeTx> k_map_channeltx_to_devicetx = {
     {ChannelTx::Motor, DeviceTypeTx::MOTOR},
     {ChannelTx::Gripper, DeviceTypeTx::GRIPPER},
     {ChannelTx::Pump, DeviceTypeTx::PUMP},
-    {ChannelTx::Valve, DeviceTypeTx::VALVE}
+    {ChannelTx::Valve, DeviceTypeTx::VALVE},
+    {ChannelTx::PowerBoard, DeviceTypeTx::POWERBOARD},
+    {ChannelTx::ForceTorque, DeviceTypeTx::FORCETORQUE},
 };
 
 

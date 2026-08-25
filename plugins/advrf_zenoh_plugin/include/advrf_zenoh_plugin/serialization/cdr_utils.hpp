@@ -39,3 +39,33 @@ bool serialize_idl(const Message& message, std::vector<std::uint8_t>& payload)
 }
 
 }
+
+namespace advrf::zenoh_plugin::deserialization::ros2cdr
+{
+
+template<typename Message>
+bool deserialize_idl(const std::vector<std::uint8_t>& payload, Message& message)
+{
+    if (payload.empty())
+        return false;
+
+    try
+    {
+        eprosima::fastcdr::FastBuffer buffer(
+            reinterpret_cast<char*>(const_cast<std::uint8_t*>(payload.data())),
+            payload.size());
+        eprosima::fastcdr::Cdr cdr(
+            buffer,
+            eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
+            eprosima::fastcdr::CdrVersion::XCDRv1);
+        cdr.read_encapsulation();
+        eprosima::fastcdr::deserialize(cdr, message);
+        return true;
+    }
+    catch (const eprosima::fastcdr::exception::Exception&)
+    {
+        return false;
+    }
+}
+
+}

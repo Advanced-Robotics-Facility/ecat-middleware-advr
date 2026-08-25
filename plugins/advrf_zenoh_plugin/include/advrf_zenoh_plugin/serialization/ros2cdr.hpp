@@ -5,6 +5,7 @@
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 
+///// SERIALIZATION /////
 namespace advrf::zenoh_plugin::serialization
 {
 
@@ -33,6 +34,39 @@ public:
 
 private:
     Ros2MessageType message_type_;
+};
+
+}
+
+///// DESERIALIZATION /////
+namespace advrf::zenoh_plugin::deserialization
+{
+
+enum class Ros2CommandType
+{
+    Joint,
+    Motor,
+    MotorXt,
+    Valve,
+    Gripper,
+    Pump,
+    PowerBoard,
+    ForceTorque,
+};
+
+class Ros2CdrDeserializer
+{
+public:
+    explicit Ros2CdrDeserializer(Ros2CommandType message_type)
+        : message_type_(message_type)
+    {}
+
+    bool deserialize_cycle(
+        const std::vector<std::uint8_t>& payload,
+        std::vector<iit::advrf::Ec_slave_pdo>& pdos) const;
+
+private:
+    Ros2CommandType message_type_;
 };
 
 }

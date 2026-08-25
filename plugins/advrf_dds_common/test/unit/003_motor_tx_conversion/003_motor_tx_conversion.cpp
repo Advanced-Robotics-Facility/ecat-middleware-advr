@@ -16,8 +16,8 @@ int main() {
     advrf_interfaces::msg::dds_::MotorTxPdo_ input;
 
     input.pos_ref() = 1.0f;
-    input.gainP() = 0;
-    input.gainD() = 1;
+    input.gain_0() = 0;
+    input.gain_1() = 1;
     input.fault_ack() = 6;
     input.ts() = 123;
 

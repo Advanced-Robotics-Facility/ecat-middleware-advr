@@ -3,7 +3,7 @@
 #include <cmath>
 
 #include <advrf_dds_common/converter/converter.hpp>
-#include <advrf_interfaces/msg/MotorXtTxPdo.hpp>
+#include <advrf_interfaces/msg/MotorTxPdo.hpp>
 
 void assert_near(double actual, double expected)
 {
@@ -13,7 +13,7 @@ void assert_near(double actual, double expected)
 
 int main() {
     
-    advrf_interfaces::msg::dds_::MotorXtTxPdo_ input;
+    advrf_interfaces::msg::dds_::MotorTxPdo_ input;
 
     input.pos_ref() = 1.0f;
     input.vel_ref() = 2.0f;
@@ -29,9 +29,10 @@ int main() {
     input.aux() = 8.0F;
 
     iit::advrf::Ec_slave_pdo output;
-    convert::protobuf::from_dds(input, output);
+    convert::protobuf::from_dds(
+        input, output, iit::advrf::Ec_slave_pdo::TX_XT_MOTOR);
 
-    assert(output.type() == iit::advrf::Ec_slave_pdo::RX_XT_MOTOR);
+    assert(output.type() == iit::advrf::Ec_slave_pdo::TX_XT_MOTOR);
     assert(output.has_motor_xt_tx_pdo());
 
     const auto& motor = output.motor_xt_tx_pdo();

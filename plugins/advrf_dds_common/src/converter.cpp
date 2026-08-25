@@ -218,7 +218,7 @@ void convert::protobuf::from_dds(
 
 
 void convert::protobuf::from_dds(
-        const advrf_interfaces::msg::dds_::MotorXtTxPdo_& msgdds,
+        const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
         iit::advrf::Motor_xt_tx_pdo& pb)
         {
             pb.set_pos_ref(msgdds.pos_ref());
@@ -236,20 +236,11 @@ void convert::protobuf::from_dds(
         }
 
 void convert::protobuf::from_dds(
-    const advrf_interfaces::msg::dds_::MotorXtTxPdo_& msgdds,
-    iit::advrf::Ec_slave_pdo& pb){
-        pb.set_type(iit::advrf::Ec_slave_pdo::Type::Ec_slave_pdo_Type_RX_XT_MOTOR);
-        auto* motor_xt_tx_pdo = pb.mutable_motor_xt_tx_pdo();
-        from_dds(msgdds, *motor_xt_tx_pdo);
-    }
-
-
-void convert::protobuf::from_dds(
     const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
     iit::advrf::Motor_tx_pdo& pb){
         pb.set_pos_ref(msgdds.pos_ref());
-        pb.set_gainp(msgdds.gainP());
-        pb.set_gaind(msgdds.gainD());
+        pb.set_gainp(static_cast<int32_t>(msgdds.gain_0()));
+        pb.set_gaind(static_cast<int32_t>(msgdds.gain_1()));
         pb.set_fault_ack(msgdds.fault_ack());
         pb.set_ts(msgdds.ts());
     }
@@ -257,9 +248,21 @@ void convert::protobuf::from_dds(
 void convert::protobuf::from_dds(
     const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
     iit::advrf::Ec_slave_pdo& pb){
-        pb.set_type(iit::advrf::Ec_slave_pdo::Type::Ec_slave_pdo_Type_TX_MOTOR);
-        auto* motor_tx_pdo = pb.mutable_motor_tx_pdo();
-        from_dds(msgdds, *motor_tx_pdo);
+        from_dds(msgdds, pb, iit::advrf::Ec_slave_pdo::TX_MOTOR);
+    }
+
+void convert::protobuf::from_dds(
+    const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
+    iit::advrf::Ec_slave_pdo& pb,
+    iit::advrf::Ec_slave_pdo::Type type)
+    {
+        pb.set_type(type);
+        pb.mutable_header()->set_index(msgdds.ecat_id());
+
+        if (type == iit::advrf::Ec_slave_pdo::TX_XT_MOTOR)
+            from_dds(msgdds, *pb.mutable_motor_xt_tx_pdo());
+        else
+            from_dds(msgdds, *pb.mutable_motor_tx_pdo());
     }
 
 

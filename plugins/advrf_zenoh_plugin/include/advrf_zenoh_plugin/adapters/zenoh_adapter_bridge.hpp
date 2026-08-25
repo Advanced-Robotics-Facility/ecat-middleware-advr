@@ -35,7 +35,7 @@ public:
             publisher_.emplace(session, topic_name_);
             serializer_.emplace(wire_format_, ros2_message_type);
 
-            LOG_INFO("Topic Created: {}", topic_name_);
+            LOG_INFO("Topic Publisher Created: {}", topic_name_);
             return true;
         } catch (const zenoh::ZException& error) {
             LOG_ERROR("Failed to declare Zenoh publisher '{}': {}",
