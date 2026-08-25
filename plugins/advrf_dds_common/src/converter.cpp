@@ -218,7 +218,7 @@ void convert::protobuf::from_dds(
 
 
 void convert::protobuf::from_dds(
-        const advrf_interfaces::msg::dds_::MotorXtTxPdo_& msgdds,
+        const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
         iit::advrf::Motor_xt_tx_pdo& pb)
         {
             pb.set_pos_ref(msgdds.pos_ref());
@@ -235,32 +235,48 @@ void convert::protobuf::from_dds(
             pb.set_aux(msgdds.aux());
         }
 
-void convert::protobuf::from_dds(
-    const advrf_interfaces::msg::dds_::MotorXtTxPdo_& msgdds,
-    iit::advrf::Ec_slave_pdo& pb){
-        pb.set_type(iit::advrf::Ec_slave_pdo::Type::Ec_slave_pdo_Type_RX_XT_MOTOR);
-        auto* motor_xt_tx_pdo = pb.mutable_motor_xt_tx_pdo();
-        from_dds(msgdds, *motor_xt_tx_pdo);
-    }
-
 
 void convert::protobuf::from_dds(
     const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
     iit::advrf::Motor_tx_pdo& pb){
         pb.set_pos_ref(msgdds.pos_ref());
-        pb.set_gainp(msgdds.gainP());
-        pb.set_gaind(msgdds.gainD());
+        pb.set_gainp(msgdds.gain_0());
+        pb.set_gaind(msgdds.gain_1());
         pb.set_fault_ack(msgdds.fault_ack());
         pb.set_ts(msgdds.ts());
     }
 
 void convert::protobuf::from_dds(
     const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
-    iit::advrf::Ec_slave_pdo& pb){
-        pb.set_type(iit::advrf::Ec_slave_pdo::Type::Ec_slave_pdo_Type_TX_MOTOR);
-        auto* motor_tx_pdo = pb.mutable_motor_tx_pdo();
-        from_dds(msgdds, *motor_tx_pdo);
+    iit::advrf::Cia402_tx_pdo& pb){
+        pb.set_gain_0(msgdds.gain_0());
+        pb.set_gain_1(msgdds.gain_1());
+        pb.set_gain_2(msgdds.gain_2());
+        pb.set_gain_3(msgdds.gain_3());
+        pb.set_target_current(msgdds.cur_ref());
+        pb.set_target_vel(msgdds.vel_ref());
+        pb.set_target_pos(msgdds.pos_ref());
     }
+
+void convert::protobuf::from_dds(const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
+                                 iit::advrf::Ec_slave_pdo::Type type,
+                                 iit::advrf::Ec_slave_pdo& pb) {
+    switch (type) 
+    {
+        case iit::advrf::Ec_slave_pdo::Type::Ec_slave_pdo_Type_TX_MOTOR:
+            from_dds(msgdds, *pb.mutable_motor_tx_pdo());
+            break;
+        case iit::advrf::Ec_slave_pdo::Type::Ec_slave_pdo_Type_RX_XT_MOTOR:
+            from_dds(msgdds, *pb.mutable_motor_xt_tx_pdo());
+            break;
+        case iit::advrf::Ec_slave_pdo::Type::Ec_slave_pdo_Type_RX_CIA402:
+            from_dds(msgdds, *pb.mutable_cia402_tx_pdo());
+            break;
+        default:
+            std::cerr << "Unsupported Ec_slave_pdo::Type: " << static_cast<int>(type) << std::endl;
+            break;
+    }
+}
 
 
 

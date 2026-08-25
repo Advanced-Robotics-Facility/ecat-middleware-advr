@@ -21,7 +21,6 @@
 #include <advrf_interfaces/msg/Valve.hpp>
 #include <advrf_interfaces/msg/Gripper.hpp>
 #include <advrf_interfaces/msg/ReplCmdContent.hpp>
-#include <advrf_interfaces/msg/MotorXtTxPdo.hpp>
 #include <advrf_interfaces/msg/MotorTxPdo.hpp>
 
 namespace convert::protobuf {
@@ -99,36 +98,34 @@ namespace convert::protobuf {
         iit::advrf::Repl_cmd_vector& pb);
 
     void from_dds(
-        const advrf_interfaces::msg::dds_::MotorXtTxPdo_& msgdds,
+        const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
         iit::advrf::Motor_xt_tx_pdo& pb);
-
-    void from_dds(
-        const advrf_interfaces::msg::dds_::MotorXtTxPdo_& msgdds,
-        iit::advrf::Ec_slave_pdo& pb);
 
     void from_dds(
         const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
         iit::advrf::Motor_tx_pdo& pb);
 
-    void from_dds(
-        const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
-        iit::advrf::Ec_slave_pdo& pb);
+    void from_dds(const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
+                iit::advrf::Cia402_tx_pdo& pb);
 
-    template<typename DdsVector>
-    std::vector<iit::advrf::Ec_slave_pdo>
-    vector_from_dds(const DdsVector& msg)
-    {
-        std::vector<iit::advrf::Ec_slave_pdo> result;
-        result.reserve(msg.data().size());
+    void from_dds(const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
+                  iit::advrf::Ec_slave_pdo::Type type,
+                  iit::advrf::Ec_slave_pdo& pb);
 
-        for (const auto& element : msg.data()) {
-            iit::advrf::Ec_slave_pdo pdo;
-            from_dds(element, pdo);
-            result.emplace_back(std::move(pdo));
-        }
+    // template<typename DdsVector>
+    // std::vector<iit::advrf::Ec_slave_pdo> vector_from_dds(const DdsVector& msg)
+    // {
+    //     std::vector<iit::advrf::Ec_slave_pdo> result;
+    //     result.reserve(msg.data().size());
 
-        return result;
-    }
+    //     for (const auto& element : msg.data()) {
+    //         iit::advrf::Ec_slave_pdo pdo;
+    //         from_dds(element, pdo);
+    //         result.emplace_back(std::move(pdo));
+    //     }
+
+    //     return result;
+    // }
 };
 
 namespace convert::dds {

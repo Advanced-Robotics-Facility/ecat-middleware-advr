@@ -120,10 +120,6 @@ bool DDSAdapterPublishers::init(
         valve_ids.end()
     );
 
-    for (const auto& [id, name] : id_to_name) {
-        LOG_INFO("Mapping ecat_id {} to name {}", id, name);
-    }
-
     // ---------------------------------------------------------------------
     // Joint publishers
     // ---------------------------------------------------------------------

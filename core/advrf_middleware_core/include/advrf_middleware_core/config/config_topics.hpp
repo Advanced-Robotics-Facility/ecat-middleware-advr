@@ -73,9 +73,7 @@ struct TopicsState : public TopicNamespace
 struct TopicsCommand  : public TopicNamespace
 {
     using TopicNamespace::TopicNamespace;
-    std::string jointCmd()  const { return rt("tx/joints"); }
-    std::string motorXtCmd()  const { return rt("tx/motors_xt"); }
-    std::string motorCmd()  const { return rt("tx/motors"); }
+    std::string motors()  const { return rt("tx/motors"); }
 };
 
 

@@ -10,12 +10,12 @@
 #include "advrf_fastdds_plugin/publisher/dds_publisher.hpp"
 #include "advrf_middleware_core/config/config_topics.hpp"
 #include <advrf_middleware_core/config/robot_config.hpp>
-#include <advrf_interfaces/msg/MotorXtTxPdo.hpp>
-#include <advrf_interfaces/msg/MotorXtTxPdoPubSubTypes.hpp>
+#include <advrf_interfaces/msg/MotorTxPdo.hpp>
+#include <advrf_interfaces/msg/MotorTxPdoPubSubTypes.hpp>
 
-using MotorVectorXtTxMsg = advrf_interfaces::msg::dds_::MotorXtTxPdoVector_;
-using MotorXtTxMsg = advrf_interfaces::msg::dds_::MotorXtTxPdo_;
-using MotorXtTxPubSubType = advrf_interfaces::msg::dds_::MotorXtTxPdoVector_PubSubType;
+using MotorVectorXtTxMsg = advrf_interfaces::msg::dds_::MotorTxPdoVector_;
+using MotorTxMsg = advrf_interfaces::msg::dds_::MotorTxPdo_;
+using MotorTxPubSubType = advrf_interfaces::msg::dds_::MotorTxPdoVector_PubSubType;
 
 static volatile std::sig_atomic_t running = 1;
 
@@ -46,19 +46,19 @@ int main(int argc, char** argv)
     }
 
     
-    DDSPublisher<MotorVectorXtTxMsg, MotorXtTxPubSubType> publisher;
-    if (!publisher.init_dds(topics.command.motorXtCmd(), participant)) {
+    DDSPublisher<MotorVectorXtTxMsg, MotorTxPubSubType> publisher;
+    if (!publisher.init_dds(topics.command.MotorCmd(), participant)) {
         LOG_ERROR("Failed to initialize DDS publisher");
         eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
         return 1;
     }
 
-    LOG_INFO("Publishing MotorXtTxPdo on topic '{}'", topics.command.motorXtCmd());
+    LOG_INFO("Publishing MotorTxPdo on topic '{}'", topics.command.MotorCmd());
 
     while (running)
     {
         MotorVectorXtTxMsg msg;
-        MotorXtTxMsg motor_1;
+        MotorTxMsg motor_1;
         motor_1.pos_ref() = 1.0f;
         motor_1.vel_ref() = 2.0f;
         motor_1.tor_ref() = 3.0f;
@@ -73,7 +73,7 @@ int main(int argc, char** argv)
         motor_1.aux() = 0.0f;
         msg.data().push_back(motor_1);
 
-        MotorXtTxMsg motor_2;
+        MotorTxMsg motor_2;
         motor_2.pos_ref() = 10.0f;
         motor_2.vel_ref() = 20.0f;
         motor_2.tor_ref() = 30.0f;

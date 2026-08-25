@@ -6,7 +6,7 @@
 #include <advrf_middleware_core/config/robot_config.hpp>
 #include "advrf_cyclonedds_plugin/publisher/dds_publisher.hpp"
 #include "advrf_middleware_core/config/config_topics.hpp"
-#include <advrf_interfaces/msg/MotorXtTxPdo.hpp>
+#include <advrf_interfaces/msg/MotorTxPdo.hpp>
 
 int main(int argc, char** argv)
 {
@@ -16,12 +16,12 @@ int main(int argc, char** argv)
     config::ConfigTopics topics({cfg->ns, cfg->robot_name});
     dds::domain::DomainParticipant participant(cfg->domain_id);
 
-    using MotorMsg = advrf_interfaces::msg::dds_::MotorXtTxPdo_;
-    using MotorVectorMsg = advrf_interfaces::msg::dds_::MotorXtTxPdoVector_;
+    using MotorMsg = advrf_interfaces::msg::dds_::MotorTxPdo_;
+    using MotorVectorMsg = advrf_interfaces::msg::dds_::MotorTxPdoVector_;
 
     DDSPublisher<MotorVectorMsg> publisher;
     publisher.init_dds(
-        topics.tx.motorXtCmd(),
+        topics.tx.motors(),
         participant
     );
 
@@ -29,6 +29,7 @@ int main(int argc, char** argv)
 
         MotorVectorMsg msg;
         MotorMsg motor_1;
+        motor_1.ecat_id() = 1;
         motor_1.pos_ref() = 1.0f;
         motor_1.vel_ref() = 2.0f;
         motor_1.tor_ref() = 3.0f;
@@ -44,6 +45,7 @@ int main(int argc, char** argv)
         msg.data().push_back(motor_1);
 
         MotorMsg motor_2;
+        motor_2.ecat_id() = 2;  
         motor_2.pos_ref() = 10.0f;
         motor_2.vel_ref() = 20.0f;
         motor_2.tor_ref() = 30.0f;

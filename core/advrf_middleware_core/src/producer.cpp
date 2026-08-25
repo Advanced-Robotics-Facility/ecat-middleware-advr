@@ -243,11 +243,11 @@ int main(int argc, char** argv)
     }
 
     // REPL SHM
-    auto repl_shm = SharedMemory<SharedReplBridge>::create(SHM_REPL_NAME);
+    auto repl_shm = SharedMemory<SharedReplBridge>::create(SHM_SERVICE);
     if (!repl_shm) {
         std::cerr
             << "[Producer] Failed to create shared memory '"
-            << SHM_REPL_NAME
+            << SHM_SERVICE
             << "'. Another ECAT master/mock may already be running.\n";
         return 1;
     }
@@ -321,8 +321,9 @@ int main(int argc, char** argv)
 
     auto next_tick = std::chrono::steady_clock::now();
     while (keep_running) {
-        
-        ShmProtoHelper::drain(repl_shm->bridge().payload.request, cmd_msg, [&](const iit::advrf::Repl_cmd& cmd) {
+        std::vector<iit::advrf::Repl_cmd> repl_cmds;
+        ShmProtoHelper::drain(repl_shm->bridge().payload.request, repl_cmds);
+        for (const auto& cmd : repl_cmds) {
       
             iit::advrf::Cmd_reply reply;
             reply.mutable_request_id()->CopyFrom(cmd.request_id());
@@ -365,7 +366,7 @@ int main(int argc, char** argv)
             if (!ShmProtoHelper::push(repl_shm->bridge().payload.reply, reply)) {
                 std::cerr << "[Producer] Failed to push repl reply (queue full)" << '\n';
             }
-        });
+        }
 
         for (uint32_t i = 0; i < slave_idx; ++i) {
             const auto& slave = pub_shm->bridge().payload.topology[i];

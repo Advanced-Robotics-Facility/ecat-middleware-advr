@@ -15,27 +15,12 @@
 #include "advrf_middleware_core/adapters/adapter_base.hpp"
 #include "advrf_middleware_core/utils/channel.hpp"
 #include "advrf_middleware_core/utils/log.hpp"
+#include "advrf_middleware_core/utils/pdo_utils.hpp"
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/utils/log.hpp>
 
-inline int get_ecat_id(const std::string &component_name) {
-  const std::size_t pos = component_name.rfind('_');
 
-  if (pos == std::string::npos || pos + 1 >= component_name.size()) {
-    LOG_ERROR("Format ecat name not correct, {}", component_name);
-    return -1;
-  }
-
-  try {
-    return std::stoi(component_name.substr(pos + 1));
-  } catch (...) {
-    LOG_ERROR("Failed to convert ecat id from string, {}",
-              component_name.substr(pos + 1));
-
-    return -1;
-  }
-}
 
 namespace middleware_adapter::message {
 
@@ -45,8 +30,6 @@ public:
   using EcatId = std::uint32_t;
 
   static constexpr std::size_t MaxEcatIds = 256;
-  static constexpr std::size_t ChannelCount =
-      static_cast<std::size_t>(ChannelRx::Count);
 
   struct CachedPdo {
     bool valid = false;
@@ -60,7 +43,7 @@ public:
     std::vector<EcatId> active_ids;
   };
 
-  using Cache = std::array<ChannelCache, ChannelCount>;
+  using Cache = std::array<ChannelCache, CHANNEL_COUNT>;
   using IdMask = std::bitset<MaxEcatIds>;
 
   class IPublisher {
@@ -92,11 +75,9 @@ public:
   };
 
   AdapterPublishers() {}
-
   ~AdapterPublishers() override = default;
 
   ShmRxReader &shm() noexcept { return shm_; }
-
   const ShmRxReader &shm() const noexcept { return shm_; }
 
   void spin_once() override {
@@ -161,10 +142,6 @@ protected:
   void dispatch_cached_data() { dispatch(); }
 
 private:
-  inline static constexpr std::array<ChannelRx, ChannelCount> all_channels_{
-      ChannelRx::Imu,  ChannelRx::Motor,      ChannelRx::Gripper,
-      ChannelRx::Pump, ChannelRx::PowerBoard, ChannelRx::ForceTorque,
-      ChannelRx::Valve};
 
   std::vector<std::unique_ptr<IPublisher>> publishers_;
   std::vector<Subscription> subscriptions_;
@@ -183,7 +160,7 @@ private:
   }
 
   void fill_cache() {
-    for (const ChannelRx channel : all_channels_) {
+    for (const ChannelRx channel : CHANNELS_ARRAY) {
       const auto device = device_for(channel);
 
       if (!device) {
@@ -193,9 +170,10 @@ private:
       }
 
       auto &cache = channel_cache(channel);
-      Pdo pdo;
+      std::vector<Pdo> pdos;
+      shm_.drain(*device, pdos);
 
-      shm_.drain(*device, pdo, [&](const Pdo &received) {
+      for(const auto &received : pdos) {
         const int parsed_id = get_ecat_id(received.header().str_id());
 
         if (parsed_id < 0) {
@@ -220,7 +198,7 @@ private:
         entry.valid = true;
         entry.ecat_id = id;
         entry.pdo = received;
-      });
+      }
     }
   }
 

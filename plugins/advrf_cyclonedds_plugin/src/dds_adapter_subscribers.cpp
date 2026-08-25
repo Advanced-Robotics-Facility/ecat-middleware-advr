@@ -1,7 +1,5 @@
 #include "advrf_cyclonedds_plugin/adapters/dds_adapter_subscribers.hpp"
-
 #include <advrf_interfaces/msg/MotorTxPdo.hpp>
-#include <advrf_interfaces/msg/MotorXtTxPdo.hpp>
 
 DDSAdapterSubscribers::DDSAdapterSubscribers(
     const config::ConfigTopics &config_topics, const RobotConfig &robot_config,
@@ -9,17 +7,22 @@ DDSAdapterSubscribers::DDSAdapterSubscribers(
     advrf::dds_common::ReaderPolicy reader_policy)
     : reader_policy_(std::move(reader_policy)) {
 
-  register_subscriber<advrf_interfaces::msg::dds_::MotorXtTxPdoVector_>(
-      config_topics.tx.motorXtCmd(), participant, ChannelTx::Motor,
-      [](const advrf_interfaces::msg::dds_::MotorXtTxPdoVector_ &msg) {
-        return convert::protobuf::vector_from_dds(msg);
-      });
+ register_subscriber<advrf_interfaces::msg::dds_::MotorTxPdoVector_>(
+    config_topics.tx.motors(),
+    participant,
+    ChannelTx::Motor,
+    [this](const advrf_interfaces::msg::dds_::MotorTxPdoVector_& msg) {
+      std::vector<iit::advrf::Ec_slave_pdo> result;
+      result.reserve(msg.data().size());
 
-  register_subscriber<advrf_interfaces::msg::dds_::MotorTxPdoVector_>(
-      config_topics.tx.motorCmd(), participant, ChannelTx::Motor,
-      [](const advrf_interfaces::msg::dds_::MotorTxPdoVector_ &msg) {
-        return convert::protobuf::vector_from_dds(msg);
-      });
+      for (const auto& element : msg.data()) {
+        auto& pdo = result.emplace_back();
+        const auto type = resolve_type(element.ecat_id());
+        convert::protobuf::from_dds(element, type, pdo);
+      }
+
+      return result;
+    });
 
   init_ros_graph_bridge(robot_config, participant);
 }

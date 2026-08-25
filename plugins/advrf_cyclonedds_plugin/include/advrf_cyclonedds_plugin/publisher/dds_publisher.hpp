@@ -59,7 +59,7 @@ class DDSPublisher {
                 LOG_ERROR("DDS Pub Init Error: {}", e.what());
                 return false;
             }
-}
+        }
 
         dds::pub::qos::DataWriterQos writer_qos()
         {

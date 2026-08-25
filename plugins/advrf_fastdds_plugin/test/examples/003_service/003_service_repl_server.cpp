@@ -47,7 +47,7 @@ int main(int argc, char** argv)
 
     DDSAdapterService dds_adapter_service(config, participant);
         
-    if(!dds_adapter_service.shm().connect(SHM_REPL_NAME, ShmAttachMode::Open))
+    if(!dds_adapter_service.shm().connect(SHM_SERVICE, ShmAttachMode::Open))
     {
         LOG_ERROR("Failed to connect to shared memory");
         return 1;

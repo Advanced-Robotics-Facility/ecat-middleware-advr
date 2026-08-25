@@ -137,3 +137,22 @@ inline uint64_t extract_timestamp_ns(const iit::advrf::Ec_slave_pdo& pdo)
 }
 
 } 
+
+#include "advrf_middleware_core/utils/log.hpp"
+inline int get_ecat_id(const std::string &component_name) {
+  const std::size_t pos = component_name.rfind('_');
+
+  if (pos == std::string::npos || pos + 1 >= component_name.size()) {
+    LOG_ERROR("Format ecat name not correct, {}", component_name);
+    return -1;
+  }
+
+  try {
+    return std::stoi(component_name.substr(pos + 1));
+  } catch (...) {
+    LOG_ERROR("Failed to convert ecat id from string, {}",
+              component_name.substr(pos + 1));
+
+    return -1;
+  }
+}

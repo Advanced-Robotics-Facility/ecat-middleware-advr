@@ -52,7 +52,6 @@ public:
     }
 
     std::lock_guard<std::mutex> lock(mutex_);
-
     add_writer_gid(guid_to_gid(writer->guid()));
     publish_locked();
   }
@@ -63,7 +62,6 @@ public:
     }
 
     std::lock_guard<std::mutex> lock(mutex_);
-
     remove_writer_gid(guid_to_gid(writer->guid()));
     publish_locked();
   }
@@ -74,7 +72,6 @@ public:
     }
 
     std::lock_guard<std::mutex> lock(mutex_);
-
     add_reader_gid(guid_to_gid(reader->guid()));
     publish_locked();
   }
@@ -140,27 +137,18 @@ private:
   // ROS Humble Gid = 24 bytes
   static rmw_dds_common::msg::dds_::Gid_ make_ros_gid(const GidBytes &gid) {
     rmw_dds_common::msg::dds_::Gid_ result;
-
     auto &data = result.data();
-
     std::fill(data.begin(), data.end(), uint8_t{0});
-
     std::copy(gid.begin(), gid.end(), data.begin());
-
     return result;
   }
 
   void publish_locked() {
     using ParticipantInfo = rmw_dds_common::msg::dds_::ParticipantEntitiesInfo_;
-
     using NodeInfo = rmw_dds_common::msg::dds_::NodeEntitiesInfo_;
-
     ParticipantInfo msg;
-
     msg.gid(make_ros_gid(participant_gid_));
-
     NodeInfo node;
-
     node.node_name(node_name_);
     node.node_namespace(node_namespace_);
 
@@ -173,9 +161,7 @@ private:
     }
 
     msg.node_entities_info_seq().push_back(std::move(node));
-
     const auto ret = writer_->write(&msg);
-
     if (ret != eprosima::fastdds::dds::RETCODE_OK) {
       throw std::runtime_error("Failed to publish ros_discovery_info");
     }
@@ -200,13 +186,11 @@ private:
 
 private:
   Participant *participant_{nullptr};
-
   Publisher *publisher_{nullptr};
   Topic *topic_{nullptr};
   DataWriter *writer_{nullptr};
 
   TypeSupport type_;
-
   std::string node_name_;
   std::string node_namespace_;
 

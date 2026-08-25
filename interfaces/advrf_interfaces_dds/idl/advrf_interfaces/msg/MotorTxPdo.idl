@@ -5,11 +5,20 @@ module advrf_interfaces {
         module dds_ {
             struct MotorTxPdo_
             {
-                float  pos_ref;     
-                unsigned long fault_ack;   
-                int32  gainP;       
-                int32  gainD;       
+                int32 ecat_id;
+                float pos_ref;
+                float vel_ref;
+                float tor_ref;
+                float cur_ref;
+                float gain_0;
+                float gain_1;
+                float gain_2;
+                float gain_3;
+                float gain_4;
+                unsigned long fault_ack;
                 unsigned long ts;
+                unsigned long op_idx_aux;
+                float aux;
             };
             
 

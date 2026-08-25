@@ -112,3 +112,24 @@ inline std::optional<RobotConfig> load_robot_config(const std::string& yaml_path
         return std::nullopt;
     }
 }
+
+
+
+inline std::set<uint32_t> extract_pdo_ids(const RobotConfig& cfg) {
+    std::set<uint32_t> pdo_ids;
+    const auto add_ids = [&pdo_ids](const auto& devices) {
+        for (const auto& [name, id] : devices) {
+            pdo_ids.insert(id);
+        }
+    };
+
+    add_ids(cfg.motors);
+    add_ids(cfg.grippers);
+    add_ids(cfg.valves);
+    add_ids(cfg.imus);
+    add_ids(cfg.power_boards);
+    add_ids(cfg.pumps);
+    add_ids(cfg.force_torques);
+
+    return pdo_ids;
+}

@@ -70,7 +70,7 @@ public:
     bool start() override
     {
         return shm_.connect_and_wait(
-            SHM_REPL_NAME,
+            SHM_SERVICE,
             ShmAttachMode::Open);
     }
 

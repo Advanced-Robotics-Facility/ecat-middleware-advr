@@ -89,9 +89,14 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    PdoDiscover pdo_discover;
+    pdo_discover.start(SHM_NRT_RX_PDO);
+    auto pdo_map = pdo_discover.discover(extract_pdo_ids(*cfg));
+
     // subscribers
     auto dds_participant_sub = dds::domain::DomainParticipant(cfg->domain_id);
     auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>(config, *cfg, dds_participant_sub);
+    dds_adapter_subscribers->set_pdo_map(pdo_map);  
     if (!dds_adapter_subscribers->is_initialized()) {
         LOG_ERROR("Failed to initialize one or more DDS subscribers.");
         return 1;

@@ -67,3 +67,9 @@ device_for(ChannelTx channel)
 
     return it->second;
 }
+
+static constexpr std::size_t CHANNEL_COUNT = static_cast<std::size_t>(ChannelRx::Count);
+inline static constexpr std::array<ChannelRx, CHANNEL_COUNT> CHANNELS_ARRAY{
+      ChannelRx::Imu,  ChannelRx::Motor,      ChannelRx::Gripper,
+      ChannelRx::Pump, ChannelRx::PowerBoard, ChannelRx::ForceTorque,
+      ChannelRx::Valve};
