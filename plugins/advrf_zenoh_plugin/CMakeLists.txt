@@ -89,6 +89,11 @@ install(
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 install(
+    DIRECTORY config/
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/config
+)
+
+install(
     EXPORT advrf_zenoh_pluginTargets
     FILE advrf_zenoh_pluginTargets.cmake
     NAMESPACE advrf::

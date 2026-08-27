@@ -18,10 +18,10 @@ inline zenoh::Encoding encoding_for(WireFormat wire_format)
             return zenoh::Encoding::Predefined::application_protobuf();
 
         case WireFormat::Ros2Cdr:
-            return zenoh::Encoding::Predefined::application_octet_stream();
+            return zenoh::Encoding::Predefined::application_cdr();
     }
 
-    return zenoh::Encoding::Predefined::application_octet_stream();
+    return zenoh::Encoding::Predefined::application_protobuf();
 }
 
 } 

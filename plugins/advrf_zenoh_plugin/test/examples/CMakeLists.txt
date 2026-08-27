@@ -5,6 +5,9 @@
 #endif()
 add_subdirectory(003_service)
 add_subdirectory(004_subscriber)
+if(ZENOH_ROS2_SUPPORT)
+    add_subdirectory(005_motor_cdr)
+endif()
 
 # prefix executables with "zenoh_examples_"
 function(prefix_executables dir prefix)

@@ -79,6 +79,22 @@ bool deserialize_vector(const Payload& payload,
     return true;
 }
 
+template<typename Message, typename Convert>
+bool deserialize_single(const Payload& payload,
+                        std::vector<Pdo>& pdos,
+                        Convert&& convert)
+{
+    pdos.clear();
+    Message message;
+    if (!ros2cdr::deserialize_idl(payload, message))
+        return false;
+
+    Pdo pdo;
+    convert(message, pdo);
+    pdos.emplace_back(std::move(pdo));
+    return true;
+}
+
 bool deserialize_joint(const Payload& payload, std::vector<Pdo>& pdos)
 {
     using Message = advrf_interfaces::msg::dds_::MotorTxPdoVector_;
@@ -148,6 +164,7 @@ bool deserialize_valve(const Payload& payload, std::vector<Pdo>& pdos)
         [](const auto& command, Pdo& pdo)
         {
             pdo.set_type(Pdo::TX_HYQ_KNEE);
+            pdo.mutable_header()->set_index(command.ecat_id());
             auto* target = pdo.mutable_hyqknee_tx_pdo();
             target->set_current_ref(command.current_ref());
             target->set_position_ref(command.position_ref());
@@ -171,6 +188,7 @@ bool deserialize_gripper(const Payload& payload, std::vector<Pdo>& pdos)
         [](const auto& command, Pdo& pdo)
         {
             pdo.set_type(Pdo::TX_GRIPPER);
+            pdo.mutable_header()->set_index(command.ecat_id());
             auto* target = pdo.mutable_gripper_tx_pdo();
             target->set_target_pos(command.target_pos());
             target->set_target_vel(command.target_vel());
@@ -185,11 +203,12 @@ bool deserialize_gripper(const Payload& payload, std::vector<Pdo>& pdos)
 
 bool deserialize_pump(const Payload& payload, std::vector<Pdo>& pdos)
 {
-    using Message = advrf_interfaces::msg::dds_::PumpTxPdoVector_;
-    return deserialize_vector<Message>(payload, pdos,
+    using Message = advrf_interfaces::msg::dds_::PumpTxPdo_;
+    return deserialize_single<Message>(payload, pdos,
         [](const auto& command, Pdo& pdo)
         {
             pdo.set_type(Pdo::TX_HYQ_HPU);
+            pdo.mutable_header()->set_index(command.ecat_id());
             auto* target = pdo.mutable_hyqhpu_tx_pdo();
             target->set_pump_target(command.pump_target());
             target->set_pressure_p_gain(command.pressure_p_gain());
@@ -206,11 +225,12 @@ bool deserialize_pump(const Payload& payload, std::vector<Pdo>& pdos)
 
 bool deserialize_power_board(const Payload& payload, std::vector<Pdo>& pdos)
 {
-    using Message = advrf_interfaces::msg::dds_::PowerBoardTxPdoVector_;
-    return deserialize_vector<Message>(payload, pdos,
+    using Message = advrf_interfaces::msg::dds_::PowerBoardTxPdo_;
+    return deserialize_single<Message>(payload, pdos,
         [](const auto& command, Pdo& pdo)
         {
             pdo.set_type(Pdo::TX_POW_F28M36);
+            pdo.mutable_header()->set_index(command.ecat_id());
             auto* target = pdo.mutable_powf28m36_tx_pdo();
             target->set_master_command(command.master_command());
             target->set_fault_ack(command.fault_ack());
@@ -221,11 +241,12 @@ bool deserialize_power_board(const Payload& payload, std::vector<Pdo>& pdos)
 
 bool deserialize_force_torque(const Payload& payload, std::vector<Pdo>& pdos)
 {
-    using Message = advrf_interfaces::msg::dds_::ForceTorqueTxPdoVector_;
-    return deserialize_vector<Message>(payload, pdos,
+    using Message = advrf_interfaces::msg::dds_::ForceTorqueTxPdo_;
+    return deserialize_single<Message>(payload, pdos,
         [](const auto& command, Pdo& pdo)
         {
             pdo.set_type(Pdo::TX_FT6);
+            pdo.mutable_header()->set_index(command.ecat_id());
             auto* target = pdo.mutable_ft6_tx_pdo();
             target->set_ts(command.ts());
             target->set_op_idx_aux(command.op_idx_aux());

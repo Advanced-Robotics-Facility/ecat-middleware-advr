@@ -32,7 +32,7 @@ public:
             topic_name_ = topic_name;
             wire_format_ = wire_format;
 
-            publisher_.emplace(session, topic_name_);
+            publisher_.emplace(session, topic_name_, encoding_for(wire_format_));
             serializer_.emplace(wire_format_, ros2_message_type);
 
             LOG_INFO("Topic Publisher Created: {}", topic_name_);
@@ -74,7 +74,7 @@ public:
                 return;
             }
 
-            if (!publisher_->publish(std::move(payload), encoding_for(wire_format_))) {
+            if (!publisher_->publish(std::move(payload))) {
                 LOG_ERROR("Failed to write Zenoh topic '{}'.", topic_name_);
             }
             return;
@@ -88,7 +88,7 @@ public:
                 continue;
             }
 
-            if (!publisher_->publish(std::move(payload), encoding_for(wire_format_))) {
+            if (!publisher_->publish(std::move(payload))) {
                 LOG_ERROR("Failed to write Zenoh topic '{}'.", topic_name_);
             }
         }

@@ -5,6 +5,7 @@ module advrf_interfaces {
     module dds_ {
       struct ValveTxPdo_
       {
+        int32 ecat_id;
         float current_ref;
         float position_ref;
         float force_ref;

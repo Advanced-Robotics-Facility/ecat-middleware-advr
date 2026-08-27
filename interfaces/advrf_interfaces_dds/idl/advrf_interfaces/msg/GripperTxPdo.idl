@@ -5,6 +5,7 @@ module advrf_interfaces {
     module dds_ {
       struct GripperTxPdo_
       {
+        int32 ecat_id;
         float target_pos;
         float target_vel;
         float target_torque;

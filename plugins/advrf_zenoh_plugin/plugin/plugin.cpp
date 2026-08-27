@@ -1,8 +1,8 @@
 #include <chrono>
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 #include <stdexcept>
-#include <filesystem>
 #include <string>
 
 #include <zenoh.hxx>
@@ -27,6 +27,7 @@ struct Options
     std::uint32_t rate_service = 10;
     std::uint32_t rate_subscribers = 100;
     WireFormat wire_format = WireFormat::Protobuf;
+    std::string zenoh_config;
 };
 
 WireFormat parse_wire_format(const std::string& value)
@@ -34,16 +35,16 @@ WireFormat parse_wire_format(const std::string& value)
     if (value == "protobuf")
         return WireFormat::Protobuf;
 
-    if (value == "ros2-cdr")
+    if (value == "ros2cdr")
     {
 #ifndef ZENOH_ROS2_SUPPORT
-        throw std::runtime_error("Wire format 'ros2-cdr' is unavailable: rebuild with ""-DZENOH_ROS2_SUPPORT=ON");
+        throw std::runtime_error("Wire format 'ros2cdr' is unavailable: rebuild with ""-DZENOH_ROS2_SUPPORT=ON");
 #else
         return WireFormat::Ros2Cdr;
 #endif
     }
 
-    throw std::runtime_error("Invalid wire format '" + value + "'. Expected 'protobuf' or 'ros2-cdr'.");
+    throw std::runtime_error("Invalid wire format '" + value + "'. Expected 'protobuf' or 'ros2cdr'.");
 }
 
 Options parse_args(int argc, char** argv)
@@ -65,24 +66,27 @@ Options parse_args(int argc, char** argv)
             rate = static_cast<std::uint32_t>(std::stoul(read_value()));
         };
 
-        if (argument == "--rate_publishers")
+        if (argument == "--rate-publishers")
             read_rate(options.rate_publishers);
-        else if (argument == "--rate_service")
+        else if (argument == "--rate-service")
             read_rate(options.rate_service);
-        else if (argument == "--rate_subscribers")
+        else if (argument == "--rate-subscribers")
             read_rate(options.rate_subscribers);
-        else if (argument == "--wire-format" || argument == "--wire_format")
+        else if (argument == "--wire-format")
             options.wire_format = parse_wire_format(read_value());
+        else if (argument == "--zenoh-config")
+            options.zenoh_config = read_value();
         else if (argument == "--help" || argument == "-h")
         {
             std::cout
                 << "Usage:\n"
                 << "  zenoh_plugin [OPTIONS]\n\n"
                 << "Options:\n"
-                << "  --rate_publishers <Hz>   Publisher frequency (default: 1000)\n"
-                << "  --rate_service <Hz>      Service health frequency (default: 10)\n"
-                << "  --rate_subscribers <Hz>  Subscriber health frequency (default: 100)\n"
-                << "  --wire-format <FORMAT>   protobuf or ros2-cdr (default: protobuf)\n";
+                << "  --rate-publishers <Hz>   Publisher frequency (default: 1000)\n"
+                << "  --rate-service <Hz>      Service health frequency (default: 10)\n"
+                << "  --rate-subscribers <Hz>  Subscriber health frequency (default: 100)\n"
+                << "  --wire-format <FORMAT>   protobuf or ros2cdr (default: protobuf)\n"
+                << "  --zenoh-config <PATH>    Zenoh JSON5 configuration file\n";
             std::exit(0);
         }
         else
@@ -92,6 +96,17 @@ Options parse_args(int argc, char** argv)
     }
 
     return options;
+}
+
+zenoh::Config make_zenoh_config(const Options& options)
+{
+    if (!options.zenoh_config.empty())
+        return zenoh::Config::from_file(options.zenoh_config);
+
+    if (std::getenv("ZENOH_CONFIG") != nullptr)
+        return zenoh::Config::from_env();
+
+    return zenoh::Config::create_default();
 }
 
 std::chrono::microseconds period_from_rate(std::uint32_t rate)
@@ -116,7 +131,7 @@ int main(int argc, char** argv)
             return 1;
 
         zenoh::init_log_from_env_or("error");
-        auto session = zenoh::Session::open(zenoh::Config::create_default());
+        auto session = zenoh::Session::open(make_zenoh_config(options));
         auto config = config::ConfigTopics{{robot->ns, robot->robot_name}};
 
         auto publishers = std::make_shared<advrf::zenoh_plugin::ZenohAdapterPublishers>();

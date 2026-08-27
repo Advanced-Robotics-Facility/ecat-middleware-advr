@@ -5,14 +5,10 @@ module advrf_interfaces {
     module dds_ {
       struct ForceTorqueTxPdo_
       {
+        int32 ecat_id;
         uint32 ts;
         uint32 op_idx_aux;
         float aux;
-      };
-
-      struct ForceTorqueTxPdoVector_
-      {
-        sequence<ForceTorqueTxPdo_> data;
       };
     };
   };

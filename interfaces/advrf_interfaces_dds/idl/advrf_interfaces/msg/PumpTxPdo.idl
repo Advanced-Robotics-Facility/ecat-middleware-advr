@@ -5,6 +5,7 @@ module advrf_interfaces {
     module dds_ {
       struct PumpTxPdo_
       {
+        int32 ecat_id;
         float pump_target;
         float pressure_p_gain;
         float pressure_i_gain;
@@ -15,11 +16,6 @@ module advrf_interfaces {
         uint32 ts;
         uint32 op_idx_aux;
         float aux;
-      };
-
-      struct PumpTxPdoVector_
-      {
-        sequence<PumpTxPdo_> data;
       };
     };
   };
