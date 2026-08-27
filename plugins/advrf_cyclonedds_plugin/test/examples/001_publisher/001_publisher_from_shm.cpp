@@ -3,7 +3,11 @@
 #include <filesystem>
 #include <thread>
 
+#include <dds/dds.hpp>
+
 #include <advrf_middleware_core/config/robot_config.hpp>
+#include <advrf_middleware_core/config/config_topics.hpp>
+
 #include <advrf_middleware_core/utils/log.hpp>
 #include <advrf_middleware_core/utils/pdo_utils.hpp>
 
@@ -25,32 +29,34 @@ int main(int argc, char** argv)
 
     std::signal(SIGINT, on_signal);
     std::signal(SIGTERM, on_signal);
-    const auto cfg = load_robot_config( ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
-
-    if (!cfg)
+    auto config_robot = load_robot_config(
+      ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
+      ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
+    
+    if (!config_robot)
         return 1;
 
 
     clock_utils::init();
 
-
-    auto config =
-        config::ConfigTopics{
-            {cfg->ns, cfg->robot_name}
+    auto config_topics = config::ConfigTopics{
+            {config_robot->ns, config_robot->robot_name}
         };
 
     auto domain_participant =
         dds::domain::DomainParticipant{
-            cfg->domain_id
+            config_robot->domain_id
         };
 
+    EcatDiscover ecat_discover;
+    ecat_discover.start(SHM_NRT_RX_PDO);
+    auto ecat_map = ecat_discover.discover(extract_pdo_ids(*config_robot));
 
     DDSAdapterPublishers dds_adapter;
-
-
     if (!dds_adapter.init(
-            config,
-            *cfg,
+            config_topics,
+            *config_robot,
+            ecat_map,
             domain_participant))
     {
         LOG_ERROR("Failed to bind to target DDS channels.");
@@ -58,13 +64,6 @@ int main(int argc, char** argv)
     }
 
 
-    /*
-     * AdapterPublishers::start() owns the SHM connection:
-     *
-     *   ShmRxReader
-     *   -> Open SHM_NRT_RX_PDO
-     *   -> wait for ShmRxWriter readiness
-     */
     if (!dds_adapter.start())
     {
         LOG_ERROR("Failed to start DDS publishers adapter.");
@@ -73,7 +72,6 @@ int main(int argc, char** argv)
 
 
     LOG_INFO("DDS publishers adapter started");
-
 
     while (keep_running && dds_adapter.is_ok())
     {

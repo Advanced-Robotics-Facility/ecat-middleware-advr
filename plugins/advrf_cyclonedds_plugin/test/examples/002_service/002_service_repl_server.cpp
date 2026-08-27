@@ -26,16 +26,19 @@ int main(int argc, char** argv)
     std::signal(SIGINT, on_signal);
     std::signal(SIGTERM, on_signal);
 
-    const auto cfg = load_robot_config( ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
-    auto dds_participant = dds::domain::DomainParticipant{cfg->domain_id};
-    auto config =config::ConfigTopics{{cfg->ns, cfg->robot_name}};
+    auto config_robot = load_robot_config(
+        ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
+        ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
 
-    if (!cfg)
+    if (!config_robot)
         return 1;
+
+    auto dds_participant = dds::domain::DomainParticipant{config_robot->domain_id};
+    auto config = config::ConfigTopics{{config_robot->ns, config_robot->robot_name}};
 
     DDSAdapterService dds_adapter_service(
         config,
-        *cfg,
+        *config_robot,
         dds_participant);
 
     if (!dds_adapter_service.start())

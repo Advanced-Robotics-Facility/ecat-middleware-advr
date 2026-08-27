@@ -5,6 +5,11 @@ set(
     "${PACKAGE_PREFIX_DIR}/share/advrf_config/config"
 )
 
+set(
+    advrf_config_env
+    "${PACKAGE_PREFIX_DIR}/share/advrf_config/advrf_config.env"
+)
+
 if(NOT TARGET advrf_config)
 
     add_library(

@@ -7,36 +7,37 @@
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 
-struct PdoMetadata {
-  uint32_t ecat_id;
+
+struct EcatMetadata {
+  pdo_utils::EcatId ecat_id;
   std::string name;
   iit::advrf::Ec_slave_pdo::Type type;
   ChannelRx channel;
   DeviceTypeRx device;
 };
 
-class PdoDiscover {
+class EcatDiscover {
 public:
   using Pdo = iit::advrf::Ec_slave_pdo;
-  using PdoMap = std::map<uint32_t, PdoMetadata>;
+  using EcatMap = std::unordered_map<pdo_utils::EcatId, EcatMetadata>;
 
-  PdoDiscover() = default;
-  ~PdoDiscover() = default;
+  EcatDiscover() = default;
+  ~EcatDiscover() = default;
 
   bool start(const std::string &shm_name) {
     return shm_.connect(shm_name, ShmAttachMode::Open);
   }
 
-  PdoMap discover(const std::set<uint32_t> &pdo_ids) {
-    PdoMap pdo_map;
+  EcatMap discover(const std::set<uint32_t> &ecat_ids) {
+    EcatMap ecat_map;
 
-    while (pdo_map.size() < pdo_ids.size()) {
-      discover_once(pdo_ids, pdo_map);
-      LOG_INFO("Pdo discovery in progress, found {}/{} PDOs", pdo_map.size(), pdo_ids.size());
+    while (ecat_map.size() < ecat_ids.size()) {
+      discover_once(ecat_ids, ecat_map);
+      LOG_INFO("Pdo discovery in progress, found {}/{} PDOs", ecat_map.size(), ecat_ids.size());
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-    return pdo_map;
+    return ecat_map;
   }
 
   bool is_ok() const { return shm_.is_ok(); }
@@ -44,7 +45,7 @@ public:
 
 private:
 
-  void discover_once(const std::set<uint32_t> &pdo_ids, PdoMap &pdo_map) {
+  void discover_once(const std::set<uint32_t> &ecat_ids, EcatMap &ecat_map) {
     for (const auto channel : CHANNELS_ARRAY) {
       const auto device = device_for(channel);
 
@@ -68,12 +69,12 @@ private:
 
         const auto id = static_cast<uint32_t>(parsed_id);
 
-        if (pdo_ids.find(id) == pdo_ids.end() ||
-            pdo_map.find(id) != pdo_map.end()) {
+        if (ecat_ids.find(id) == ecat_ids.end() ||
+            ecat_map.find(id) != ecat_map.end()) {
           continue;
         }
 
-        pdo_map.emplace(id, PdoMetadata{
+        ecat_map.emplace(id, EcatMetadata{
                                 .ecat_id = id,
                                 .name = str_id,
                                 .type = pdo.type(),
@@ -86,3 +87,15 @@ private:
 
   ShmRxReader shm_;
 };
+
+
+inline iit::advrf::Ec_slave_pdo::Type resolve_type(const EcatDiscover::EcatMap& ecat_map, 
+                                                  pdo_utils::EcatId ecat_id) {
+    auto it = ecat_map.find(ecat_id);
+    if (it != ecat_map.end()) {
+      return it->second.type;
+    } else {
+      LOG_ERROR("ECAT ID {} not found in PDO map", ecat_id);
+      return iit::advrf::Ec_slave_pdo::Type::Ec_slave_pdo_Type__UNSPECIFIED;
+    }
+  }

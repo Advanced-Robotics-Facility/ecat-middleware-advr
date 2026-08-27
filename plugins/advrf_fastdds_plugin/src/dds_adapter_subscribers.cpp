@@ -2,24 +2,26 @@
 #include <advrf_interfaces/msg/MotorTxPdo.hpp>
 #include <advrf_interfaces/msg/MotorTxPdoPubSubTypes.hpp>
 
-DDSAdapterSubscribers::DDSAdapterSubscribers(const config::ConfigTopics& config_topics,
-                                             const RobotConfig& robot_config,
-                                             eprosima::fastdds::dds::DomainParticipant* participant,
-                                             advrf::dds_common::ReaderPolicy reader_policy)
-    : reader_policy_(reader_policy) {
+bool DDSAdapterSubscribers::init(const config::ConfigTopics& config_topics,
+                                  const RobotConfig& robot_config,
+                                  const EcatDiscover::EcatMap& ecat_map,
+                                  eprosima::fastdds::dds::DomainParticipant* participant,
+                                  advrf::dds_common::ReaderPolicy reader_policy)
+    {
 
+    reader_policy_ = std::move(reader_policy);
      register_subscriber<
             advrf_interfaces::msg::dds_::MotorTxPdoVector_,
             advrf_interfaces::msg::dds_::MotorTxPdoVector_PubSubType
         >(
             config_topics.tx.motors(), participant, 
-            ChannelTx::Motor,  [this](const advrf_interfaces::msg::dds_::MotorTxPdoVector_& msg) {
+            ChannelTx::Motor,  [&](const advrf_interfaces::msg::dds_::MotorTxPdoVector_& msg) {
             std::vector<iit::advrf::Ec_slave_pdo> result;
             result.reserve(msg.data().size());
 
             for (const auto& element : msg.data()) {
                 auto& pdo = result.emplace_back();
-                const auto type = resolve_type(element.ecat_id());
+                const auto type = resolve_type(ecat_map, element.ecat_id());
                 convert::protobuf::from_dds(element, type, pdo);
             }
 
@@ -27,6 +29,7 @@ DDSAdapterSubscribers::DDSAdapterSubscribers(const config::ConfigTopics& config_
         });
 
         init_ros_graph_bridge(robot_config, participant);
+        return true;
     }
 
 

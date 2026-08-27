@@ -11,6 +11,7 @@
 #include <advrf_middleware_core/config/robot_config.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
 #include <advrf_middleware_core/adapters/adapter_subscribers.hpp>
+#include <advrf_middleware_core/utils/ecat_discover.hpp>
 #include <advrf_dds_common/converter/converter.hpp>
 #include <advrf_dds_common/qos/reader_policy.hpp>
 
@@ -35,18 +36,19 @@ class DDSAdapterSubscribers: public middleware_adapter::message::AdapterSubscrib
 {
     
 public:
-    DDSAdapterSubscribers(const config::ConfigTopics& config_topics, 
-                            const RobotConfig&,
-                          eprosima::fastdds::dds::DomainParticipant* participant,
-                          advrf::dds_common::ReaderPolicy reader_policy = {});
+    
+    bool init(const config::ConfigTopics& config_topics, 
+              const RobotConfig& robot_config,
+              const EcatDiscover::EcatMap& ecat_map,
+              eprosima::fastdds::dds::DomainParticipant* participant,
+              advrf::dds_common::ReaderPolicy reader_policy = {});
 
     void spin_once() override;
 
-    bool is_initialized() const noexcept { return initialized_; }
 
 protected:
     template <typename Msg, typename MsgPubSubType>
-    void register_subscriber(
+    bool register_subscriber(
         const std::string& topic_name,
         eprosima::fastdds::dds::DomainParticipant* participant,
         ChannelTx channel,
@@ -65,8 +67,7 @@ protected:
                 topic_name
             );
 
-            initialized_ = false;
-            return;
+            return false;
         }
 
         subscriber->set_callback(
@@ -81,10 +82,11 @@ protected:
 
         ros_connectables_.emplace_back(*subscriber);
         subscribers_.emplace_back(std::move(subscriber));
+        return true;
     }
 
     template <typename Msg, typename MsgPubSubType>
-    void register_subscriber(
+    bool register_subscriber(
         const std::string& topic_name,
         eprosima::fastdds::dds::DomainParticipant* participant,
         ChannelTx channel,
@@ -93,8 +95,7 @@ protected:
         auto subscriber = std::make_shared<DDSSubscriber<Msg ,MsgPubSubType>>();
         if (!subscriber->init_dds(topic_name, participant, reader_policy_)) {
             LOG_ERROR("Failed to initialize DDS subscriber for topic: {}", topic_name);
-            initialized_ = false;
-            return;
+            return false;
         }
 
         subscriber->set_callback(
@@ -103,6 +104,7 @@ protected:
             }
         );
         subscribers_.push_back(subscriber);
+        return true;
     }
 
     void init_ros_graph_bridge(
@@ -112,9 +114,7 @@ protected:
 
 private:
     advrf::dds_common::ReaderPolicy reader_policy_;
-    bool initialized_{true};
     std::vector<std::shared_ptr<DDSSubscriberBase>> subscribers_;
-
     std::unique_ptr<FastRosGraphBridge> ros_graph_bridge_;
     std::vector<std::reference_wrapper<IConnectRosGraphBridge>> ros_connectables_;
 };

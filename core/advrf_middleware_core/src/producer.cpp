@@ -229,7 +229,8 @@ int main(int argc, char** argv)
     std::signal(SIGINT, on_signal);
     std::signal(SIGTERM, on_signal);
 
-    auto cfg = load_robot_config(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
+    auto cfg = load_robot_config(ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml", 
+                                ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
     if (!cfg) return 1;
 
     // Publisher SHM
@@ -286,13 +287,16 @@ int main(int argc, char** argv)
         }
     };
 
-    add_devices(cfg->imus, DeviceTypeRx::IMU, "imu");
-    add_devices(cfg->motors, DeviceTypeRx::MOTOR, "motor");
-    add_devices(cfg->grippers, DeviceTypeRx::GRIPPER, "gripper");
-    add_devices(cfg->power_boards, DeviceTypeRx::POWER_BOARD, "power_board");
-    add_devices(cfg->pumps, DeviceTypeRx::PUMP, "pump");
-    add_devices(cfg->force_torques, DeviceTypeRx::FORCE_TORQUE, "force_torque");
-    add_devices(cfg->valves, DeviceTypeRx::VALVE, "valve");
+    std::cerr << "FIX ME with new config architecture" << '\n';
+    return 0;
+
+    // add_devices(cfg->imus, DeviceTypeRx::IMU, "imu");
+    // add_devices(cfg->motors, DeviceTypeRx::MOTOR, "motor");
+    // add_devices(cfg->grippers, DeviceTypeRx::GRIPPER, "gripper");
+    // add_devices(cfg->power_boards, DeviceTypeRx::POWER_BOARD, "power_board");
+    // add_devices(cfg->pumps, DeviceTypeRx::PUMP, "pump");
+    // add_devices(cfg->force_torques, DeviceTypeRx::FORCE_TORQUE, "force_torque");
+    // add_devices(cfg->valves, DeviceTypeRx::VALVE, "valve");
 
     pub_shm->bridge().payload.topology_size.store(slave_idx);
     pub_shm->bridge().status.shm_ready.store(true);

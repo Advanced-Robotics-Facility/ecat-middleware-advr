@@ -14,6 +14,9 @@
  */
 namespace pdo_utils {
 
+    using Pdo = iit::advrf::Ec_slave_pdo;
+    using EcatId = std::uint32_t;
+
 inline bool parse_frame(const uint8_t* buf, ssize_t n,
                         iit::advrf::Ec_slave_pdo& pdo_out)
 {

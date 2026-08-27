@@ -16,10 +16,10 @@
 #include "advrf_middleware_core/utils/channel.hpp"
 #include "advrf_middleware_core/utils/log.hpp"
 #include "advrf_middleware_core/utils/pdo_utils.hpp"
+#include "advrf_middleware_core/utils/ecat_discover.hpp"
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/utils/log.hpp>
-
 
 
 namespace middleware_adapter::message {
@@ -59,7 +59,7 @@ public:
     }
 
   protected:
-    std::unordered_map<uint32_t, std::string> id_to_name_;
+    std::unordered_map<pdo_utils::EcatId, std::string> id_to_name_;
   };
 
   struct Subscription {
@@ -92,7 +92,6 @@ public:
   bool is_ok() const override { return shm_.is_ok(); }
   void close() override { shm_.close(); }
 
-protected:
 protected:
   ShmRxReader shm_;
 

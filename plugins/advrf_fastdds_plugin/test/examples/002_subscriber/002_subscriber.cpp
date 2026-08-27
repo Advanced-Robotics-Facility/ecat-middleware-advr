@@ -7,11 +7,12 @@
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
 
-#include "advrf_fastdds_plugin/publisher/dds_publisher.hpp"
-#include "advrf_middleware_core/config/config_topics.hpp"
+#include <advrf_middleware_core/config/config_topics.hpp>
 #include <advrf_middleware_core/config/robot_config.hpp>
 #include <advrf_interfaces/msg/MotorTxPdo.hpp>
 #include <advrf_interfaces/msg/MotorTxPdoPubSubTypes.hpp>
+
+#include "advrf_fastdds_plugin/publisher/dds_publisher.hpp"
 
 using MotorVectorXtTxMsg = advrf_interfaces::msg::dds_::MotorTxPdoVector_;
 using MotorTxMsg = advrf_interfaces::msg::dds_::MotorTxPdo_;
@@ -31,12 +32,15 @@ int main(int argc, char** argv)
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);
 
-    auto cfg = load_robot_config(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
-    if (!cfg) return 1;
+    auto config_robot = load_robot_config(
+      ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
+      ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
+    
+    if (!config_robot) return 1;
 
-    config::ConfigTopics topics({cfg->ns, cfg->robot_name});
+    config::ConfigTopics config_topics({config_robot->ns, config_robot->robot_name});
     auto* participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
-        cfg->domain_id,
+        config_robot->domain_id,
         eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT
     );
     
@@ -45,15 +49,14 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    
     DDSPublisher<MotorVectorXtTxMsg, MotorTxPubSubType> publisher;
-    if (!publisher.init_dds(topics.tx.motors(), participant)) {
+    if (!publisher.init_dds(config_topics.tx.motors(), participant)) {
         LOG_ERROR("Failed to initialize DDS publisher");
         eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
         return 1;
     }
 
-    LOG_INFO("Publishing MotorTxPdo on topic '{}'", topics.tx.motors());
+    LOG_INFO("Publishing MotorTxPdo on topic '{}'", config_topics.tx.motors());
 
     while (running)
     {

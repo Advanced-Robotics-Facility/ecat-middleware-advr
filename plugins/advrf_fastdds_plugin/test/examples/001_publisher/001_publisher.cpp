@@ -24,8 +24,14 @@ int main(int argc, char** argv)
     std::signal(SIGINT, on_signal);
     std::signal(SIGTERM, on_signal);
 
-    auto cfg = load_robot_config(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
-    if (!cfg) return 1;
+    auto config_robot = load_robot_config(
+      ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
+      ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
+    if (!config_robot) return 1;
+
+    EcatDiscover ecat_discover;
+    ecat_discover.start(SHM_NRT_RX_PDO);
+    auto ecat_map = ecat_discover.discover(extract_pdo_ids(*config_robot));
 
     clock_utils::init();
     DDSAdapterPublishers dds_adapter;
@@ -34,10 +40,10 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    auto config = config::ConfigTopics{{cfg->ns, cfg->robot_name}};
+    auto config = config::ConfigTopics{{config_robot->ns, config_robot->robot_name}};
 
     auto* domain_participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
-        cfg->domain_id,
+        config_robot->domain_id,
         eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT
     );
     if (domain_participant == nullptr) {
@@ -45,7 +51,7 @@ int main(int argc, char** argv)
         return 1;
     }
     
-    if (!dds_adapter.init(config, *cfg, domain_participant)) {
+    if (!dds_adapter.init(config, *config_robot, ecat_map,domain_participant)) {
         LOG_ERROR("Failed to bind to target DDS channels.");
         return 1;
     }

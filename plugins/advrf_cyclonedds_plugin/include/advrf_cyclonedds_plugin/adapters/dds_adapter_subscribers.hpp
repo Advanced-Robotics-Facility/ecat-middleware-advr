@@ -15,10 +15,10 @@
 #include <advrf_middleware_core/adapters/adapter_subscribers.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
 #include <advrf_middleware_core/config/robot_config.hpp>
+#include <advrf_middleware_core/utils/ecat_discover.hpp>
 
 #include "advrf_cyclonedds_plugin/ros_metadata/ros_graph_bridge.hpp"
 #include "advrf_cyclonedds_plugin/subscriber/dds_subscriber.hpp"
-
 
 template <typename Msg>
 class DDSPdoSubscriber
@@ -37,22 +37,20 @@ class DDSAdapterSubscribers
     : public middleware_adapter::message::AdapterSubscribers
 {
 public:
-    DDSAdapterSubscribers(
+
+    bool init(
         const config::ConfigTopics& config_topics,
         const RobotConfig& robot_config,
+        const EcatDiscover::EcatMap &ecat_map,
         dds::domain::DomainParticipant& participant,
         advrf::dds_common::ReaderPolicy reader_policy = {}
     );
 
     void spin_once() override;
-    bool is_initialized() const noexcept
-    {
-        return initialized_;
-    }
 
 private:
     template <typename Msg>
-    void register_subscriber(
+    bool register_subscriber(
         const std::string& topic_name,
         dds::domain::DomainParticipant& participant,
         ChannelTx channel,
@@ -71,8 +69,7 @@ private:
                 topic_name
             );
 
-            initialized_ = false;
-            return;
+            return false;
         }
 
         subscriber->set_callback(
@@ -87,10 +84,11 @@ private:
 
         ros_connectables_.emplace_back(*subscriber);
         subscribers_.emplace_back(std::move(subscriber));
+        return true;
     }
 
     template <typename Msg>
-    void register_subscriber(
+    bool register_subscriber(
         const std::string& topic_name,
         dds::domain::DomainParticipant& participant,
         ChannelTx channel,
@@ -108,9 +106,7 @@ private:
                 "Failed to initialize DDS subscriber for topic: {}",
                 topic_name
             );
-
-            initialized_ = false;
-            return;
+            return false;
         }
 
         subscriber->set_callback(
@@ -123,14 +119,13 @@ private:
 
         ros_connectables_.emplace_back(*subscriber);
         subscribers_.emplace_back(std::move(subscriber));
+        return true;
     }
 
     void init_ros_graph_bridge(
         const RobotConfig& robot_config,
         dds::domain::DomainParticipant& participant
     );
-
-    bool initialized_{true};
 
     advrf::dds_common::ReaderPolicy reader_policy_;
     std::vector<std::shared_ptr<DDSSubscriberBase>> subscribers_;

@@ -14,9 +14,14 @@ using ResponseDDS = advrf_interfaces::srv::dds_::ReplCmd_Response_;
 int main()
 {
     advrf::log::Log::init();
-    const auto cfg = load_robot_config( ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
-    auto dds_participant = dds::domain::DomainParticipant{cfg->domain_id};
-    auto config = config::ConfigTopics{{cfg->ns, cfg->robot_name}};
+    auto config_robot = load_robot_config(
+        ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
+        ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
+    if (!config_robot)
+        return 1;
+
+    auto dds_participant = dds::domain::DomainParticipant{config_robot->domain_id};
+    auto config = config::ConfigTopics{{config_robot->ns, config_robot->robot_name}};
     ServiceClient<RequestDDS, ResponseDDS> client(
         dds_participant, config.service.request(), 
         config.service.reply());

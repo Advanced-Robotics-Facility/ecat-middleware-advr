@@ -12,6 +12,7 @@
 #include <advrf_middleware_core/adapters/adapter_publishers.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
 #include <advrf_middleware_core/config/robot_config.hpp>
+#include <advrf_middleware_core/utils/ecat_discover.hpp>
 
 #include "advrf_cyclonedds_plugin/ros_metadata/ros_graph_bridge.hpp"
 
@@ -24,6 +25,7 @@ public:
     bool init(
         const config::ConfigTopics& config_topics,
         const RobotConfig& robot_config,
+        const EcatDiscover::EcatMap& ecat_map,
         dds::domain::DomainParticipant& dp
     );
 
@@ -32,7 +34,7 @@ private:
     Publisher& create_publisher(
         std::initializer_list<ChannelRx> channels,
         const std::vector<EcatId>& ids,
-        const std::unordered_map<uint32_t, std::string>& names,
+        const std::unordered_map<EcatId, std::string>& names,
         const Topic& topic,
         dds::domain::DomainParticipant& dp
     )
