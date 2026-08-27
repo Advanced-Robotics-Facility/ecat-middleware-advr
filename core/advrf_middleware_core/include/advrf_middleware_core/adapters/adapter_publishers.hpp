@@ -16,7 +16,6 @@
 #include "advrf_middleware_core/utils/channel.hpp"
 #include "advrf_middleware_core/utils/log.hpp"
 #include "advrf_middleware_core/utils/pdo_utils.hpp"
-#include "advrf_middleware_core/utils/ecat_discover.hpp"
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/utils/log.hpp>
@@ -26,21 +25,19 @@ namespace middleware_adapter::message {
 
 class AdapterPublishers : public AdapterBase {
 public:
-  using Pdo = iit::advrf::Ec_slave_pdo;
-  using EcatId = std::uint32_t;
 
   static constexpr std::size_t MaxEcatIds = 256;
 
-  struct CachedPdo {
+  struct PdoCache {
     bool valid = false;
     bool updated_this_cycle = false;
-    EcatId ecat_id = 0;
-    Pdo pdo;
+    pdo_utils::EcatId ecat_id = 0;
+    pdo_utils::Pdo pdo;
   };
 
   struct ChannelCache {
-    std::array<CachedPdo, MaxEcatIds> entries;
-    std::vector<EcatId> active_ids;
+    std::array<PdoCache, MaxEcatIds> entries;
+    std::vector<pdo_utils::EcatId> active_ids;
   };
 
   using Cache = std::array<ChannelCache, CHANNEL_COUNT>;
@@ -51,7 +48,7 @@ public:
     virtual ~IPublisher() = default;
 
     virtual void begin_cycle() = 0;
-    virtual void consume(const Pdo &pdo) = 0;
+    virtual void consume(const pdo_utils::Pdo &pdo) = 0;
     virtual void end_cycle(bool valid) = 0;
 
     void set_names(std::unordered_map<uint32_t, std::string> m) {
@@ -98,7 +95,7 @@ protected:
   template <typename PublisherType>
   PublisherType &
   register_publisher(std::vector<ChannelRx> channels,
-                     const std::vector<EcatId> &ids_allowed = {}) {
+                     const std::vector<pdo_utils::EcatId> &ids_allowed = {}) {
     static_assert(std::is_base_of_v<IPublisher, PublisherType>,
                   "PublisherType must derive from IPublisher");
 
@@ -110,7 +107,7 @@ protected:
     subscription.channels = std::move(channels);
     subscription.accept_all_ids = ids_allowed.empty();
 
-    for (const EcatId id : ids_allowed) {
+    for (const pdo_utils::EcatId id : ids_allowed) {
       if (id >= MaxEcatIds) {
         LOG_ERROR("Configured ECAT ID {} exceeds maximum supported ID {}", id,
                   MaxEcatIds - 1);
@@ -169,7 +166,7 @@ private:
       }
 
       auto &cache = channel_cache(channel);
-      std::vector<Pdo> pdos;
+      std::vector<pdo_utils::Pdo> pdos;
       shm_.drain(*device, pdos);
 
       for(const auto &received : pdos) {
@@ -181,7 +178,7 @@ private:
           return;
         }
 
-        const auto id = static_cast<EcatId>(parsed_id);
+        const auto id = static_cast<pdo_utils::EcatId>(parsed_id);
 
         if (id >= MaxEcatIds) {
           LOG_ERROR("ECAT ID {} exceeds maximum supported ID {}", id,
@@ -219,12 +216,10 @@ private:
     }
   }
 
+
   static void dispatch_cache(const ChannelCache &cache,
                              Subscription &subscription) {
-    for (EcatId id : cache.active_ids) {
-
-      const auto &entry = cache.entries[id];
-
+    for (pdo_utils::EcatId id : cache.active_ids) { 
       if (!subscription.accept_all_ids && !subscription.ids_allowed.test(id))
         continue;
 
@@ -232,6 +227,7 @@ private:
         continue;
 
       subscription.ids_seen.set(id);
+      const auto &entry = cache.entries[id];
       subscription.publisher->consume(entry.pdo);
     }
   }

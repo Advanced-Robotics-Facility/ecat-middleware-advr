@@ -5,14 +5,9 @@
 #include "advrf_middleware_core/adapters/adapter_publishers.hpp"
 
 using AdapterPublishers = middleware_adapter::message::AdapterPublishers;
-using Pdo = AdapterPublishers::Pdo;
-using EcatId = AdapterPublishers::EcatId;
-// using Channel = middleware_adapter::Channel;
+using Pdo = pdo_utils::Pdo;
+using EcatId = pdo_utils::EcatId;
 
-
-/**
- * Publisher minimal utilisé pour vérifier le comportement du dispatcher.
- */
 class TestPublisher : public AdapterPublishers::IPublisher
 {
 public:
@@ -47,9 +42,6 @@ public:
 };
 
 
-/**
- * Rend accessibles les méthodes protégées ajoutées pour les tests.
- */
 class TestAdapterPublishers : public AdapterPublishers
 {
 public:

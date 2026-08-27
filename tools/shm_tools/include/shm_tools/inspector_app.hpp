@@ -99,11 +99,11 @@ public:
             break;
 
           case InspectorTui::ActionKind::Reconnect:
-            reconnect_source(active, options.history, options.keep_last_queue, snapshots, has_snapshot);
+            //reconnect_source(active, options.history, options.keep_last_queue, snapshots, has_snapshot);
+            reconnect_all(options.history, options.keep_last_queue, snapshots, has_snapshot);
             tui.reset_selection();
             force_poll = false;
             next_poll = std::chrono::steady_clock::now() + period;
-
             break;
 
           case InspectorTui::ActionKind::None:
@@ -170,6 +170,16 @@ private:
       snapshots[index] = std::move(failed);
       has_snapshot[index] = true;
     }
+  }
+
+  void reconnect_all(bool history, bool keep_last_queue,  
+                        std::vector<InspectorSnapshot> &snapshots,
+                        std::vector<bool> &has_snapshot) {
+    
+    for(std::size_t index = 0; index < sources_.size(); ++index) {
+      reconnect_source(index, history, keep_last_queue, snapshots, has_snapshot);
+    }
+ 
   }
 
   std::vector<Source> sources_;
