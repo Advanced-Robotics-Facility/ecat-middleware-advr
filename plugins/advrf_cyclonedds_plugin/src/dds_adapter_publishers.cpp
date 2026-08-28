@@ -42,14 +42,14 @@ bool DDSAdapterPublishers::init(
 {
 
     const auto filter = [&](ChannelRx channel) {
-        std::vector<EcatId> ids;
+        std::vector<pdo_utils::EcatId> ids;
         ids.reserve(ecat_map.size());
         for (const auto& [id, device] : ecat_map) {
             if (ecat_map.find(id) == ecat_map.end() 
                 || ecat_map.at(id).channel != channel) {
                 continue;
             }
-            ids.push_back(static_cast<EcatId>(device.ecat_id));
+            ids.push_back(static_cast<pdo_utils::EcatId>(device.ecat_id));
         }
         return ids;
     };
@@ -58,7 +58,7 @@ bool DDSAdapterPublishers::init(
     const auto gripper_ids = filter(ChannelRx::Gripper);
     const auto valve_ids = filter(ChannelRx::Valve);
     
-    std::vector<EcatId> joint_ids;
+    std::vector<pdo_utils::EcatId> joint_ids;
     joint_ids.reserve(
         motor_ids.size() +
         gripper_ids.size() +

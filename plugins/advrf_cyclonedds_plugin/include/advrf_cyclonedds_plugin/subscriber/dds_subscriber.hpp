@@ -15,6 +15,7 @@ public:
 
 struct DDSSubscriberOptions
 {
+    
     std::optional<std::string> user_data;
 };
 
@@ -42,7 +43,18 @@ public:
         {
             topic_ = dds::topic::Topic<Msg>(participant, topic_name);
             subscriber_ = dds::sub::Subscriber(participant);
-            reader_ = dds::sub::DataReader<Msg>(subscriber_, topic_, reader_qos(policy));
+
+            auto qos = reader_qos(policy);
+            if(options.user_data) {
+                const auto& value = *options.user_data;
+                qos << dds::core::policy::UserData(
+                    dds::core::ByteSeq(
+                        value.begin(),
+                        value.end()
+                    )
+                );
+            }
+            reader_ = dds::sub::DataReader<Msg>(subscriber_, topic_, qos);
 
             return true;
         }
@@ -56,12 +68,13 @@ public:
     dds::sub::qos::DataReaderQos reader_qos(const advrf::dds_common::ReaderPolicy& policy) const {
         auto qos = dds::sub::qos::DataReaderQos()
             << dds::core::policy::History::KeepLast(policy.history_depth);
-        
+
         if (policy.reliability == advrf::dds_common::Reliability::Reliable) {
             qos << dds::core::policy::Reliability::Reliable();
         } else {
             qos << dds::core::policy::Reliability::BestEffort();
         }
+        
         return qos;
     }
 

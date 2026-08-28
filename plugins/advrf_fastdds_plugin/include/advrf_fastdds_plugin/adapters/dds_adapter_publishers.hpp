@@ -25,8 +25,8 @@ private:
     template<typename Publisher, typename Topic>
     Publisher& create_publisher(
         std::initializer_list<ChannelRx> channels,
-        const std::vector<EcatId>& ids,
-        const std::unordered_map<EcatId, std::string>& names,
+        const std::vector<pdo_utils::EcatId>& ids,
+        const std::unordered_map<pdo_utils::EcatId, std::string>& names,
         const Topic& topic,
         eprosima::fastdds::dds::DomainParticipant* dp
     )

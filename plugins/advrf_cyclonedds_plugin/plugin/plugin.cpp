@@ -56,30 +56,33 @@ std::chrono::microseconds period_from_rate(uint32_t hz) {
 int main(int argc, char **argv) {
   advrf::log::Log::init();
   const auto options = parse_args(argc, argv);
-  auto config_robot = load_robot_config(
-        ADVRF_CONFIG_SHARE  / "robot_id_map" / "robot_id_map.yaml",
-        ADVRF_CONFIG_SHARE / "robot_ecat"  / "ecat_config.yaml");
+
+  auto config_robot = RobotConfigBuilder()
+    .from_ecat_config(ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml")
+    .from_robot_id_map(ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml")
+    .build();
+
 
   auto config_topic =
-      config::ConfigTopics{{config_robot->ns, config_robot->robot_name}};
+      config::ConfigTopics{{config_robot.ns, config_robot.robot_name}};
 
   // ecat discover
   EcatDiscover ecat_discover;
   ecat_discover.start(SHM_NRT_RX_PDO);
-  auto ecat_map = ecat_discover.discover(extract_pdo_ids(*config_robot));
+  auto ecat_map = ecat_discover.discover(extract_pdo_ids(config_robot));
 
   // service
   auto dds_participant_service =
-      dds::domain::DomainParticipant(config_robot->domain_id);
+      dds::domain::DomainParticipant(config_robot.domain_id);
   auto dds_adapter_service = std::make_shared<DDSAdapterService>(
-      config_topic, *config_robot, dds_participant_service);
+      config_topic, config_robot, dds_participant_service);
 
   // publishers
   auto dds_participant_pub =
-      dds::domain::DomainParticipant(config_robot->domain_id);
+      dds::domain::DomainParticipant(config_robot.domain_id);
   auto dds_adapter_publishers = std::make_shared<DDSAdapterPublishers>();
   if (!dds_adapter_publishers->init(config_topic, 
-                                    *config_robot, 
+                                    config_robot, 
                                     ecat_map,
                                     dds_participant_pub)) {
     LOG_ERROR("Failed to bind to target DDS channels.");
@@ -87,9 +90,9 @@ int main(int argc, char **argv) {
   }
 
   // subscribers
-  auto dds_participant_sub = dds::domain::DomainParticipant(config_robot->domain_id);
+  auto dds_participant_sub = dds::domain::DomainParticipant(config_robot.domain_id);
   auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>();
-  if (!dds_adapter_subscribers->init(config_topic, *config_robot, ecat_map, dds_participant_sub, {})) {
+  if (!dds_adapter_subscribers->init(config_topic, config_robot, ecat_map, dds_participant_sub, {})) {
     LOG_ERROR("Failed to initialize one or more DDS subscribers.");
     return 1;
   }
