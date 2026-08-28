@@ -1,6 +1,6 @@
 #pragma once
 
-#include "clock_utils.hpp"
+#include "advrf_middleware_core/utils/clock_utils.hpp"
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 
 #include <cstring>

@@ -7,17 +7,15 @@
 #include <iostream>
 
 #include <advrf_middleware_core/utils/channel.hpp>
-
-using EcatId = std::uint32_t;
+#include <advrf_middleware_core/utils/pdo_utils.hpp>
 
 struct RobotConfig {
     std::string robot_name {"NoNe"};
     uint32_t domain_id {0};
     std::string ns {""};
     bool declare_to_ros {false};
-    std::unordered_map<EcatId, std::string> map_ecat_id;
+    std::unordered_map<pdo_utils::EcatId, std::string> map_ecat_id;
 };
-
 
 inline void load_from_ecat_config(RobotConfig& cfg, const std::string& ecat_config_path) {
     try {
@@ -31,7 +29,16 @@ inline void load_from_ecat_config(RobotConfig& cfg, const std::string& ecat_conf
             cfg.ns = dds["namespace"] ? dds["namespace"].as<std::string>() : cfg.ns;
             cfg.domain_id = dds["domain"] ? dds["domain"].as<uint32_t>() : cfg.domain_id;
             cfg.declare_to_ros = dds["declare_to_ros"] ? dds["declare_to_ros"].as<bool>() : cfg.declare_to_ros;
+            
+            YAML::Node qos = dds["qos"];
+            if(qos) {
+                
+                
+            }
+        
         }
+
+
     } catch (const YAML::Exception& e) {
         std::cerr << "[RobotConfig] Failed to parse '" << ecat_config_path << "': " << e.what() << '\n';
     }
@@ -73,3 +80,25 @@ inline std::set<uint32_t> extract_pdo_ids(const RobotConfig& cfg) {
     add_ids(cfg.map_ecat_id);
     return pdo_ids;
 }
+
+
+class RobotConfigBuilder {
+
+public:
+    RobotConfigBuilder& from_ecat_config(const std::string& ecat_config_path){
+        load_from_ecat_config(robot_config_, ecat_config_path);
+        return *this;
+    }
+
+    RobotConfigBuilder& from_robot_id_map(const std::string& ecat_robot_id_map_path){
+        load_from_robot_id_map(robot_config_, ecat_robot_id_map_path);
+        return *this;
+    }
+
+    const RobotConfig& build() {
+        return robot_config_;
+    }
+
+private:
+    RobotConfig robot_config_;
+};
