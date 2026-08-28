@@ -247,6 +247,9 @@ private:
     std::ostringstream right;
     right << rate_hz << "Hz | " << (snapshot.history ? "HISTORY" : "LATEST");
 
+    if(snapshot.keep_last_queue)
+      right << " | KEEP-LAST-QUEUE";
+
     if (paused_)
       right << " | PAUSED";
 

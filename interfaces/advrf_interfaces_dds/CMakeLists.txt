@@ -94,6 +94,7 @@ set(DDS_INTERFACE_PACKAGES
     sensor_msgs
     rcl_interfaces
     advrf_interfaces
+    rmw_dds_common
 )
 
 if(BUILD_FASTDDS OR BUILD_ZENOH)

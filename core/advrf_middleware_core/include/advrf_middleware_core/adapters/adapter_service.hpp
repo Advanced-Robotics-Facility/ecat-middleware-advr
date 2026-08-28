@@ -36,27 +36,20 @@ public:
             return make_nack("shm request queue full");
         }
 
-        LOG_DEBUG(
-            "Pushed request to SHM, waiting for reply...");
-
-        const auto deadline =
-            std::chrono::steady_clock::now() + ReplyTimeout;
-
+        LOG_DEBUG("Pushed request to SHM, waiting for reply...");
+        const auto deadline = std::chrono::steady_clock::now() + ReplyTimeout;
         while (std::chrono::steady_clock::now() < deadline)
         {
             iit::advrf::Cmd_reply reply;
-
             if (shm_.try_pop_reply(reply))
             {
                 if (matches(request, reply))
                     return reply;
             }
-
             std::this_thread::sleep_for(PollPeriod);
         }
 
         LOG_ERROR("Timeout waiting for reply from SHM");
-
         return make_nack(
             "Timeout waiting for reply from shm");
     }
@@ -77,7 +70,7 @@ public:
     bool start() override
     {
         return shm_.connect_and_wait(
-            SHM_REPL_NAME,
+            SHM_SERVICE,
             ShmAttachMode::Open);
     }
 
@@ -85,6 +78,11 @@ public:
     bool is_ok() const override
     {
         return shm_.is_ok();
+    }
+
+    void close() override
+    {
+        shm_.close();
     }
 
 
@@ -122,8 +120,7 @@ private:
 
         return reply;
     }
-
-
+    
     std::mutex request_mutex_;
 };
 

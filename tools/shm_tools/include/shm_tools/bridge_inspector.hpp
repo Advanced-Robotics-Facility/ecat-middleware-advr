@@ -23,7 +23,7 @@ class IInspectorSource {
 public:
   virtual ~IInspectorSource() = default;
 
-  virtual InspectorSnapshot poll(bool history) = 0;
+  virtual InspectorSnapshot poll(bool history, bool keep_last_queue) = 0;
   virtual std::string_view shm_name() const noexcept = 0;
   virtual void reconnect() = 0;
 };
@@ -40,13 +40,13 @@ public:
 
   ~BridgeInspector() override = default;
 
-  InspectorSnapshot poll(bool history) override {
+  InspectorSnapshot poll(bool history, bool keep_last_queue) override {
     initialize();
 
     auto messages = read(history);
     update_stats(messages);
 
-    return make_snapshot(messages, history);
+    return make_snapshot(messages, history, keep_last_queue);
   }
 
 
@@ -74,17 +74,15 @@ protected:
 
          [name, &queue](MessageMap &messages, bool history) {
            if (history) {
-             Proto proto;
-
-             ShmProtoHelper::peek_all(queue, proto, [&](const Proto &p) {
-               messages[name].push_back(std::make_unique<Proto>(p));
-             });
-
-             return;
+            std::vector<Proto> protos; 
+            ShmProtoHelper::peek_all(queue, protos);
+            for (auto &msg : protos) {
+                messages[name].push_back(std::make_unique<Proto>(std::move(msg)));
+            }
+            return;
            }
 
            auto msg = std::make_unique<Proto>();
-
            if (ShmProtoHelper::peek_latest(queue, *msg)) {
              messages[name].push_back(std::move(msg));
            }
@@ -163,12 +161,13 @@ private:
   }
 
   InspectorSnapshot make_snapshot(const MessageMap &messages,
-                                  bool history) const {
+                                  bool history, bool keep_last_queue) const {
     using namespace std::chrono;
 
     InspectorSnapshot snapshot;
     snapshot.shm_name = shm_name_;
     snapshot.history = history;
+    snapshot.keep_last_queue = keep_last_queue;
 
     const auto now = steady_clock::now();
 

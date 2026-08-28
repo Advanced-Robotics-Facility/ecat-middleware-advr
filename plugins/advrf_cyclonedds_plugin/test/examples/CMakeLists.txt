@@ -1,9 +1,7 @@
 # add subdirectories for each example
-add_subdirectory(001_services)
-add_subdirectory(002_parameters)
-add_subdirectory(003_publisher)
-add_subdirectory(004_service)
-add_subdirectory(005_subscriber)
+add_subdirectory(001_publisher)
+add_subdirectory(002_service)
+add_subdirectory(003_subscriber)
 
 
 # prefix executables with "cyclonedds_examples_"

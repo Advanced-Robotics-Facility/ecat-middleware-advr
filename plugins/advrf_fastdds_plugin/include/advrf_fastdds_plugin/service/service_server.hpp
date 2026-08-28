@@ -115,6 +115,9 @@ public:
         }
     }
 
+    eprosima::fastdds::dds::DataReader* dds_reader() { return reader_; }
+    eprosima::fastdds::dds::DataWriter* dds_writer() { return writer_; }
+
 private:
     Callback callback_{};
 

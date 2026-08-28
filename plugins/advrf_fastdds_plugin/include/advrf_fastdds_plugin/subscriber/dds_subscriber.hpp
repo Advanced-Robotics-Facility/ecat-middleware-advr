@@ -68,8 +68,6 @@ public:
                 return false;
             }
 
-            //LOG_INFO("Topic '{}' created with type '{}'", topic_name, topic_->get_type_name());
-
             subscriber_ = participant_->create_subscriber(eprosima::fastdds::dds::SUBSCRIBER_QOS_DEFAULT);
             if (subscriber_ == nullptr) {
                 LOG_ERROR("DDS Sub Init Error: failed to create subscriber");
@@ -110,15 +108,18 @@ public:
     void spin_once() override
     {
         if (reader_ == nullptr) return;
-
         Msg sample;
         eprosima::fastdds::dds::SampleInfo info;
-
         while (reader_->take_next_sample(&sample, &info) == eprosima::fastdds::dds::RETCODE_OK) {
             if (info.valid_data && callback_) {
                 callback_(sample);
             }
         }
+    }
+
+    eprosima::fastdds::dds::DataReader* dds_reader()
+    {
+        return reader_;
     }
 
 

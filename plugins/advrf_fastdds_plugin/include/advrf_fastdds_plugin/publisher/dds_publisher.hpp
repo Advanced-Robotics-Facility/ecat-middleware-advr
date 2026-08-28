@@ -91,6 +91,12 @@ public:
         }
     }
 
+    eprosima::fastdds::dds::DataWriter* dds_writer()
+    {
+        return writer_;
+    }
+  
+
 protected:
 
     eprosima::fastdds::dds::DomainParticipant* participant_ = nullptr;

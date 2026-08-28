@@ -4,7 +4,7 @@
 #include <cstdint>
 
 static constexpr const char* SHM_PUB_NAME = "/ecat_nrt_rx_pdo";
-static constexpr const char* SHM_REPL_NAME = "/ecat_service";
+static constexpr const char* SHM_SERVICE = "/ecat_service";
 static constexpr const char* SHM_SUB_NAME = "/ecat_rt_tx_pdo";
 
 static constexpr size_t PROTO_MAX_BYTES = 512;

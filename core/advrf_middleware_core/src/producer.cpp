@@ -28,7 +28,7 @@ uint64_t monotonic_now_ns()
         std::chrono::duration_cast<std::chrono::nanoseconds>(now).count());
 }
 
-void populate_pdo_header(iit::advrf::Ec_slave_pdo& pdo, const std::string& id, uint64_t sample_index) {
+void set_pdo_header(iit::advrf::Ec_slave_pdo& pdo, const std::string& id, uint64_t sample_index) {
     auto* header = pdo.mutable_header();
     header->set_str_id(id);
     header->set_index(static_cast<int32_t>(sample_index));
@@ -43,7 +43,7 @@ iit::advrf::Ec_slave_pdo make_motor_pdo(double t, uint64_t sample_index, int mot
 
     iit::advrf::Ec_slave_pdo pdo;
     pdo.set_type(iit::advrf::Ec_slave_pdo::RX_CIA402);
-    populate_pdo_header(pdo, "motor_" + std::to_string(motor_id), sample_index);
+    set_pdo_header(pdo, "motor_" + std::to_string(motor_id), sample_index);
 
     const double phase = t + 0.2 * motor_id;
 
@@ -75,7 +75,7 @@ iit::advrf::Ec_slave_pdo make_gripper_pdo(double t, uint64_t sample_index, int g
 
     iit::advrf::Ec_slave_pdo pdo;
     pdo.set_type(iit::advrf::Ec_slave_pdo::RX_GRIPPER);
-    populate_pdo_header(pdo, "gripper_" + std::to_string(gripper_id), sample_index);
+    set_pdo_header(pdo, "gripper_" + std::to_string(gripper_id), sample_index);
 
     const double phase = t + 0.2 * gripper_id;
 
@@ -95,7 +95,7 @@ iit::advrf::Ec_slave_pdo make_valve_pdo(double t, uint64_t sample_index, int val
 
     iit::advrf::Ec_slave_pdo pdo;
     pdo.set_type(iit::advrf::Ec_slave_pdo::RX_HYQ_KNEE);
-    populate_pdo_header(pdo, "valve_" + std::to_string(valve_id), sample_index);
+    set_pdo_header(pdo, "valve_" + std::to_string(valve_id), sample_index);
 
     const double phase = t + 0.2 * valve_id;
 
@@ -122,7 +122,7 @@ iit::advrf::Ec_slave_pdo make_imu_pdo(double t, uint64_t sample_index, int imu_i
 {
     iit::advrf::Ec_slave_pdo pdo;
     pdo.set_type(iit::advrf::Ec_slave_pdo::RX_IMU_VN);
-    populate_pdo_header(pdo, "imu_" + std::to_string(imu_id), sample_index);
+    set_pdo_header(pdo, "imu_" + std::to_string(imu_id), sample_index);
 
     auto* payload = pdo.mutable_imuvn_rx_pdo();
 
@@ -153,7 +153,7 @@ iit::advrf::Ec_slave_pdo make_pb_pdo(double t, uint64_t sample_index, int power_
 
     iit::advrf::Ec_slave_pdo pdo;
     pdo.set_type(iit::advrf::Ec_slave_pdo::RX_POW_F28M36);
-    populate_pdo_header(pdo, "power_board_" + std::to_string(power_board_id), sample_index);
+    set_pdo_header(pdo, "power_board_" + std::to_string(power_board_id), sample_index);
 
     const double phase = t + 0.2 * power_board_id;
 
@@ -178,7 +178,7 @@ iit::advrf::Ec_slave_pdo make_pump_pdo(double t, uint64_t sample_index, int pump
 
     iit::advrf::Ec_slave_pdo pdo;
     pdo.set_type(iit::advrf::Ec_slave_pdo::RX_HYQ_HPU);
-    populate_pdo_header(pdo, "pump_" + std::to_string(pump_id), sample_index);
+    set_pdo_header(pdo, "pump_" + std::to_string(pump_id), sample_index);
 
     const double phase = t + 0.2 * pump_id;
 
@@ -203,7 +203,7 @@ iit::advrf::Ec_slave_pdo make_ft_pdo(double t, uint64_t sample_index, int force_
 
     iit::advrf::Ec_slave_pdo pdo;
     pdo.set_type(iit::advrf::Ec_slave_pdo::RX_FT6);
-    populate_pdo_header(pdo, "force_torque_" + std::to_string(force_torque_id), sample_index);
+    set_pdo_header(pdo, "force_torque_" + std::to_string(force_torque_id), sample_index);
 
     const double phase = t + 0.2 * force_torque_id;
 
@@ -224,17 +224,51 @@ iit::advrf::Ec_slave_pdo make_ft_pdo(double t, uint64_t sample_index, int force_
 }
 }
 
+#include "advrf_middleware_core/utils/ecat_discover.hpp"
+void add_metadata_info(const std::string& type, EcatMetadata& metadata) {
+    if (type == "motor") {
+        metadata.type = iit::advrf::Ec_slave_pdo::RX_MOTOR;
+        metadata.device = DeviceTypeRx::MOTOR;
+        metadata.channel = ChannelRx::Motor;
+    }else if(type == "imu") {
+        metadata.type = iit::advrf::Ec_slave_pdo::RX_IMU_VN;
+        metadata.device = DeviceTypeRx::IMU;
+        metadata.channel = ChannelRx::Imu;
+    }
+}
+
+EcatDiscover::EcatMap build_ecat_map(const std::string& config_path) {
+    EcatDiscover::EcatMap ecat_map;
+
+    try {
+        YAML::Node root = YAML::LoadFile(config_path);
+        const YAML::Node devices = root["devices"];
+        if (devices) {
+            for (const auto& element : devices) {
+                EcatMetadata metadata;
+                metadata.ecat_id = element["ecat_id"].as<pdo_utils::EcatId>();
+                metadata.name = element["name"].as<std::string>();
+                std::string type = element["type"].as<std::string>();
+                add_metadata_info(type, metadata);
+                ecat_map[metadata.ecat_id] = metadata;
+            }
+        }
+    } catch (const YAML::Exception& e) {
+        std::cerr << "[EcatDiscover] Failed to parse '" << config_path << "': " << e.what() << '\n';
+    }
+    return ecat_map;
+}
+
+
 int main(int argc, char** argv)
 {
     std::signal(SIGINT, on_signal);
     std::signal(SIGTERM, on_signal);
 
-    auto cfg = load_robot_config(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
-    if (!cfg) return 1;
+    auto config_dummy = build_ecat_map(ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_dummy_shm.yaml");
 
-    // Publisher SHM
-    auto pub_shm = SharedMemory<SharedProtoPubBridge>::create(SHM_NRT_RX_PDO);
-    if (!pub_shm) {
+    auto shm_rx = SharedMemory<SharedProtoPubBridge>::create_or_recover(SHM_NRT_RX_PDO);
+    if (!shm_rx) {
         std::cerr
             << "[Producer] Failed to create shared memory '"
             << SHM_NRT_RX_PDO
@@ -242,19 +276,17 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    // REPL SHM
-    auto repl_shm = SharedMemory<SharedReplBridge>::create(SHM_REPL_NAME);
-    if (!repl_shm) {
+    auto shm_srv = SharedMemory<SharedReplBridge>::create_or_recover(SHM_SERVICE);
+    if (!shm_srv) {
         std::cerr
             << "[Producer] Failed to create shared memory '"
-            << SHM_REPL_NAME
+            << SHM_SERVICE
             << "'. Another ECAT master/mock may already be running.\n";
         return 1;
     }
 
-    // SUB SHM
-    auto sub_shm = SharedMemory<SharedProtoSubBridge>::create(SHM_TX_PDO);
-    if (!sub_shm) {
+    auto shm_tx = SharedMemory<SharedProtoSubBridge>::create_or_recover(SHM_TX_PDO);
+    if (!shm_tx) {
         std::cerr
             << "[Producer] Failed to create shared memory '"
             << SHM_TX_PDO
@@ -262,42 +294,20 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    // Dynamic Discovery Generation Loop
     uint32_t slave_idx = 0;
-    
-    auto add_devices = [&](const auto& devices, DeviceTypeRx type, const char* type_name) {
-        for (const auto& dev : devices) {
-            if (slave_idx >= MAX_SLAVES_CAPACITY) {
-                std::cerr << "[Producer] MAX_SLAVES_CAPACITY reached, dropping '" << type_name
-                        << " '" << dev.name
-                        << "' (ecat_id=" << dev.ecat_id << ")\n";
-                break;
-            }
-            if (dev.ecat_id < 0) {
-                std::cerr << "[Producer] Skipping '" << type_name
-                          << " '" << dev.name 
-                          << "' with invalid ecat_id " << dev.ecat_id << '\n';
-                continue;
-            }
-            auto& slave = pub_shm->bridge().payload.topology[slave_idx++];
-            slave.board_id = static_cast<uint32_t>(dev.ecat_id);
-            slave.type = type;
-            std::snprintf(slave.name, sizeof(slave.name), "%s", dev.name.c_str());     
-        }
-    };
+    for(const auto& [ecat_id, metadata] : config_dummy) {
+        auto& slave = shm_rx->bridge().payload.topology[slave_idx];
+        slave.board_id = ecat_id;
+        slave.type = metadata.device;
+        std::strncpy(slave.name, metadata.name.c_str(), sizeof(slave.name) - 1);
+        slave.name[sizeof(slave.name) - 1] = '\0'; // Ensure null-termination
+        ++slave_idx;
+    }
 
-    add_devices(cfg->imus, DeviceTypeRx::IMU, "imu");
-    add_devices(cfg->motors, DeviceTypeRx::MOTOR, "motor");
-    add_devices(cfg->grippers, DeviceTypeRx::GRIPPER, "gripper");
-    add_devices(cfg->power_boards, DeviceTypeRx::POWER_BOARD, "power_board");
-    add_devices(cfg->pumps, DeviceTypeRx::PUMP, "pump");
-    add_devices(cfg->force_torques, DeviceTypeRx::FORCE_TORQUE, "force_torque");
-    add_devices(cfg->valves, DeviceTypeRx::VALVE, "valve");
-
-    pub_shm->bridge().payload.topology_size.store(slave_idx);
-    pub_shm->bridge().status.shm_ready.store(true);
-    sub_shm->bridge().status.shm_ready.store(true);
-    repl_shm->bridge().status.shm_ready.store(true);
+    shm_rx->bridge().payload.topology_size.store(slave_idx);
+    shm_rx->bridge().status.shm_ready.store(true);
+    shm_tx->bridge().status.shm_ready.store(true);
+    shm_srv->bridge().status.shm_ready.store(true);
 
     std::cout << "\n=======================================\n";
     std::cout << "[Producer] Bus Discovery Finished. Total Slaves Registered: " << slave_idx << "\n";
@@ -306,25 +316,24 @@ int main(int argc, char** argv)
     std::cout << "-----------------------------------------\n";
     
     for (uint32_t i = 0; i < slave_idx; ++i) {
-        const auto& slave = pub_shm->bridge().payload.topology[i];
+        const auto& slave = shm_rx->bridge().payload.topology[i];
 
         std::printf("    %2u    | %s\n", 
                      slave.board_id, slave.name);
     }
     std::cout << "=========================================\n\n";
 
-    ShmProtoHelper repl_proto_helper;
     iit::advrf::Repl_cmd cmd_msg;
-     
-    ShmProtoHelper proto_helper;
+    
     double t = 0.0;
     uint64_t sample_count = 0;
     bool bridge_seen = false;
 
     auto next_tick = std::chrono::steady_clock::now();
     while (keep_running) {
-        
-        repl_proto_helper.drain(repl_shm->bridge().payload.request, cmd_msg, [&](const iit::advrf::Repl_cmd& cmd) {
+        std::vector<iit::advrf::Repl_cmd> repl_cmds;
+        ShmProtoHelper::drain(shm_srv->bridge().payload.request, repl_cmds);
+        for (const auto& cmd : repl_cmds) {
       
             iit::advrf::Cmd_reply reply;
             reply.mutable_request_id()->CopyFrom(cmd.request_id());
@@ -337,12 +346,12 @@ int main(int argc, char** argv)
 
                 switch (ecat_cmd.type()) {
                     case iit::advrf::Ecat_Master_cmd::GET_SLAVES_DESCR: {
-                        const uint32_t n = pub_shm->bridge().payload.topology_size.load();
+                        const uint32_t n = shm_rx->bridge().payload.topology_size.load();
 
                         std::ostringstream oss;
                         oss << n << " slaves: ";
                         for (uint32_t i = 0; i < n; ++i) {
-                            const auto& slave = pub_shm->bridge().payload.topology[i];
+                            const auto& slave = shm_rx->bridge().payload.topology[i];
                             oss << slave.name << "(id=" << slave.board_id << ") ";
                         }
 
@@ -364,35 +373,35 @@ int main(int argc, char** argv)
                 }
             }
 
-            if (!repl_proto_helper.push(repl_shm->bridge().payload.reply, reply)) {
+            if (!ShmProtoHelper::push(shm_srv->bridge().payload.reply, reply)) {
                 std::cerr << "[Producer] Failed to push repl reply (queue full)" << '\n';
             }
-        });
+        }
 
         for (uint32_t i = 0; i < slave_idx; ++i) {
-            const auto& slave = pub_shm->bridge().payload.topology[i];
+            const auto& slave = shm_rx->bridge().payload.topology[i];
 
             switch (slave.type) {
                 case DeviceTypeRx::IMU:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::IMU), make_imu_pdo(t, sample_count, slave.board_id));
+                    ShmProtoHelper::push(shm_rx->bridge().payload.queue_for(DeviceTypeRx::IMU), make_imu_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceTypeRx::MOTOR:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::MOTOR), make_motor_pdo(t, sample_count, slave.board_id));
+                    ShmProtoHelper::push(shm_rx->bridge().payload.queue_for(DeviceTypeRx::MOTOR), make_motor_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceTypeRx::GRIPPER:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::GRIPPER), make_gripper_pdo(t, sample_count, slave.board_id));
+                    ShmProtoHelper::push(shm_rx->bridge().payload.queue_for(DeviceTypeRx::GRIPPER), make_gripper_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceTypeRx::POWER_BOARD:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::POWER_BOARD), make_pb_pdo(t, sample_count, slave.board_id));
+                    ShmProtoHelper::push(shm_rx->bridge().payload.queue_for(DeviceTypeRx::POWER_BOARD), make_pb_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceTypeRx::PUMP:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::PUMP), make_pump_pdo(t, sample_count, slave.board_id));
+                    ShmProtoHelper::push(shm_rx->bridge().payload.queue_for(DeviceTypeRx::PUMP), make_pump_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceTypeRx::FORCE_TORQUE:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::FORCE_TORQUE), make_ft_pdo(t, sample_count, slave.board_id));
+                    ShmProtoHelper::push(shm_rx->bridge().payload.queue_for(DeviceTypeRx::FORCE_TORQUE), make_ft_pdo(t, sample_count, slave.board_id));
                     break;
                 case DeviceTypeRx::VALVE:
-                    proto_helper.push(pub_shm->bridge().payload.queue_for(DeviceTypeRx::VALVE), make_valve_pdo(t, sample_count, slave.board_id));
+                    ShmProtoHelper::push(shm_rx->bridge().payload.queue_for(DeviceTypeRx::VALVE), make_valve_pdo(t, sample_count, slave.board_id));
                     break;
                 default:
                     break;
@@ -402,7 +411,7 @@ int main(int argc, char** argv)
         ++sample_count;
         t += 0.001;
 
-        if (!bridge_seen && pub_shm->bridge().status.shm_ready.load()) {
+        if (!bridge_seen && shm_rx->bridge().status.shm_ready.load()) {
             bridge_seen = true;
             std::cout << "[Producer] DDS bridge connected." << '\n';
         }
@@ -411,7 +420,7 @@ int main(int argc, char** argv)
         std::this_thread::sleep_until(next_tick);
     }
 
-    pub_shm->bridge().status.shm_ready.store(false);
+    shm_rx->bridge().status.shm_ready.store(false);
 
     return 0;
 }

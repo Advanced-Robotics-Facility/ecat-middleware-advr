@@ -81,45 +81,49 @@ int main(int argc, char **argv)
 
     const auto options = parse_args(argc, argv);
 
-    advrf::plugin::PluginExec plugin_exec;
 
-    auto cfg = load_robot_config(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
-    if (!cfg) return 1;
 
-    auto* dds_participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
-        cfg->domain_id,
+    auto config_robot = load_robot_config(
+      ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
+      ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
+
+    
+    auto config = config::ConfigTopics({config_robot->ns, config_robot->robot_name});
+    EcatDiscover pdo_discover;
+    pdo_discover.start(SHM_NRT_RX_PDO);
+    auto pdo_map = pdo_discover.discover(extract_pdo_ids(*config_robot));
+    
+    // publishers
+    auto* dds_participant_pub = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
+        config_robot->domain_id,
         eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT
     );
-    if (dds_participant == nullptr) {
-        LOG_ERROR("Failed to create DDS DomainParticipant.");
-        return 1;
-    }
-    auto config = config::ConfigTopics({cfg->ns, cfg->robot_name});
-    // service
-    //auto dds_adapter_service = std::make_shared<DDSAdapterService>(config, dds_participant);
-
-    // publishers
     auto dds_adapter_publishers = std::make_shared<DDSAdapterPublishers>();
-    
-    // subscribers
-    auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>(config, dds_participant);
-    if (!dds_adapter_subscribers->is_initialized()) {
-        LOG_ERROR("Failed to initialize one or more DDS subscribers.");
-        return 1;
-    }
-   
-    if (!dds_adapter_publishers->init(config, *cfg, dds_participant)) {
+    if (!dds_adapter_publishers->init(config, *config_robot, pdo_map, dds_participant_pub)) {
         LOG_ERROR("Failed to bind to target DDS channels.");
         return 1;
     }
+    
 
-    // plugin_exec.register_adapter({
-    //     "dds_adapter_service",
-    //     dds_adapter_service,
-    //     period_from_rate(options.rate_service)
-    // });
-    // LOG_INFO("Service registered");
+    // subscribers
+    auto* dds_participant_sub = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
+        config_robot->domain_id,
+        eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT
+    );
+    auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>();
+    if (!dds_adapter_subscribers->init(config, *config_robot, pdo_map, dds_participant_sub)) {
+        LOG_ERROR("Failed to initialize one or more DDS subscribers.");
+        return 1;
+    }
 
+    // service
+     auto* dds_participant_service = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
+        config_robot->domain_id,
+        eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT
+    );
+    auto dds_adapter_service = std::make_shared<DDSAdapterService>(config, *config_robot, dds_participant_service);
+
+    advrf::plugin::PluginExec plugin_exec;
     plugin_exec.register_adapter({
         "dds_adapter_publishers",
         dds_adapter_publishers,
@@ -132,8 +136,12 @@ int main(int argc, char **argv)
         dds_adapter_subscribers,
         period_from_rate(options.rate_subscribers)
     });
-    LOG_INFO("Subscribers registered");
 
+    plugin_exec.register_adapter({
+        "dds_adapter_service",
+        dds_adapter_service,
+        period_from_rate(options.rate_service)
+    });
 
     LOG_INFO("Publisher rate: {} Hz", options.rate_publishers);
     LOG_INFO("Service rate: {} Hz", options.rate_service);
@@ -141,7 +149,9 @@ int main(int argc, char **argv)
 
     plugin_exec.start();
 
-    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(dds_participant);
+    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(dds_participant_pub);
+    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(dds_participant_sub);
+    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(dds_participant_service);
 
     return 0;
 }

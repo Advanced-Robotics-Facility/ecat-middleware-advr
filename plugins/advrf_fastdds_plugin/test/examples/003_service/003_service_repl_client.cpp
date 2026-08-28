@@ -1,7 +1,9 @@
 #include <chrono>
 #include <thread>
+#include <filesystem>
 
 #include <advrf_middleware_core/utils/log.hpp>
+#include <advrf_middleware_core/config/robot_config.hpp>
 #include "advrf_fastdds_plugin/service/service_client.hpp"
 #include "advrf_middleware_core/config/config_topics.hpp"
 
@@ -29,12 +31,17 @@ int main()
         return 1;
     }
 
-    config::ConfigTopics topics({"advrf", "robot"});
+    auto config_robot = load_robot_config(
+      ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
+      ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
+    if (!config_robot) return 1;
+
+    config::ConfigTopics config_topics({config_robot->ns, config_robot->robot_name});
 
     ServiceClient<RequestDDS, RequestPubSubType, ResponseDDS, ResponsePubSubType> client(
         participant,
-        topics.replCmd.request(),
-        topics.replCmd.reply()
+        config_topics.service.request(),
+        config_topics.service.reply()
     );
 
     RequestDDS request{};

@@ -32,11 +32,6 @@ new_test(
 )
 
 new_test(
-    002_motor_xt_tx_conversion
-    002_motor_xt_tx_conversion/002_motor_xt_tx_conversion.cpp
-)
-
-new_test(
-    003_motor_tx_conversion
-    003_motor_tx_conversion/003_motor_tx_conversion.cpp
+    002_motor_tx_conversion
+    002_motor_tx_conversion/002_motor_tx_conversion.cpp
 )

@@ -22,8 +22,8 @@ include(CMakePackageConfigHelpers)
 
 add_library(advrf_fastdds_plugin SHARED
     src/dds_adapter_publishers.cpp
+    src/dds_pdo_publisher.cpp
     src/dds_adapter_subscribers.cpp
-    src/dds_adapter_bridges.cpp
     src/dds_adapter_service.cpp
 )
 
@@ -97,7 +97,7 @@ install(
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
-option(BUILD_TEST_EXAMPLES "Build testing examples" ON)
+option(BUILD_EXAMPLES "Build testing examples" ON)
 option(BUILD_TESTING "Build unit tests" ON)
 
 if(BUILD_TESTING)

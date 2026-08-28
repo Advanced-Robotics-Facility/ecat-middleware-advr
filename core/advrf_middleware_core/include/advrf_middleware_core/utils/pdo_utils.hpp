@@ -1,6 +1,6 @@
 #pragma once
 
-#include "clock_utils.hpp"
+#include "advrf_middleware_core/utils/clock_utils.hpp"
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 
 #include <cstring>
@@ -13,6 +13,9 @@
  *   bytes [4..N]  -- serialised iit::advrf::Ec_slave_pdo
  */
 namespace pdo_utils {
+
+    using Pdo = iit::advrf::Ec_slave_pdo;
+    using EcatId = std::uint32_t;
 
 inline bool parse_frame(const uint8_t* buf, ssize_t n,
                         iit::advrf::Ec_slave_pdo& pdo_out)
@@ -137,3 +140,22 @@ inline uint64_t extract_timestamp_ns(const iit::advrf::Ec_slave_pdo& pdo)
 }
 
 } 
+
+#include "advrf_middleware_core/utils/log.hpp"
+inline int get_ecat_id(const std::string &component_name) {
+  const std::size_t pos = component_name.rfind('_');
+
+  if (pos == std::string::npos || pos + 1 >= component_name.size()) {
+    LOG_ERROR("Format ecat name not correct, {}", component_name);
+    return -1;
+  }
+
+  try {
+    return std::stoi(component_name.substr(pos + 1));
+  } catch (...) {
+    LOG_ERROR("Failed to convert ecat id from string, {}",
+              component_name.substr(pos + 1));
+
+    return -1;
+  }
+}

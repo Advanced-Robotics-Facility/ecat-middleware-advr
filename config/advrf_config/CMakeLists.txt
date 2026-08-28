@@ -111,3 +111,31 @@ install(
     FILES package.xml
     DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}"
 )
+
+
+## Export
+
+set(
+    advrf_config_share
+    "${CMAKE_INSTALL_PREFIX}/share/advrf_config/config"
+)
+
+set(
+    ADVRF_ENV_CONTENT
+    "EC_CFG=${advrf_config_share}/ec_cfg.yaml\n"
+    "ROBOT_MASTER_CONFIG=${advrf_config_share}/robot_ecat/ecat_config.yaml\n"
+    "ROBOT_MASTER_CONFIG_UDP=${advrf_config_share}/robot_ecat/ecat_config_udp.yaml\n"
+)
+
+file(
+    WRITE
+    "${CMAKE_CURRENT_BINARY_DIR}/advrf_config.env"
+    "${ADVRF_ENV_CONTENT}"
+)
+
+install(
+    FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/advrf_config.env"
+    DESTINATION
+        share/advrf_config
+)
