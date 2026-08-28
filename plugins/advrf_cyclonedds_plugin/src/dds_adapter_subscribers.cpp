@@ -12,7 +12,7 @@ bool DDSAdapterSubscribers::init(
     bool ok = true;
 
     ok &= register_subscriber<advrf_interfaces::msg::dds_::MotorTxPdoVector_>(
-        config_topics.tx.motors(),
+        config_topics.tx.motorCmd(),
         participant,
         ChannelTx::Motor,
         [&](const advrf_interfaces::msg::dds_::MotorTxPdoVector_& msg) {

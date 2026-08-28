@@ -73,7 +73,13 @@ struct TopicsState : public TopicNamespace
 struct TopicsCommand  : public TopicNamespace
 {
     using TopicNamespace::TopicNamespace;
-    std::string motors()  const { return rt("tx/motors"); }
+    std::string jointCmd()   const { return rt("tx/joints"); }
+    std::string motorCmd()   const { return rt("tx/motors"); }
+    std::string valveCmd()   const { return rt("tx/valves"); }
+    std::string gripperCmd() const { return rt("tx/grippers"); }
+    std::string pumpCmd()    const { return rt("tx/pumps"); }
+    std::string powerBoardCmd()    const { return rt("tx/power_board"); }
+    std::string forceTorqueCmd()    const { return rt("tx/force_torque"); }
 };
 
 

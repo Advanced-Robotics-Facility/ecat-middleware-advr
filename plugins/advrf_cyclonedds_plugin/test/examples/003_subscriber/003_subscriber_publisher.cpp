@@ -23,7 +23,7 @@ int main(int argc, char** argv)
 
     DDSPublisher<MotorVectorMsg> publisher;
     publisher.init_dds(
-        topics.tx.motors(),
+        topics.tx.motorCmd(),
         participant
     );
 

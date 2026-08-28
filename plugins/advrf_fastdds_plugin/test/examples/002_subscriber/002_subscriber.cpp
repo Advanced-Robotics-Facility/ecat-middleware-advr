@@ -50,13 +50,13 @@ int main(int argc, char** argv)
     }
 
     DDSPublisher<MotorVectorXtTxMsg, MotorTxPubSubType> publisher;
-    if (!publisher.init_dds(config_topics.tx.motors(), participant)) {
+    if (!publisher.init_dds(config_topics.tx.motorCmd(), participant)) {
         LOG_ERROR("Failed to initialize DDS publisher");
         eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
         return 1;
     }
 
-    LOG_INFO("Publishing MotorTxPdo on topic '{}'", config_topics.tx.motors());
+    LOG_INFO("Publishing MotorTxPdo on topic '{}'", config_topics.tx.motorCmd());
 
     while (running)
     {

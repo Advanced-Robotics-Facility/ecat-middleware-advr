@@ -10,33 +10,14 @@ namespace advrf::zenoh_plugin
 namespace
 {
 
-using Adapter = ZenohAdapterPublishers;
-using EcatId = Adapter::EcatId;
+using EcatId = pdo_utils::EcatId;
 using Ros2MessageType = serialization::Ros2MessageType;
-
-std::vector<EcatId> extract_ids(const std::vector<JointConfig>& entries)
-{
-    std::vector<EcatId> ids;
-    ids.reserve(entries.size());
-
-    for (const auto& entry : entries)
-    {
-        if (entry.ecat_id < 0)
-        {
-            LOG_ERROR("Negative ecat_id {} in config, skipping.", entry.ecat_id);
-            continue;
-        }
-
-        ids.push_back(static_cast<EcatId>(entry.ecat_id));
-    }
-
-    return ids;
-}
 
 } 
 
 bool ZenohAdapterPublishers::init(const config::ConfigTopics& topics,
                                   const RobotConfig& robot,
+                                  const EcatDiscover::EcatMap& ecat_map,
                                   zenoh::Session& session,
                                   WireFormat wire_format)
 {
@@ -54,67 +35,82 @@ bool ZenohAdapterPublishers::init(const config::ConfigTopics& topics,
         return publisher.init(session, key, wire_format, ros2_message_type);
     };
 
-    const auto joint_ids = extract_ids(robot.joints);
-    const auto motor_ids = extract_ids(robot.motors);
-    const auto valve_ids = extract_ids(robot.valves);
-    const auto gripper_ids = extract_ids(robot.grippers);
+    const auto filter_ids = [&ecat_map](ChannelRx channel)
+    {
+        std::vector<EcatId> ids;
+        ids.reserve(ecat_map.size());
+        for (const auto& [id, device] : ecat_map)
+        {
+            if (device.channel == channel)
+                ids.push_back(id);
+        }
+        return ids;
+    };
+
+    const auto motor_ids = filter_ids(ChannelRx::Motor);
+    const auto valve_ids = filter_ids(ChannelRx::Valve);
+    const auto gripper_ids = filter_ids(ChannelRx::Gripper);
+
+    auto joint_ids = motor_ids;
+    joint_ids.insert(joint_ids.end(), valve_ids.begin(), valve_ids.end());
+    joint_ids.insert(joint_ids.end(), gripper_ids.begin(), gripper_ids.end());
 
     bool success = true;
     success &= register_topic(
         {ChannelRx::Motor, ChannelRx::Gripper, ChannelRx::Valve},
         joint_ids,
-        topics.state.jointState(),
+        topics.rx.jointState(),
         Ros2MessageType::JointState);
     success &= register_topic(
-        {ChannelRx::Motor}, motor_ids, topics.state.motor(),
+        {ChannelRx::Motor}, motor_ids, topics.rx.motor(),
         Ros2MessageType::Motor);
     success &= register_topic(
-        {ChannelRx::Valve}, valve_ids, topics.state.valve(),
+        {ChannelRx::Valve}, valve_ids, topics.rx.valve(),
         Ros2MessageType::Valve);
     success &= register_topic(
-        {ChannelRx::Gripper}, gripper_ids, topics.state.gripper(),
+        {ChannelRx::Gripper}, gripper_ids, topics.rx.gripper(),
         Ros2MessageType::Gripper);
 
-    auto register_devices = [&register_topic](
-        const std::vector<JointConfig>& devices,
+    auto register_devices = [&register_topic, &robot, &filter_ids](
         ChannelRx channel,
         const auto& make_key,
         Ros2MessageType ros2_message_type)
     {
         bool result = true;
-        for (const auto& device : devices)
+        for (const auto id : filter_ids(channel))
         {
-            if (device.ecat_id < 0)
+            const auto name = robot.map_ecat_id.find(id);
+            if (name == robot.map_ecat_id.end())
+            {
+                LOG_ERROR("ECAT ID {} not found in robot configuration.", id);
+                result = false;
                 continue;
+            }
 
             result &= register_topic(
                 {channel},
-                {static_cast<EcatId>(device.ecat_id)},
-                make_key(device.name),
+                {id},
+                make_key(name->second),
                 ros2_message_type);
         }
         return result;
     };
 
     success &= register_devices(
-        robot.imus,
         ChannelRx::Imu,
-        [&topics](const std::string& name) { return topics.state.imu(name); },
+        [&topics](const std::string& name) { return topics.rx.imu(name); },
         Ros2MessageType::Imu);
     success &= register_devices(
-        robot.power_boards,
         ChannelRx::PowerBoard,
-        [&topics](const std::string& name) { return topics.state.powerBoard(name); },
+        [&topics](const std::string& name) { return topics.rx.powerBoard(name); },
         Ros2MessageType::PowerBoard);
     success &= register_devices(
-        robot.pumps,
         ChannelRx::Pump,
-        [&topics](const std::string& name) { return topics.state.pump(name); },
+        [&topics](const std::string& name) { return topics.rx.pump(name); },
         Ros2MessageType::Pump);
     success &= register_devices(
-        robot.force_torques,
         ChannelRx::ForceTorque,
-        [&topics](const std::string& name) { return topics.state.forceTorque(name); },
+        [&topics](const std::string& name) { return topics.rx.forceTorque(name); },
         Ros2MessageType::ForceTorque);
 
     return success;

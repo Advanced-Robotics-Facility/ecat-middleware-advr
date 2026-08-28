@@ -14,7 +14,7 @@ bool DDSAdapterSubscribers::init(const config::ConfigTopics& config_topics,
             advrf_interfaces::msg::dds_::MotorTxPdoVector_,
             advrf_interfaces::msg::dds_::MotorTxPdoVector_PubSubType
         >(
-            config_topics.tx.motors(), participant, 
+            config_topics.tx.motorCmd(), participant, 
             ChannelTx::Motor,  [&](const advrf_interfaces::msg::dds_::MotorTxPdoVector_& msg) {
             std::vector<iit::advrf::Ec_slave_pdo> result;
             result.reserve(msg.data().size());

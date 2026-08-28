@@ -126,16 +126,26 @@ int main(int argc, char** argv)
     try
     {
         const auto options = parse_args(argc, argv);
-        auto robot = load_robot_config(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
+        auto robot = load_robot_config(
+            ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
+            ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
         if (!robot)
             return 1;
+
+        EcatDiscover ecat_discover;
+        if (!ecat_discover.start(SHM_NRT_RX_PDO))
+        {
+            LOG_ERROR("Failed to connect to EtherCAT PDO shared memory.");
+            return 1;
+        }
+        const auto ecat_map = ecat_discover.discover(extract_pdo_ids(*robot));
 
         zenoh::init_log_from_env_or("error");
         auto session = zenoh::Session::open(make_zenoh_config(options));
         auto config = config::ConfigTopics{{robot->ns, robot->robot_name}};
 
         auto publishers = std::make_shared<advrf::zenoh_plugin::ZenohAdapterPublishers>();
-        if (!publishers->init(config, *robot, session, options.wire_format)) {
+        if (!publishers->init(config, *robot, ecat_map, session, options.wire_format)) {
             LOG_ERROR("Failed to initialize Zenoh state publishers.");
             return 1;
         }

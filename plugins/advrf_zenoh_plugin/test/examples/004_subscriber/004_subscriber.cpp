@@ -13,6 +13,7 @@
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/config/config_topics.hpp>
 #include <advrf_middleware_core/config/robot_config.hpp>
+#include <advrf_middleware_core/utils/ecat_discover.hpp>
 
 namespace
 {
@@ -25,7 +26,7 @@ struct Command
     Pdo pdo;
 };
 
-Pdo make_pdo(const JointConfig& device, Pdo::Type type)
+Pdo make_pdo(const EcatMetadata& device, Pdo::Type type)
 {
     Pdo pdo;
     pdo.set_type(type);
@@ -36,64 +37,64 @@ Pdo make_pdo(const JointConfig& device, Pdo::Type type)
 
 void add_motor_commands(std::vector<Command>& commands,
                         const config::ConfigTopics& topics,
-                        const JointConfig& motor)
+                        const EcatMetadata& motor)
 {
     auto joint = make_pdo(motor, Pdo::TX_CIA402);
     joint.mutable_cia402_tx_pdo()->set_target_pos(0.0F);
-    commands.push_back({topics.command.jointCmd(), std::move(joint)});
+    commands.push_back({topics.tx.jointCmd(), std::move(joint)});
 
     auto legacy = make_pdo(motor, Pdo::TX_MOTOR);
     legacy.mutable_motor_tx_pdo()->set_pos_ref(0.0F);
-    commands.push_back({topics.command.motorCmd(), std::move(legacy)});
+    commands.push_back({topics.tx.motorCmd(), std::move(legacy)});
 
     auto xt = make_pdo(motor, Pdo::TX_XT_MOTOR);
     xt.mutable_motor_xt_tx_pdo()->set_pos_ref(0.0F);
-    commands.push_back({topics.command.motorXtCmd(), std::move(xt)});
+    commands.push_back({topics.tx.motorCmd(), std::move(xt)});
 }
 
 void add_valve_command(std::vector<Command>& commands,
                        const config::ConfigTopics& topics,
-                       const JointConfig& valve)
+                       const EcatMetadata& valve)
 {
     auto pdo = make_pdo(valve, Pdo::TX_HYQ_KNEE);
     pdo.mutable_hyqknee_tx_pdo()->set_position_ref(0.0F);
-    commands.push_back({topics.command.valveCmd(), std::move(pdo)});
+    commands.push_back({topics.tx.valveCmd(), std::move(pdo)});
 }
 
 void add_gripper_command(std::vector<Command>& commands,
                          const config::ConfigTopics& topics,
-                         const JointConfig& gripper)
+                         const EcatMetadata& gripper)
 {
     auto pdo = make_pdo(gripper, Pdo::TX_GRIPPER);
     pdo.mutable_gripper_tx_pdo()->set_target_pos(0.0F);
-    commands.push_back({topics.command.gripperCmd(), std::move(pdo)});
+    commands.push_back({topics.tx.gripperCmd(), std::move(pdo)});
 }
 
 void add_pump_command(std::vector<Command>& commands,
                       const config::ConfigTopics& topics,
-                      const JointConfig& pump)
+                      const EcatMetadata& pump)
 {
     auto pdo = make_pdo(pump, Pdo::TX_HYQ_HPU);
     pdo.mutable_hyqhpu_tx_pdo()->set_pump_target(0.0F);
-    commands.push_back({topics.command.pumpCmd(), std::move(pdo)});
+    commands.push_back({topics.tx.pumpCmd(), std::move(pdo)});
 }
 
 void add_powerboard_command(std::vector<Command>& commands,
                             const config::ConfigTopics& topics,
-                            const JointConfig& power_board)
+                            const EcatMetadata& power_board)
 {
     auto pdo = make_pdo(power_board, Pdo::TX_POW_F28M36);
     pdo.mutable_powf28m36_tx_pdo()->set_master_command(0);
-    commands.push_back({topics.command.powerBoardCmd(), std::move(pdo)});
+    commands.push_back({topics.tx.powerBoardCmd(), std::move(pdo)});
 }
 
 void add_forcetorque_command(std::vector<Command>& commands,
                              const config::ConfigTopics& topics,
-                             const JointConfig& force_torque)
+                             const EcatMetadata& force_torque)
 {
     auto pdo = make_pdo(force_torque, Pdo::TX_FT6);
     pdo.mutable_ft6_tx_pdo()->set_op_idx_aux(0);
-    commands.push_back({topics.command.forceTorqueCmd(), std::move(pdo)});
+    commands.push_back({topics.tx.forceTorqueCmd(), std::move(pdo)});
 }
 
 bool publish(zenoh::Session& session, Command command)
@@ -125,32 +126,56 @@ int main()
 {
     try
     {
-        const auto config_path = ADVRF_CONFIG_SHARE / "middleware" / "config.yaml";
-        const auto robot = load_robot_config(config_path.string());
+        const auto id_map_path = ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml";
+        const auto ecat_config_path = ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml";
+        const auto robot = load_robot_config(id_map_path.string(), ecat_config_path.string());
         if (!robot)
             return 1;
+
+        EcatDiscover ecat_discover;
+        if (!ecat_discover.start(SHM_NRT_RX_PDO))
+        {
+            std::cerr << "Failed to connect to EtherCAT PDO shared memory.\n";
+            return 1;
+        }
+        const auto ecat_map = ecat_discover.discover(extract_pdo_ids(*robot));
 
         const config::ConfigTopics topics{{robot->ns, robot->robot_name}};
         std::vector<Command> commands;
         commands.reserve(8);
 
-        if (!robot->motors.empty())
-            add_motor_commands(commands, topics, robot->motors.front());
-        if (!robot->valves.empty())
-            add_valve_command(commands, topics, robot->valves.front());
-        if (!robot->grippers.empty())
-            add_gripper_command(commands, topics, robot->grippers.front());
-        if (!robot->pumps.empty())
-            add_pump_command(commands, topics, robot->pumps.front());
-        if (!robot->power_boards.empty())
-            add_powerboard_command(commands, topics, robot->power_boards.front());
-        if (!robot->force_torques.empty())
-            add_forcetorque_command(commands, topics, robot->force_torques.front());
+        for (const auto& entry : ecat_map)
+        {
+            const auto& device = entry.second;
+            switch (device.channel)
+            {
+                case ChannelRx::Motor:
+                    add_motor_commands(commands, topics, device);
+                    break;
+                case ChannelRx::Valve:
+                    add_valve_command(commands, topics, device);
+                    break;
+                case ChannelRx::Gripper:
+                    add_gripper_command(commands, topics, device);
+                    break;
+                case ChannelRx::Pump:
+                    add_pump_command(commands, topics, device);
+                    break;
+                case ChannelRx::PowerBoard:
+                    add_powerboard_command(commands, topics, device);
+                    break;
+                case ChannelRx::ForceTorque:
+                    add_forcetorque_command(commands, topics, device);
+                    break;
+                default:
+                    break;
+            }
+        }
 
         if (commands.empty())
         {
             std::cout << "No transmission-capable devices found in "
-                      << config_path << '\n';
+                      << id_map_path << '\n';
             return 0;
         }
 
@@ -172,7 +197,7 @@ int main()
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         std::cout << "Published " << commands.size()
-                  << " mock command messages from " << config_path << '\n';
+                  << " mock command messages from " << id_map_path << '\n';
         return 0;
     }
     catch (const std::exception& error)

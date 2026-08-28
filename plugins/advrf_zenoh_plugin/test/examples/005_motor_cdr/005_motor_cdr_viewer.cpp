@@ -75,14 +75,15 @@ void print_help(const char* program)
 
 std::string configured_motor_key()
 {
-    const auto config_path = ADVRF_CONFIG_SHARE / "middleware" / "config.yaml";
-    const auto robot = load_robot_config(config_path.string());
+    const auto id_map_path = ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml";
+    const auto ecat_config_path = ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml";
+    const auto robot = load_robot_config(id_map_path.string(), ecat_config_path.string());
     if (!robot)
         throw std::runtime_error(
-            "Unable to load robot configuration from " + config_path.string());
+            "Unable to load robot configuration from " + ecat_config_path.string());
 
     const config::ConfigTopics topics{{robot->ns, robot->robot_name}};
-    return topics.command.motorCmd();
+    return topics.tx.motorCmd();
 }
 
 void print_motor(const Pdo& pdo)
