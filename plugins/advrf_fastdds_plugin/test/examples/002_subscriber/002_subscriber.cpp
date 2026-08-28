@@ -12,17 +12,11 @@
 #include <advrf_interfaces/msg/MotorTxPdo.hpp>
 #include <advrf_interfaces/msg/MotorTxPdoPubSubTypes.hpp>
 
-<<<<<<< HEAD
-using MotorVectorXtTxMsg = advrf_interfaces::msg::dds_::MotorTxPdoVector_;
-using MotorXtTxMsg = advrf_interfaces::msg::dds_::MotorTxPdo_;
-using MotorXtTxPubSubType = advrf_interfaces::msg::dds_::MotorTxPdoVector_PubSubType;
-=======
 #include "advrf_fastdds_plugin/publisher/dds_publisher.hpp"
 
 using MotorVectorXtTxMsg = advrf_interfaces::msg::dds_::MotorTxPdoVector_;
 using MotorTxMsg = advrf_interfaces::msg::dds_::MotorTxPdo_;
 using MotorTxPubSubType = advrf_interfaces::msg::dds_::MotorTxPdoVector_PubSubType;
->>>>>>> feature/ecat_discover
 
 static volatile std::sig_atomic_t running = 1;
 

@@ -35,3 +35,7 @@
 	path = config/advrf_config/configs/ecat-pegasus-config
 	url = https://github.com/Advanced-Robotics-Facility/ecat-pegasus-config.git
 	branch = advrf_test
+[submodule "config/advrf_config/configs/ecat-kyon-config"]
+	path = config/advrf_config/configs/ecat-kyon-config
+	url = https://github.com/Advanced-Robotics-Facility/ecat-kyon-config.git
+	branch = advrf/test_kyon1_V3
