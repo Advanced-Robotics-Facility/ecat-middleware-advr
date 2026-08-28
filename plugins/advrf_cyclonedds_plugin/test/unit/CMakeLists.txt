@@ -8,10 +8,8 @@ function(plugin_test TEST_NAME TEST_SOURCE)
     target_link_libraries(${TEST_NAME}
         PRIVATE
             advrf_middleware_core
-            advrf_interfaces_dds
+            advrf_interfaces_dds::cyclonedds
             advrf_cyclonedds_plugin
-            advrf_interfaces_protobuf
-            ecat_master_future
     )
 
     add_test(
@@ -20,23 +18,9 @@ function(plugin_test TEST_NAME TEST_SOURCE)
     )
 endfunction()
 
-plugin_test(
-    001_sdo_request_001_parameters
-    001_sdo_request/001_sdo_request_001_parameters.cpp
-)
+
 
 plugin_test(
-    002_parameter_server_001
-    002_parameter_server/002_parameter_server_001.cpp
+    001_converter_001_fromdds
+    001_converter/001_converter_001_fromdds.cpp
 )
-
-plugin_test(
-    003_converter_001_fromdds
-    003_converter/003_converter_001_fromdds.cpp
-)
-
-plugin_test(
-    004_adapters
-    004_adapters/004_adapters.cpp
-)
-

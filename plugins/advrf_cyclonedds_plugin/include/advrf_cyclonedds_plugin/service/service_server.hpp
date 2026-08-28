@@ -6,9 +6,11 @@
 #include <thread>
 #include <unordered_map>
 #include <utility>
+#include <optional>
 
 #include <dds/dds.hpp>
 #include <dds/dds.h>
+
 
 template<typename Request, typename Response>
 class ServiceServer
@@ -29,13 +31,25 @@ public:
               request_topic_,
               dds::sub::qos::DataReaderQos()
                   << dds::core::policy::Reliability::Reliable()
-                  << dds::core::policy::History::KeepLast(10))
+                  << dds::core::policy::History::KeepLast(10)
+                  << dds::core::policy::UserData(
+                      dds::core::ByteSeq(
+                          default_user_data_.begin(),
+                          default_user_data_.end()
+                      )
+                  ))
         , writer_(
               publisher_,
               reply_topic_,
               dds::pub::qos::DataWriterQos()
                   << dds::core::policy::Reliability::Reliable()
-                  << dds::core::policy::History::KeepLast(10))
+                  << dds::core::policy::History::KeepLast(10)
+                  << dds::core::policy::UserData(
+                      dds::core::ByteSeq(
+                          default_user_data_.begin(),
+                          default_user_data_.end()
+                      )
+                  ))
     {
         c_reader_ = reader_.delegate().get()->get_ddsc_entity();
         c_writer_ = writer_.delegate().get()->get_ddsc_entity();
@@ -76,6 +90,9 @@ public:
         }
     }
 
+    dds::sub::DataReader<Request>& dds_reader() { return reader_; }
+    dds::pub::DataWriter<Response>& dds_writer() { return writer_; }
+
 private:
     Callback callback_{};
 
@@ -90,6 +107,8 @@ private:
 
     dds_entity_t c_reader_{};
     dds_entity_t c_writer_{};
+
+    inline static const std::string default_user_data_ = "advrf=1;";
 };
 
 template<typename Request, typename Response>
@@ -205,4 +224,6 @@ private:
 
     dds_entity_t c_reader_{};
     dds_entity_t c_writer_{};
+
+    
 };

@@ -2,109 +2,103 @@
 
 #include <cstdint>
 #include <string>
-#include <vector>
-#include <unordered_map>
 #include <optional>
 #include <yaml-cpp/yaml.h>
 #include <iostream>
 
-struct JointConfig {
-    std::string name;
-    int ecat_id {0};
-};
+#include <advrf_middleware_core/utils/channel.hpp>
+#include <advrf_middleware_core/utils/pdo_utils.hpp>
 
 struct RobotConfig {
     std::string robot_name {"NoNe"};
     uint32_t domain_id {0};
-
-    std::vector<JointConfig> joints;  
-    std::vector<JointConfig> motors;   
-    std::vector<JointConfig> valves;  
-    std::vector<JointConfig> grippers; 
-    std::vector<JointConfig> imus;
-    std::vector<JointConfig> power_boards;
-    std::vector<JointConfig> pumps;
-    std::vector<JointConfig> force_torques;
-
-    std::vector<std::string> motor_names() const { return get_names(motors); }
-    std::vector<std::string> joint_names() const { return get_names(joints); }
-    std::vector<std::string> valve_names() const { return get_names(valves); }
-    std::vector<std::string> gripper_names() const { return get_names(grippers); }
-
-    std::unordered_map<int, size_t> motor_id_to_index() const { return get_map(motors); }
-    std::unordered_map<int, size_t> joint_id_to_index() const { return get_map(joints); }
-    std::unordered_map<int, size_t> valve_id_to_index() const { return get_map(valves); }
-    std::unordered_map<int, size_t> gripper_id_to_index() const { return get_map(grippers); }
-
-    private:
-
-        static std::vector<std::string> get_names(const std::vector<JointConfig>& vec) {
-            std::vector<std::string> out;
-            for (const auto& j : vec) 
-                out.push_back(j.name);
-            return out;
-        }
-    
-        static std::unordered_map<int, size_t> get_map(const std::vector<JointConfig>& vec) {
-            std::unordered_map<int, size_t> m;
-            for (size_t i = 0; i < vec.size(); ++i) 
-                m[vec[i].ecat_id] = i;
-            return m;
-        }
+    std::string ns {""};
+    bool declare_to_ros {false};
+    std::unordered_map<pdo_utils::EcatId, std::string> map_ecat_id;
 };
 
-inline std::optional<RobotConfig> load_robot_config(const std::string& yaml_path)
-{
+inline void load_from_ecat_config(RobotConfig& cfg, const std::string& ecat_config_path) {
     try {
-        YAML::Node root = YAML::LoadFile(yaml_path);
-        YAML::Node robot = root["robot"] ? root["robot"] : root;
+        YAML::Node root = YAML::LoadFile(ecat_config_path);
+        YAML::Node ecat_board_ctrl = root["ec_board_ctrl"];
+        if (ecat_board_ctrl) {
+            cfg.robot_name = ecat_board_ctrl["robot_name"] ? ecat_board_ctrl["robot_name"].as<std::string>() : cfg.robot_name;
+        }
         YAML::Node dds = root["dds"];
+        if (dds) {
+            cfg.ns = dds["namespace"] ? dds["namespace"].as<std::string>() : cfg.ns;
+            cfg.domain_id = dds["domain"] ? dds["domain"].as<uint32_t>() : cfg.domain_id;
+            cfg.declare_to_ros = dds["declare_to_ros"] ? dds["declare_to_ros"].as<bool>() : cfg.declare_to_ros;
+            
+            YAML::Node qos = dds["qos"];
+            if(qos) {
+                
+                
+            }
+        
+        }
 
-        RobotConfig cfg;
-        cfg.robot_name = robot["name"] ? robot["name"].as<std::string>() : "NoNe";
-        cfg.domain_id  = dds && dds["domain"] ? dds["domain"].as<uint32_t>() :
-                         robot["domain"] ? robot["domain"].as<uint32_t>() :
-                         root["domain"] ? root["domain"].as<uint32_t>() :
-                         0u;
 
-        const YAML::Node joints = robot["joints"] ? robot["joints"] : root["joints"];
-        if (joints) {
-            for (const auto& j : joints) {
-                JointConfig jc;
-                jc.name    = j["name"].as<std::string>();
-                jc.ecat_id = j["ecat_id"].as<int>();
+    } catch (const YAML::Exception& e) {
+        std::cerr << "[RobotConfig] Failed to parse '" << ecat_config_path << "': " << e.what() << '\n';
+    }
+}
 
-                std::string type = j["type"] ? j["type"].as<std::string>() : "motor";
-
-                cfg.joints.push_back(jc);
-
-                if (type == "motor")
-                    cfg.motors.push_back(jc);
-                else if (type == "gripper")
-                    cfg.grippers.push_back(jc);
-                else
-                    cfg.valves.push_back(jc); 
+inline void load_from_robot_id_map(RobotConfig& cfg, const std::string& ecat_robot_id_map_path) {
+    try {
+        YAML::Node root = YAML::LoadFile(ecat_robot_id_map_path);
+        const YAML::Node joints_array = root["joint_map"];
+        if (joints_array) {
+            for (const auto& j : joints_array) {
+                cfg.map_ecat_id[j.first.as<int>()] = j.second.as<std::string>();
             }
         }
 
-        auto load_section = [](const YAML::Node& node, std::vector<JointConfig>& out) {
-            if (!node) return;
-            for (const auto& n : node) {
-                JointConfig jc;
-                jc.name    = n["name"].as<std::string>();
-                jc.ecat_id = n["ecat_id"].as<int>();
-                out.push_back(jc);
-            }
-        };
-
-        load_section(robot["imu"], cfg.imus);
-        load_section(robot["power_board"], cfg.power_boards);
-        load_section(robot["pump"], cfg.pumps);
-        load_section(robot["force_torque"], cfg.force_torques);
-
-        return cfg;
     } catch (const YAML::Exception& e) {
-        std::cerr << "[RobotConfig] Failed to parse '" << yaml_path << "': " << e.what() << '\n';
-        return std::nullopt;
+        std::cerr << "[RobotConfig] Failed to parse '" << ecat_robot_id_map_path << "': " << e.what() << '\n';
     }
+
 }
+
+
+inline std::optional<RobotConfig> load_robot_config(const std::string& ecat_map_id_path, 
+                                                    const std::string& ecat_config_path) {
+    RobotConfig cfg;
+    load_from_robot_id_map(cfg, ecat_map_id_path);
+    load_from_ecat_config(cfg, ecat_config_path);
+    return cfg;
+}
+
+
+inline std::set<uint32_t> extract_pdo_ids(const RobotConfig& cfg) {
+    std::set<uint32_t> pdo_ids;
+    const auto add_ids = [&pdo_ids](const auto& devices) {
+        for (const auto& [id, name] : devices) {
+            pdo_ids.insert(id);
+        }
+    };
+    add_ids(cfg.map_ecat_id);
+    return pdo_ids;
+}
+
+
+class RobotConfigBuilder {
+
+public:
+    RobotConfigBuilder& from_ecat_config(const std::string& ecat_config_path){
+        load_from_ecat_config(robot_config_, ecat_config_path);
+        return *this;
+    }
+
+    RobotConfigBuilder& from_robot_id_map(const std::string& ecat_robot_id_map_path){
+        load_from_robot_id_map(robot_config_, ecat_robot_id_map_path);
+        return *this;
+    }
+
+    const RobotConfig& build() {
+        return robot_config_;
+    }
+
+private:
+    RobotConfig robot_config_;
+};

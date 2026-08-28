@@ -1,0 +1,27 @@
+@PACKAGE_INIT@
+
+set(
+    advrf_config_share
+    "${PACKAGE_PREFIX_DIR}/share/advrf_config/config"
+)
+
+set(
+    advrf_config_env
+    "${PACKAGE_PREFIX_DIR}/share/advrf_config/advrf_config.env"
+)
+
+if(NOT TARGET advrf_config)
+
+    add_library(
+        advrf_config
+        INTERFACE IMPORTED
+    )
+
+    set_property(
+        TARGET advrf_config
+        PROPERTY INTERFACE_COMPILE_DEFINITIONS
+            "ADVRF_CONFIG_SHARE_STR=\"${advrf_config_share}\""
+            "ADVRF_CONFIG_SHARE=std::filesystem::path(ADVRF_CONFIG_SHARE_STR)"
+    )
+
+endif()

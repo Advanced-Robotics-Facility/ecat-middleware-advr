@@ -11,8 +11,8 @@ target_link_libraries(cyclonedds_plugin
     PRIVATE
         advrf_cyclonedds_plugin
         advrf_middleware_core
-        advrf_interfaces_dds
-        ecat_master_future
+        advrf_config
+        advrf_interfaces_dds::cyclonedds
         yaml-cpp::yaml-cpp
 )
 

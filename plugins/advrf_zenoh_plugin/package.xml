@@ -2,16 +2,18 @@
 <package format="3">
   <name>advrf_zenoh_plugin</name>
   <version>0.1.0</version>
-  <description>Zenoh plugin for ecat-middleware-advr.</description>
+  <description>ADVRF shared-memory middleware plugin using Zenoh and Protobuf.</description>
 
   <maintainer email="hugo.pousseur@iit.it">Hugo POUSSEUR</maintainer>
   <maintainer email="manuel.delucchi@iit.it">Manuel Delucchi</maintainer>
-  <license>TODO</license>
+  <license>MIT</license>
 
   <depend>advrf_interfaces_protobuf</depend>
   <depend>advrf_middleware_core</depend>
-  <depend>ecat_master_future</depend>
   <depend>advrf_zenoh_lib</depend>
+  <depend>advrf_interfaces_dds</depend>
+  <depend>advrf_dds_common</depend>
+  <depend>yaml-cpp</depend>
 
   <buildtool_depend>cmake</buildtool_depend>
 

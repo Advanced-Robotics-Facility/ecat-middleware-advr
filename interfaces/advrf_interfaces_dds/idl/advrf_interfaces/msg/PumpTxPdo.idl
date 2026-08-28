@@ -1,0 +1,22 @@
+#pragma once
+
+module advrf_interfaces {
+  module msg {
+    module dds_ {
+      struct PumpTxPdo_
+      {
+        int32 ecat_id;
+        float pump_target;
+        float pressure_p_gain;
+        float pressure_i_gain;
+        float pressure_d_gain;
+        float pressure_i_limit;
+        uint32 fault_ack;
+        uint32 solenoid_out;
+        uint32 ts;
+        uint32 op_idx_aux;
+        float aux;
+      };
+    };
+  };
+};

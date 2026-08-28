@@ -15,6 +15,7 @@
   <depend>CycloneDDS-CXX</depend>
 
   <depend>advrf_fastdds_lib</depend>
+  <depend>advrf_zenoh_lib</depend>
   <depend>fastcdr</depend>
   <depend>fastdds</depend>
 

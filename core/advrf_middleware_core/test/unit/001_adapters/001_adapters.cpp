@@ -1,0 +1,412 @@
+#include <cassert>
+#include <iostream>
+#include <vector>
+
+#include "advrf_middleware_core/adapters/adapter_publishers.hpp"
+
+using AdapterPublishers = middleware_adapter::message::AdapterPublishers;
+using Pdo = pdo_utils::Pdo;
+using EcatId = pdo_utils::EcatId;
+
+class TestPublisher : public AdapterPublishers::IPublisher
+{
+public:
+    void begin_cycle() override
+    {
+        ++begin_count;
+        consumed_ids.clear();
+    }
+
+    void consume(const Pdo& pdo) override
+    {
+        ++consume_count;
+
+        const auto& id = pdo.header().str_id();
+        consumed_names.push_back(id);
+    }
+
+    void end_cycle(bool valid) override
+    {
+        ++end_count;
+        last_valid = valid;
+    }
+
+    std::size_t begin_count{0};
+    std::size_t consume_count{0};
+    std::size_t end_count{0};
+
+    bool last_valid{false};
+
+    std::vector<EcatId> consumed_ids;
+    std::vector<std::string> consumed_names;
+};
+
+
+class TestAdapterPublishers : public AdapterPublishers
+{
+public:
+    using AdapterPublishers::dispatch_cached_data;
+    using AdapterPublishers::mutable_channel_cache;
+    using AdapterPublishers::register_publisher;
+};
+
+
+void clear_cache(
+    TestAdapterPublishers& adapter,
+    ChannelRx channel)
+{
+    auto& cache = adapter.mutable_channel_cache(channel);
+
+    for (auto& entry : cache.entries) {
+        entry.valid = false;
+        entry.updated_this_cycle = false;
+    }
+
+    cache.active_ids.clear();
+}
+
+
+Pdo& add_cached_pdo(
+    TestAdapterPublishers& adapter,
+    ChannelRx channel,
+    EcatId ecat_id,
+    const std::string& component_name)
+{
+    auto& cache = adapter.mutable_channel_cache(channel);
+
+    assert(ecat_id < AdapterPublishers::MaxEcatIds);
+
+    auto& entry = cache.entries[ecat_id];
+    if (!entry.valid) {
+        cache.active_ids.push_back(ecat_id);
+    }
+
+    entry.valid = true;
+    entry.updated_this_cycle = true;
+    entry.ecat_id = ecat_id;
+    entry.pdo.Clear();
+    entry.pdo.mutable_header()->set_str_id(component_name);
+
+    return entry.pdo;
+}
+
+
+void test_empty_cache_is_invalid()
+{
+    TestAdapterPublishers adapter;
+
+    auto& publisher =
+        adapter.register_publisher<TestPublisher>(
+            {ChannelRx::Imu},
+            {1});
+
+    adapter.dispatch_cached_data();
+
+    assert(publisher.begin_count == 1);
+    assert(publisher.consume_count == 0);
+    assert(publisher.end_count == 1);
+    assert(!publisher.last_valid);
+}
+
+
+void test_allowed_id_is_dispatched()
+{
+    TestAdapterPublishers adapter;
+
+    auto& publisher =
+        adapter.register_publisher<TestPublisher>(
+            {ChannelRx::Imu},
+            {1});
+
+    add_cached_pdo(
+        adapter,
+        ChannelRx::Imu,
+        1,
+        "imu_1");
+
+    adapter.dispatch_cached_data();
+
+    assert(publisher.begin_count == 1);
+    assert(publisher.consume_count == 1);
+    assert(publisher.end_count == 1);
+    assert(publisher.last_valid);
+
+    assert(publisher.consumed_names.size() == 1);
+    assert(publisher.consumed_names.front() == "imu_1");
+}
+
+
+void test_disallowed_id_is_ignored()
+{
+    TestAdapterPublishers adapter;
+
+    auto& publisher =
+        adapter.register_publisher<TestPublisher>(
+            {ChannelRx::Imu},
+            {1});
+
+    add_cached_pdo(
+        adapter,
+        ChannelRx::Imu,
+        2,
+        "imu_2");
+
+    adapter.dispatch_cached_data();
+
+    assert(publisher.begin_count == 1);
+    assert(publisher.consume_count == 0);
+    assert(publisher.end_count == 1);
+    assert(!publisher.last_valid);
+}
+
+
+void test_missing_expected_id_is_invalid()
+{
+    TestAdapterPublishers adapter;
+
+    auto& publisher =
+        adapter.register_publisher<TestPublisher>(
+            {ChannelRx::Motor},
+            {2, 3, 4});
+
+    add_cached_pdo(
+        adapter,
+        ChannelRx::Motor,
+        2,
+        "motor_2");
+
+    add_cached_pdo(
+        adapter,
+        ChannelRx::Motor,
+        3,
+        "motor_3");
+
+    adapter.dispatch_cached_data();
+
+    assert(publisher.consume_count == 2);
+    assert(!publisher.last_valid);
+}
+
+
+void test_all_expected_ids_are_valid()
+{
+    TestAdapterPublishers adapter;
+
+    auto& publisher =
+        adapter.register_publisher<TestPublisher>(
+            {ChannelRx::Motor},
+            {2, 3, 4});
+
+    add_cached_pdo(
+        adapter,
+        ChannelRx::Motor,
+        2,
+        "motor_2");
+
+    add_cached_pdo(
+        adapter,
+        ChannelRx::Motor,
+        3,
+        "motor_3");
+
+    add_cached_pdo(
+        adapter,
+        ChannelRx::Motor,
+        4,
+        "motor_4");
+
+    adapter.dispatch_cached_data();
+
+    assert(publisher.consume_count == 3);
+    assert(publisher.last_valid);
+}
+
+
+void test_empty_allowed_ids_accepts_any_id()
+{
+    TestAdapterPublishers adapter;
+
+    auto& publisher =
+        adapter.register_publisher<TestPublisher>(
+            {ChannelRx::PowerBoard});
+
+    add_cached_pdo(
+        adapter,
+        ChannelRx::PowerBoard,
+        42,
+        "power_board_42");
+
+    adapter.dispatch_cached_data();
+
+    assert(publisher.consume_count == 1);
+    assert(publisher.last_valid);
+}
+
+
+void test_accept_all_without_data_is_invalid()
+{
+    TestAdapterPublishers adapter;
+
+    auto& publisher =
+        adapter.register_publisher<TestPublisher>(
+            {ChannelRx::PowerBoard});
+
+    adapter.dispatch_cached_data();
+
+    assert(publisher.consume_count == 0);
+    assert(!publisher.last_valid);
+}
+
+
+void test_same_pdo_is_dispatched_to_multiple_publishers()
+{
+    TestAdapterPublishers adapter;
+
+    auto& first =
+        adapter.register_publisher<TestPublisher>(
+            {ChannelRx::Motor},
+            {2});
+
+    auto& second =
+        adapter.register_publisher<TestPublisher>(
+            {ChannelRx::Motor},
+            {2});
+
+    add_cached_pdo(
+        adapter,
+        ChannelRx::Motor,
+        2,
+        "motor_2");
+
+    adapter.dispatch_cached_data();
+
+    assert(first.consume_count == 1);
+    assert(second.consume_count == 1);
+
+    assert(first.last_valid);
+    assert(second.last_valid);
+}
+
+
+void test_publisher_can_subscribe_to_multiple_channels()
+{
+    TestAdapterPublishers adapter;
+
+    auto& publisher =
+        adapter.register_publisher<TestPublisher>(
+            {
+                ChannelRx::Motor,
+                ChannelRx::Gripper
+            },
+            {
+                2,
+                20
+            });
+
+    add_cached_pdo(
+        adapter,
+        ChannelRx::Motor,
+        2,
+        "motor_2");
+
+    add_cached_pdo(
+        adapter,
+        ChannelRx::Gripper,
+        20,
+        "gripper_20");
+
+    adapter.dispatch_cached_data();
+
+    assert(publisher.consume_count == 2);
+    assert(publisher.last_valid);
+}
+
+
+void test_duplicate_id_overwrites_previous_value()
+{
+    TestAdapterPublishers adapter;
+
+    auto& publisher =
+        adapter.register_publisher<TestPublisher>(
+            {ChannelRx::Motor},
+            {2});
+
+    add_cached_pdo(
+        adapter,
+        ChannelRx::Motor,
+        2,
+        "motor_2_first");
+
+    add_cached_pdo(
+        adapter,
+        ChannelRx::Motor,
+        2,
+        "motor_2_second");
+
+    adapter.dispatch_cached_data();
+
+    assert(publisher.consume_count == 1);
+    assert(publisher.last_valid);
+
+    assert(publisher.consumed_names.size() == 1);
+    assert(publisher.consumed_names.front() == "motor_2_second");
+}
+
+
+void test_seen_ids_are_reset_between_cycles()
+{
+    TestAdapterPublishers adapter;
+
+    auto& publisher =
+        adapter.register_publisher<TestPublisher>(
+            {ChannelRx::Motor},
+            {2});
+
+    add_cached_pdo(
+        adapter,
+        ChannelRx::Motor,
+        2,
+        "motor_2");
+
+    adapter.dispatch_cached_data();
+
+    assert(publisher.begin_count == 1);
+    assert(publisher.consume_count == 1);
+    assert(publisher.end_count == 1);
+    assert(publisher.last_valid);
+
+    clear_cache(
+        adapter,
+        ChannelRx::Motor);
+
+    adapter.dispatch_cached_data();
+
+    assert(publisher.begin_count == 2);
+    assert(publisher.consume_count == 1);
+    assert(publisher.end_count == 2);
+    assert(!publisher.last_valid);
+}
+
+
+
+
+int main()
+{
+    test_empty_cache_is_invalid();
+    test_allowed_id_is_dispatched();
+    test_disallowed_id_is_ignored();
+    test_missing_expected_id_is_invalid();
+    test_all_expected_ids_are_valid();
+    test_empty_allowed_ids_accepts_any_id();
+    test_accept_all_without_data_is_invalid();
+    test_same_pdo_is_dispatched_to_multiple_publishers();
+    test_publisher_can_subscribe_to_multiple_channels();
+    test_seen_ids_are_reset_between_cycles();
+    test_duplicate_id_overwrites_previous_value();
+
+    std::cout
+        << "All AdapterPublishers tests passed."
+        << std::endl;
+
+    return 0;
+}

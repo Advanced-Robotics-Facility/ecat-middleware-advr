@@ -9,7 +9,6 @@
   <license>TODO</license>
   
   <depend>advrf_interfaces_protobuf</depend>
-  <depend>advrf_middleware_core</depend>
   <buildtool_depend>cmake</buildtool_depend>
 
   <export>

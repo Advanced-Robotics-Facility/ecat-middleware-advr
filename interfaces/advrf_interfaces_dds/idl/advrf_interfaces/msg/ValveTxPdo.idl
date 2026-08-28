@@ -1,0 +1,29 @@
+#pragma once
+
+module advrf_interfaces {
+  module msg {
+    module dds_ {
+      struct ValveTxPdo_
+      {
+        int32 ecat_id;
+        float current_ref;
+        float position_ref;
+        float force_ref;
+        float gain_0;
+        float gain_1;
+        float gain_2;
+        float gain_3;
+        float gain_4;
+        uint32 fault_ack;
+        uint32 ts;
+        uint32 op_idx_aux;
+        float aux;
+      };
+
+      struct ValveTxPdoVector_
+      {
+        sequence<ValveTxPdo_> data;
+      };
+    };
+  };
+};

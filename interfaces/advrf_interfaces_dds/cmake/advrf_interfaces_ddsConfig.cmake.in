@@ -1,14 +1,23 @@
 @PACKAGE_INIT@
+
 include(CMakeFindDependencyMacro)
 
-set(advrf_interfaces_dds_USE_FASTDDS @USE_FASTDDS@)
+set(advrf_interfaces_dds_BUILD_FASTDDS @BUILD_FASTDDS@)
+set(advrf_interfaces_dds_BUILD_CYCLONEDDS @BUILD_CYCLONEDDS@)
+set(advrf_interfaces_dds_BUILD_ZENOH @BUILD_ZENOH@)
 
-if(advrf_interfaces_dds_USE_FASTDDS)
+if(advrf_interfaces_dds_BUILD_FASTDDS)
     find_dependency(fastcdr 2)
     find_dependency(fastdds 3)
-else()
+endif()
+
+if(advrf_interfaces_dds_BUILD_CYCLONEDDS)
     find_dependency(CycloneDDS)
     find_dependency(CycloneDDS-CXX)
+endif()
+
+if(advrf_interfaces_dds_BUILD_ZENOH)
+    find_dependency(fastcdr 2)
 endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/advrf_interfaces_ddsTargets.cmake")

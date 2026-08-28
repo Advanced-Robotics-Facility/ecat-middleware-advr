@@ -67,17 +67,37 @@ ExternalProject_Add(fastcdr_vendor
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 )
 
+ExternalProject_Add(fastddsgen_vendor
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/Fast-DDS-Gen
+
+    DOWNLOAD_COMMAND ""
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
+
+    CONFIGURE_COMMAND ""
+    BUILD_IN_SOURCE TRUE
+    BUILD_COMMAND ./gradlew build -x test -x submodulesUpdate
+    INSTALL_COMMAND ""
+)
+
 add_custom_target(advrf_zenoh_vendor
     ALL
     DEPENDS
         zenoh_c_vendor
         zenoh_cpp_vendor
         fastcdr_vendor
+        fastddsgen_vendor
 )
 
 install(
     DIRECTORY "${ADVRF_VENDOR_PREFIX}/"
     DESTINATION "."
+)
+
+install(
+    DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib/Fast-DDS-Gen/build/libs/"
+    DESTINATION "share/${PROJECT_NAME}/fastddsgen"
+    FILES_MATCHING PATTERN "*.jar"
 )
 
 configure_package_config_file(

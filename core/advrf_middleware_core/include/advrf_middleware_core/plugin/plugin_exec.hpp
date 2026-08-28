@@ -2,110 +2,169 @@
 
 #include <atomic>
 #include <chrono>
-#include <csignal>
 #include <memory>
+#include <string>
 #include <thread>
-#include <vector>
+#include <csignal>
 
 #include "advrf_middleware_core/adapters/adapter_base.hpp"
 #include "advrf_middleware_core/utils/log.hpp"
 
-namespace advrf::plugin {
-
-struct Process
+namespace advrf::plugin
 {
-    std::weak_ptr<AdapterBase> adapter;
-    std::chrono::microseconds period_microseconds{10};
+
+class Process
+{
+public:
+    Process(std::string name,
+            std::shared_ptr<AdapterBase> adapter,
+            std::chrono::microseconds period = std::chrono::microseconds{10})
+        : name_(std::move(name))
+        , adapter_(std::move(adapter))
+        , period_(period)
+    {
+    }
+
+    Process(const Process&) = delete;
+    Process& operator=(const Process&) = delete;
+
+    Process(Process&&) = default;
+    Process& operator=(Process&&) = default;
+
+    ~Process()
+    {
+        stop();
+    }
+
+    bool start(std::atomic_bool& running)
+    {
+        if (!adapter_)
+        {
+            LOG_ERROR("Adapter '{}' is null.", name_);
+            return false;
+        }
+
+        if (!adapter_->start())
+        {
+            LOG_ERROR("Adapter '{}' failed to start.", name_);
+            return false;
+        }
+
+        thread_ = std::thread([this, &running]
+        {
+            LOG_INFO("Adapter '{}' started ({} Hz).",
+                     name_,
+                     1'000'000 / period_.count());
+
+            auto next = std::chrono::steady_clock::now();
+            auto next_health = next + std::chrono::seconds(1);
+            while (running)
+            {
+                next += period_;
+                if (std::chrono::steady_clock::now() >= next_health)
+                {
+                    if (!adapter_->is_ok())
+                    {
+                        LOG_ERROR("Adapter '{}' stopped unexpectedly.", name_);
+                        running = false;
+                        break;
+                    }
+                    next_health += std::chrono::seconds(1);
+                }
+                adapter_->spin_once();
+                std::this_thread::sleep_until(next);
+            }
+        });
+
+        return true;
+    }
+
+    void stop()
+    {
+        if (thread_.joinable())
+            thread_.join();
+    }
+
+private:
+    std::string name_;
+    std::shared_ptr<AdapterBase> adapter_;
+    std::chrono::microseconds period_;
+    std::thread thread_;
 };
+
+} // namespace advrf::plugin
+
+namespace advrf::plugin
+{
 
 class PluginExec
 {
 public:
     PluginExec()
     {
-        running_ = true;
+        instance_ = this;
+
         std::signal(SIGINT, SignalHandler);
         std::signal(SIGTERM, SignalHandler);
     }
 
-    virtual ~PluginExec()
+    ~PluginExec()
     {
         stop();
+        instance_ = nullptr;
     }
 
-    void register_adapter(const Process& process)
+    void register_adapter(Process process)
     {
-        processes_.push_back(process);
+        processes_.push_back(std::move(process));
     }
 
     void start(bool wait_for_exit = true)
     {
+        LOG_INFO("Application started (Ctrl+C to exit).");
+
+        running_ = true;
+
         for (auto& process : processes_)
         {
-            if (auto adapter = process.adapter.lock())
+            if (!process.start(running_))
             {
-                if(!adapter->start()) {
-                    LOG_ERROR("Adapter failed to start.");
-                    return;
-                }
-
-                threads_.emplace_back([adapter, period = process.period_microseconds]()
-                {
-                    auto next = std::chrono::steady_clock::now();
-                    while (running_)
-                    {
-                        next += period;
-                        auto start = std::chrono::steady_clock::now();
-                        adapter->spin_once();
-                        auto end = std::chrono::steady_clock::now();
-                        std::chrono::duration<double, std::milli> elapsed = end - start;
-                        std::this_thread::sleep_until(next);
-                    }
-                });
-            }
-            else{
-                LOG_ERROR("Adapter is not valid. Skipping.");
+                running_ = false;
+                break;
             }
         }
 
-        if(threads_.size() < processes_.size()){
-            LOG_ERROR("Some adapters were not valid. Check previous error messages.");
-        }
+        if (!wait_for_exit)
+            return;
 
-        if (wait_for_exit)
-        {
-            LOG_INFO("Application Run (Kill by CTRL+C)");
-            while (running_)
-            {
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            }
-            LOG_INFO("Application Exit");
-        }
+        while (running_)
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        stop();
+
+        LOG_INFO("Application exited.");
     }
 
     void stop()
     {
-        running_ = false;
+        if (!running_.exchange(false))
+            return;
 
-        for (auto& thread : threads_)
-        {
-            if (thread.joinable())
-                thread.join();
-        }
-
-        threads_.clear();
+        for (auto& process : processes_)
+            process.stop();
     }
 
 private:
-    static void SignalHandler(int)
+    static void SignalHandler(int) noexcept
     {
-        running_ = false;
+        if (instance_)
+            instance_->running_ = false;
     }
 
-    static inline std::atomic_bool running_{true};
+    inline static PluginExec* instance_{nullptr};
 
+    std::atomic_bool running_{false};
     std::vector<Process> processes_;
-    std::vector<std::thread> threads_;
 };
 
-};
+} // namespace advrf::plugin

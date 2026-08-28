@@ -5,6 +5,11 @@ project(advrf_cyclonedds_lib
     LANGUAGES C CXX
 )
 
+if(NOT BUILD_CYCLONEDDS)
+    message(STATUS "CycloneDDS build disabled")
+    return()
+endif()
+
 include(ExternalProject)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
