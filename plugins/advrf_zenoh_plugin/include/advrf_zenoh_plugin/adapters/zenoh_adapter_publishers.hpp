@@ -17,7 +17,7 @@ class ZenohAdapterPublishers
 {
 public:
     bool init(const config::ConfigTopics& topics,
-              const RobotConfig& robot,
+              const config::RobotConfig& robot,
               const EcatDiscover::EcatMap& ecat_map,
               zenoh::Session& session,
               WireFormat wire_format);

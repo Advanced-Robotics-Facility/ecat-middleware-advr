@@ -5,9 +5,18 @@
 module std_msgs {
   module msg {
     module dds_ {
+       /**
+        * @brief Standard metadata attached to a message.
+        *
+        * Provides the acquisition timestamp and the reference frame in which
+        * the associated data is expressed.
+        */
         @final
         struct Header_ {
+            /// Time at which the associated data was acquired.
             builtin_interfaces::msg::dds_::Time_ stamp;
+            
+            /// Name of the coordinate frame associated with the data.
             string frame_id;
         };
     };

@@ -24,17 +24,17 @@ int main(int argc, char** argv)
     std::signal(SIGINT, on_signal);
     std::signal(SIGTERM, on_signal);
 
-    auto config_robot = load_robot_config(
+    auto config_robot = config::load_robot_config(
       ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
       ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
     if (!config_robot) return 1;
 
     EcatDiscover ecat_discover;
     ecat_discover.start(SHM_NRT_RX_PDO);
-    auto ecat_map = ecat_discover.discover(extract_pdo_ids(*config_robot));
+    auto ecat_map = ecat_discover.discover(config::extract_pdo_ids(*config_robot));
 
     clock_utils::init();
-    DDSAdapterPublishers dds_adapter;
+    advrf::fastdds_plugin::DDSAdapterPublishers dds_adapter;
     if(!dds_adapter.shm().connect(SHM_NRT_RX_PDO, ShmAttachMode::Open)) {
         LOG_ERROR("Failed to connect to shared memory");
         return 1;

@@ -32,7 +32,7 @@ int main(int argc, char** argv)
     std::signal(SIGINT, on_signal);
     std::signal(SIGTERM, on_signal);
 
-    auto config_robot = load_robot_config(
+    auto config_robot = config::load_robot_config(
       ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
       ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
     if (!config_robot) return 1;
@@ -47,7 +47,7 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    DDSAdapterService dds_adapter_service(config, *config_robot, participant);
+    advrf::fastdds_plugin::DDSAdapterService dds_adapter_service(config, *config_robot, participant);
     if(!dds_adapter_service.shm().connect(SHM_SERVICE, ShmAttachMode::Open))
     {
         LOG_ERROR("Failed to connect to shared memory");

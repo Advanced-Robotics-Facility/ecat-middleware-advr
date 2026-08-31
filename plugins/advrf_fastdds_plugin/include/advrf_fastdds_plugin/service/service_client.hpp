@@ -16,6 +16,8 @@
 #include <fastdds/dds/topic/Topic.hpp>
 #include <fastdds/dds/topic/TypeSupport.hpp>
 
+namespace advrf::fastdds_plugin {
+
 template<typename Request, typename RequestPubSubType,
          typename Response, typename ResponsePubSubType>
 class ServiceClient
@@ -120,3 +122,5 @@ private:
     eprosima::fastdds::dds::DataWriter* writer_ = nullptr;
     eprosima::fastdds::dds::DataReader* reader_ = nullptr;
 };
+
+}

@@ -9,6 +9,16 @@
 #include <advrf_middleware_core/utils/log.hpp>
 #include "advrf_fastdds_plugin/ros_metadata/ros_graph_bridge.hpp"
 
+#include <advrf_interfaces/msg/ImuPubSubTypes.hpp>
+#include <sensor_msgs/msg/JointStatePubSubTypes.hpp>
+#include <advrf_interfaces/msg/MotorPubSubTypes.hpp>
+#include <advrf_interfaces/msg/PowerBoardPubSubTypes.hpp>
+#include <advrf_interfaces/msg/PumpPubSubTypes.hpp>
+#include <advrf_interfaces/msg/ForceTorquePubSubTypes.hpp>
+#include <advrf_interfaces/msg/ValvePubSubTypes.hpp>
+#include <advrf_interfaces/msg/GripperPubSubTypes.hpp>
+namespace advrf::fastdds_plugin {
+
 template <typename Msg, typename MsgPubSubType>
 class DDSPdoPublisher
     : public DDSPublisher<Msg, MsgPubSubType>
@@ -82,16 +92,6 @@ private:
     bool has_update_ = false;
 };
 
-
-#include <advrf_interfaces/msg/ImuPubSubTypes.hpp>
-#include <sensor_msgs/msg/JointStatePubSubTypes.hpp>
-#include <advrf_interfaces/msg/MotorPubSubTypes.hpp>
-#include <advrf_interfaces/msg/PowerBoardPubSubTypes.hpp>
-#include <advrf_interfaces/msg/PumpPubSubTypes.hpp>
-#include <advrf_interfaces/msg/ForceTorquePubSubTypes.hpp>
-#include <advrf_interfaces/msg/ValvePubSubTypes.hpp>
-#include <advrf_interfaces/msg/GripperPubSubTypes.hpp>
-
 using ImuMsg = ::advrf_interfaces::msg::dds_::Imu_;
 using JointStateMsg = ::sensor_msgs::msg::dds_::JointState_;
 using MotorMsg = ::advrf_interfaces::msg::dds_::Motor_;
@@ -149,3 +149,5 @@ class GripperPublisher : public DDSPdoPublisher<GripperMsg, GripperMsgPubSubType
 protected:
     bool process(const iit::advrf::Ec_slave_pdo& pdo) override;
 };  
+
+}

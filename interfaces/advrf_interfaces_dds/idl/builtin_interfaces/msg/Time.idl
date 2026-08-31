@@ -3,9 +3,17 @@
 module builtin_interfaces {
   module msg {
     module dds_ {
+       /**
+        * @brief ROS2 time point.
+        *
+        * Time indicates a specific point in time, relative to a clock's 0 point.
+        */
         @final
         struct Time_ {
+            /// The seconds component, valid over all int32 values.
             int32 sec;
+
+            /// The nanoseconds component, valid in the range [0, 10e9).
             uint32 nanosec;
         };
     };

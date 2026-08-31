@@ -8,6 +8,8 @@
 #include <advrf_middleware_core/utils/ecat_discover.hpp>
 #include <advrf_fastdds_plugin/ros_metadata/ros_graph_bridge.hpp>  
 
+namespace advrf::fastdds_plugin {
+
 using AdapterPublishers = middleware_adapter::message::AdapterPublishers;
 using IPublisher = middleware_adapter::message::AdapterPublishers::IPublisher;
 using Subscription = middleware_adapter::message::AdapterPublishers::Subscription;
@@ -16,7 +18,7 @@ class DDSAdapterPublishers : public AdapterPublishers {
 public:
     bool init(
         const config::ConfigTopics& config_topics,
-        const RobotConfig& robot_config,
+        const config::RobotConfig& robot_config,
         const EcatDiscover::EcatMap& ecat_map,
         eprosima::fastdds::dds::DomainParticipant* dp
     );
@@ -39,10 +41,12 @@ private:
     }
 
     void init_ros_graph_bridge(
-        const RobotConfig& robot_config,
+        const config::RobotConfig& robot_config,
         eprosima::fastdds::dds::DomainParticipant* dp
     );
 
     std::unique_ptr<FastRosGraphBridge> ros_graph_bridge_;
     std::vector<std::reference_wrapper<IConnectRosGraphBridge>> ros_connectables_;
 };
+
+}

@@ -12,6 +12,8 @@
 
 #include <advrf_middleware_core/utils/log.hpp>
 
+namespace advrf::fastdds_plugin {
+
 template <typename Msg, typename MsgPubSubType>
 class DDSPublisher {
 public:
@@ -104,3 +106,5 @@ protected:
     eprosima::fastdds::dds::Topic* topic_ = nullptr;
     eprosima::fastdds::dds::DataWriter* writer_ = nullptr;
 };
+
+}

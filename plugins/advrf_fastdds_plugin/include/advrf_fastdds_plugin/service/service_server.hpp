@@ -19,6 +19,8 @@
 
 #include <advrf_middleware_core/utils/log.hpp>
 
+namespace advrf::fastdds_plugin {
+
 template<typename Request, typename RequestPubSubType,
          typename Response, typename ResponsePubSubType>
 class ServiceServer
@@ -280,3 +282,5 @@ private:
     eprosima::fastdds::dds::DataReader* reader_ = nullptr;
     eprosima::fastdds::dds::DataWriter* writer_ = nullptr;
 };
+
+}

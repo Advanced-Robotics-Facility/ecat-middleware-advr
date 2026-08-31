@@ -11,7 +11,7 @@
 int main(int argc, char** argv)
 {
     advrf::log::Log::init();
-    auto config_robot = load_robot_config(
+    auto config_robot = config::load_robot_config(
         ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
         ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
 
@@ -21,7 +21,7 @@ int main(int argc, char** argv)
     using MotorMsg = advrf_interfaces::msg::dds_::MotorTxPdo_;
     using MotorVectorMsg = advrf_interfaces::msg::dds_::MotorTxPdoVector_;
 
-    DDSPublisher<MotorVectorMsg> publisher;
+    advrf::cyclonedds_plugin::DDSPublisher<MotorVectorMsg> publisher;
     publisher.init_dds(
         topics.tx.motorCmd(),
         participant

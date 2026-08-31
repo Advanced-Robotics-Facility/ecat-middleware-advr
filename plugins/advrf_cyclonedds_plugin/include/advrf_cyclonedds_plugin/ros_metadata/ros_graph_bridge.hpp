@@ -13,12 +13,26 @@
 #include <rmw_dds_common/msg/ParticipantEntitiesInfo.hpp>
 #include <advrf_dds_common/ros_metadata/ros_graph_state.hpp>
 
+namespace advrf::cyclonedds_plugin {
+
+/**
+ * @brief Publishes DDS entity metadata in ROS2's discovery-info format.
+ *
+ * The bridge represents this DDS participant as a ROS2 node and publishes
+ * its reader and writer GIDs on the `ros_discovery_info` topic. This lets ROS
+ * tools discover entities created directly with CycloneDDS.
+ */
 class CycloneDDSRosGraphBridge : private RosGraphState {
 public:
     using GidMsg = rmw_dds_common::msg::dds_::Gid_;
     using NodeInfo = rmw_dds_common::msg::dds_::NodeEntitiesInfo_;
     using ParticipantInfo = rmw_dds_common::msg::dds_::ParticipantEntitiesInfo_;
 
+    /**
+     * @brief Build the ROS node namespace used by this bridge.
+     *
+     * Produces `/<namespace>/cyclonedds/<robot_name>`.
+     */
     static std::string build_node_namespace(
         const std::string& ns,
         const std::string& robot_name)
@@ -26,6 +40,13 @@ public:
         return "/" + ns + "/cyclonedds/" + robot_name;
     }
 
+    /**
+     * @brief Create the bridge and publish its initial discovery information.
+     *
+     * @param participant DDS participant represented by this ROS graph node.
+     * @param node_name ROS node name to advertise.
+     * @param node_namespace ROS node namespace to advertise.
+     */
     CycloneDDSRosGraphBridge(
         dds::domain::DomainParticipant& participant,
         std::string node_name,
@@ -41,6 +62,8 @@ public:
         publish();
     }
 
+    
+    /// Add a DDS writer to the advertised ROS node and republish.
     template <typename Msg>
     void add_writer(dds::pub::DataWriter<Msg>& writer)
     {
@@ -49,6 +72,7 @@ public:
         publish_locked();
     }
 
+    /// Remove a DDS writer from the advertised node and republish.
     template <typename Msg>
     void remove_writer(dds::pub::DataWriter<Msg>& writer)
     {
@@ -57,6 +81,7 @@ public:
         publish_locked();
     }
 
+    /// Add a DDS reader to the advertised ROS node and republish.
     template <typename Msg>
     void add_reader(dds::sub::DataReader<Msg>& reader)
     {
@@ -65,6 +90,7 @@ public:
         publish_locked();
     }
 
+    /// Remove a DDS reader from the advertised node and republish.
     template <typename Msg>
     void remove_reader(dds::sub::DataReader<Msg>& reader)
     {
@@ -73,6 +99,7 @@ public:
         publish_locked();
     }
 
+    /// Publish the current reader and writer metadata.
     void publish()
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -159,10 +186,16 @@ private:
     std::mutex mutex_;
 };
 
-
+/**
+ * @brief Interface for DDS entities that can register with a ROS graph bridge.
+ */
 class IConnectRosGraphBridge {
 public:
     virtual ~IConnectRosGraphBridge() = default;
+
+    /// Register the entity's DDS reader or writer with @p bridge.
     virtual void connect_ros_graph_bridge(
         CycloneDDSRosGraphBridge& bridge) = 0;
 };
+
+}

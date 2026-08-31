@@ -13,14 +13,28 @@
 namespace middleware_adapter::service
 {
 
-
+/**
+ * @brief Synchronous service adapter for EtherCAT-master commands.
+ *
+ * For each request, the adapter sends a command through shared memory and
+ * waits for the matching reply. Requests are serialized: only one can be
+ * pending at a time.
+ */
 class AdapterServiceServer : public AdapterBase
 {
 public:
     AdapterServiceServer() = default;
     ~AdapterServiceServer() override = default;
 
-
+    /**
+     * @brief Send a command and wait for its reply.
+     *
+     * @param request Command to forward to the EtherCAT master.
+     * @return The matching reply, or a NACK if shared memory is unavailable,
+     *         full, or no reply arrives before @c ReplyTimeout.
+     *
+     * @note This function blocks for up to @c ReplyTimeout.
+     */
     iit::advrf::Cmd_reply process_request(
         const iit::advrf::Repl_cmd& request)
     {
@@ -66,7 +80,7 @@ public:
         return shm_;
     }
 
-
+    /// Connect to the shared-memory service channel.
     bool start() override
     {
         return shm_.connect_and_wait(
@@ -91,16 +105,15 @@ protected:
 
 
 private:
-    static constexpr auto ReplyTimeout =
-        std::chrono::milliseconds{1000};
+    /// Maximum time to wait for a matching command reply.
+    static constexpr auto ReplyTimeout = std::chrono::milliseconds{1000};
 
-    static constexpr auto PollPeriod =
-        std::chrono::microseconds{200};
+    /// Delay between consecutive reply-queue polls.
+    static constexpr auto PollPeriod = std::chrono::microseconds{200};
 
-
-    static bool matches(
-        const iit::advrf::Repl_cmd& request,
-        const iit::advrf::Cmd_reply& reply)
+    /// Check that a reply belongs to the given request.
+    static bool matches(const iit::advrf::Repl_cmd& request,
+                        const iit::advrf::Cmd_reply& reply)
     {
         return
             reply.request_id().guid() ==
@@ -109,9 +122,8 @@ private:
                 request.request_id().seq();
     }
 
-
-    static iit::advrf::Cmd_reply make_nack(
-        const std::string& message)
+    /// Create a negative acknowledgement containing @p message.
+    static iit::advrf::Cmd_reply make_nack(const std::string& message)
     {
         iit::advrf::Cmd_reply reply;
 
@@ -121,8 +133,8 @@ private:
         return reply;
     }
     
+    /// Serializes request/reply transactions.
     std::mutex request_mutex_;
 };
 
-
-} // namespace middleware_adapter::service
+} 

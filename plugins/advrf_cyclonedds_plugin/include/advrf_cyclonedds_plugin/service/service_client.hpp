@@ -8,6 +8,14 @@
 #include <dds/dds.hpp>
 #include <dds/dds.h>
 
+namespace advrf::cyclonedds_plugin {
+
+/**
+ * @brief Synchronous DDS request/reply client.
+ *
+ * @tparam Request DDS request type.
+ * @tparam Response DDS response type.
+ */
 template<typename Request, typename Response>
 class ServiceClient
 {
@@ -37,6 +45,15 @@ public:
         c_writer_ = writer_.delegate().get()->get_ddsc_entity();
     }
 
+    /**
+     * @brief Publish a request and wait for one reply.
+     *
+     * @param request Request to publish.
+     * @param timeout Maximum time to wait.
+     * @return A received response, or @c std::nullopt after timeout.
+     *
+     * @note This function blocks while waiting for a response.
+     */
     std::optional<Response> call(
         const Request& request,
         std::chrono::milliseconds timeout = std::chrono::seconds(1))
@@ -79,3 +96,5 @@ private:
     dds_entity_t c_reader_{};
     dds_entity_t c_writer_{};
 };
+
+}

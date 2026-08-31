@@ -16,6 +16,9 @@
 #include "advrf_fastdds_plugin/adapters/dds_adapter_subscribers.hpp"
 #include "advrf_fastdds_plugin/adapters/dds_adapter_service.hpp"
 
+using advrf::fastdds_plugin::DDSAdapterPublishers;
+using advrf::fastdds_plugin::DDSAdapterService;
+using advrf::fastdds_plugin::DDSAdapterSubscribers;
 namespace
 {
 
@@ -83,7 +86,7 @@ int main(int argc, char **argv)
 
 
 
-    auto config_robot = load_robot_config(
+    auto config_robot = config::load_robot_config(
       ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
       ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
 
@@ -91,7 +94,7 @@ int main(int argc, char **argv)
     auto config = config::ConfigTopics({config_robot->ns, config_robot->robot_name});
     EcatDiscover pdo_discover;
     pdo_discover.start(SHM_NRT_RX_PDO);
-    auto pdo_map = pdo_discover.discover(extract_pdo_ids(*config_robot));
+    auto pdo_map = pdo_discover.discover(config::extract_pdo_ids(*config_robot));
     
     // publishers
     auto* dds_participant_pub = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(

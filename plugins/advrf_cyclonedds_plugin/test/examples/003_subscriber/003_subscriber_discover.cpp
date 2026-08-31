@@ -8,7 +8,7 @@
 int main(int argc, char** argv)
 {
     advrf::log::Log::init();
-    auto config_robot = load_robot_config(
+    auto config_robot = config::load_robot_config(
         ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
         ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
 
@@ -18,7 +18,7 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    auto ecat_map = ecat_discover.discover(extract_pdo_ids(*config_robot));
+    auto ecat_map = ecat_discover.discover(config::extract_pdo_ids(*config_robot));
 
     LOG_INFO("Ecat discovery finished");
     for(auto [id, metadata] : ecat_map) {

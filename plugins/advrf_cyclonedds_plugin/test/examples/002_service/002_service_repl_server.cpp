@@ -9,6 +9,7 @@
 
 #include "advrf_cyclonedds_plugin/adapters/dds_adapter_service.hpp"
 
+using advrf::cyclonedds_plugin::DDSAdapterService;
 
 namespace
 {
@@ -26,7 +27,7 @@ int main(int argc, char** argv)
     std::signal(SIGINT, on_signal);
     std::signal(SIGTERM, on_signal);
 
-    auto config_robot = load_robot_config(
+    auto config_robot = config::load_robot_config(
         ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
         ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
 

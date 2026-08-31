@@ -8,11 +8,22 @@
 #include "advrf_cyclonedds_plugin/service/service_server.hpp"
 #include "advrf_cyclonedds_plugin/ros_metadata/ros_graph_bridge.hpp"
 
+namespace advrf::cyclonedds_plugin {
+
 using RequestDDS = advrf_interfaces::srv::dds_::ReplCmd_Request_;
 using ResponseDDS = advrf_interfaces::srv::dds_::ReplCmd_Response_;
 using RequestProtobuf = iit::advrf::Repl_cmd;
 using ResponseProtobuf = iit::advrf::Cmd_reply;
 
+/**
+ * @brief DDS service bridge for commands handled by AdapterServiceServer.
+ *
+ * Converts DDS service requests into EtherCAT-master commands and converts
+ * the resulting replies back to DDS service responses.
+ *
+ * @tparam Request DDS request type.
+ * @tparam Response DDS response type.
+ */
 template <typename Request, typename Response>
 class DDSAdapterBridgeService
     : public IConnectRosGraphBridge,
@@ -31,6 +42,7 @@ public:
 
     ~DDSAdapterBridgeService() override = default;
 
+    /// Register the service request reader and reply writer with the ROS graph.
     void connect_ros_graph_bridge(CycloneDDSRosGraphBridge& bridge) override
     {
         bridge.add_reader(this->dds_reader());
@@ -38,15 +50,21 @@ public:
     }
 };
 
-
+/**
+ * @brief CycloneDDS implementation of the middleware command service.
+ */
 class DDSAdapterService: public middleware_adapter::service::AdapterServiceServer
 {
     
 public:
+    /**
+     * @brief Create and configure the DDS command service.
+     */
     DDSAdapterService(const config::ConfigTopics& config_topics,
-                     const RobotConfig& robot_config,
+                     const config::RobotConfig& robot_config,
                      dds::domain::DomainParticipant& participant);
     
+    /// Process pending DDS service requests.
     void spin_once() override { server_.spin_once(); }
 
 private:
@@ -56,10 +74,12 @@ private:
     ResponseProtobuf process_request_protobuf(const RequestProtobuf& request);
     
     void init_ros_graph_bridge(
-        const RobotConfig& robot_config,
+        const config::RobotConfig& robot_config,
         dds::domain::DomainParticipant& dp
     );
 
     std::unique_ptr<CycloneDDSRosGraphBridge> ros_graph_bridge_;
     std::vector<std::reference_wrapper<IConnectRosGraphBridge>> ros_connectables_;
 };
+
+}

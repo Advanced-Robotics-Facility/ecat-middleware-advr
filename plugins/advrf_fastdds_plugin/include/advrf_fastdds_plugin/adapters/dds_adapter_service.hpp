@@ -11,6 +11,8 @@
 #include "advrf_fastdds_plugin/service/service_server.hpp"
 #include "advrf_fastdds_plugin/ros_metadata/ros_graph_bridge.hpp"
 
+namespace advrf::fastdds_plugin {
+
 using RequestDDS  = advrf_interfaces::srv::dds_::ReplCmd_Request_;
 using ResponseDDS = advrf_interfaces::srv::dds_::ReplCmd_Response_;
 using RequestDDSPubSubType  = advrf_interfaces::srv::dds_::ReplCmd_Request_PubSubType;
@@ -50,7 +52,7 @@ class DDSAdapterService: public middleware_adapter::service::AdapterServiceServe
     
 public:
     DDSAdapterService(const config::ConfigTopics& config_topics,
-                      const RobotConfig& robot_config,
+                      const config::RobotConfig& robot_config,
                       eprosima::fastdds::dds::DomainParticipant* participant);
     
     void spin_once() override { server_.spin_once(); }
@@ -62,10 +64,12 @@ private:
     ResponseProtobuf process_request_protobuf(const RequestProtobuf& request);
 
     void init_ros_graph_bridge(
-        const RobotConfig& robot_config,
+        const config::RobotConfig& robot_config,
         eprosima::fastdds::dds::DomainParticipant* dp
     );
 
     std::unique_ptr<FastRosGraphBridge> ros_graph_bridge_;
     std::vector<std::reference_wrapper<IConnectRosGraphBridge>> ros_connectables_;
 };
+
+}

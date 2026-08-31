@@ -11,6 +11,9 @@
 #include "advrf_cyclonedds_plugin/adapters/dds_adapter_service.hpp"
 #include "advrf_cyclonedds_plugin/adapters/dds_adapter_subscribers.hpp"
 
+using advrf::cyclonedds_plugin::DDSAdapterPublishers;
+using advrf::cyclonedds_plugin::DDSAdapterService;
+using advrf::cyclonedds_plugin::DDSAdapterSubscribers;
 namespace {
 struct Options {
   uint32_t rate_publishers = 1000; // Hz
@@ -57,7 +60,7 @@ int main(int argc, char **argv) {
   advrf::log::Log::init();
   const auto options = parse_args(argc, argv);
 
-  auto config_robot = RobotConfigBuilder()
+  auto config_robot = config::RobotConfigBuilder()
     .from_ecat_config(ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml")
     .from_robot_id_map(ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml")
     .build();
@@ -69,7 +72,7 @@ int main(int argc, char **argv) {
   // ecat discover
   EcatDiscover ecat_discover;
   ecat_discover.start(SHM_NRT_RX_PDO);
-  auto ecat_map = ecat_discover.discover(extract_pdo_ids(config_robot));
+  auto ecat_map = ecat_discover.discover(config::extract_pdo_ids(config_robot));
 
   // service
   auto dds_participant_service =

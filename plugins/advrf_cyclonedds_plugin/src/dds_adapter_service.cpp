@@ -6,8 +6,10 @@
 
 #include <advrf_middleware_core/utils/log.hpp>
 
+namespace advrf::cyclonedds_plugin {
+
 DDSAdapterService::DDSAdapterService(const config::ConfigTopics& config_topics,
-                                     const RobotConfig& robot_config,
+                                     const config::RobotConfig& robot_config,
                                     dds::domain::DomainParticipant& participant)
     : server_(participant, config_topics.service.request(), config_topics.service.reply())
 {
@@ -33,7 +35,7 @@ ResponseDDS DDSAdapterService::process_request_dds(const RequestDDS& request)
 
 
 void DDSAdapterService::init_ros_graph_bridge(
-    const RobotConfig& robot_config,
+    const config::RobotConfig& robot_config,
     dds::domain::DomainParticipant& dp)
 {
     if (!robot_config.declare_to_ros) {
@@ -54,4 +56,6 @@ void DDSAdapterService::init_ros_graph_bridge(
     for (auto& connectable : ros_connectables_) {
         connectable.get().connect_ros_graph_bridge(*ros_graph_bridge_);
     }
+}
+
 }

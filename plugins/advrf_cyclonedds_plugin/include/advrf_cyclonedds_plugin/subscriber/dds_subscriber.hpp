@@ -3,16 +3,33 @@
 #include <string>
 #include <dds/dds.hpp>
 #include <optional>
+#include <functional>
+#include <utility>
 
 #include <advrf_dds_common/qos/reader_policy.hpp>
 #include <advrf_middleware_core/utils/log.hpp>
 
+namespace advrf::cyclonedds_plugin {
+
+/**
+ * @brief Common interface for DDS subscribers polled by an adapter.
+ */
 class DDSSubscriberBase {
 public:
     virtual ~DDSSubscriberBase() = default;
+
+    /// Read and process all currently available DDS samples.
     virtual void spin_once() = 0;
 };
 
+/**
+ * @brief Generic polling DDS subscriber.
+ *
+ * @tparam Msg DDS message type read from the configured topic.
+ *
+ * Samples are processed only when @c spin_once is called; callbacks do not
+ * run in a separate DDS listener thread.
+ */
 struct DDSSubscriberOptions
 {
     
@@ -33,6 +50,11 @@ public:
 
     virtual ~DDSSubscriber() = default;
 
+    /**
+     * @brief Create the DDS topic, subscriber, and reader.
+     *
+     * @return True on success; false if DDS entity creation fails.
+     */
     bool init_dds(const std::string& topic_name,
                   dds::domain::DomainParticipant& participant,
                   const advrf::dds_common::ReaderPolicy& policy = {},
@@ -65,6 +87,11 @@ public:
         }
     }
 
+    /**
+     * @brief Build reader QoS from a middleware reader policy.
+     *
+     * Configures history depth and reliable or best-effort delivery by default.
+     */
     dds::sub::qos::DataReaderQos reader_qos(const advrf::dds_common::ReaderPolicy& policy) const {
         auto qos = dds::sub::qos::DataReaderQos()
             << dds::core::policy::History::KeepLast(policy.history_depth);
@@ -78,10 +105,12 @@ public:
         return qos;
     }
 
+    /// Set the callback invoked for each valid received sample.
     void set_callback(Callback cb){
         callback_ = std::move(cb);
     }
 
+    /// Take and deliver all valid samples currently available from DDS.
     void spin_once() override
     {
         auto samples = reader_.take();
@@ -94,6 +123,7 @@ public:
         }
     }
 
+    /// Return the underlying DDS reader for graph-bridge registration.
     dds::sub::DataReader<Msg>& dds_reader()
     {
         return reader_;
@@ -125,3 +155,5 @@ private:
     inline static const std::string default_user_data_ = "advrf=1;";
 
 };
+
+}

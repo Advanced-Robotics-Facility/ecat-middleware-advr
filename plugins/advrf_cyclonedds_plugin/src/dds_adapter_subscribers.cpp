@@ -1,9 +1,11 @@
 #include "advrf_cyclonedds_plugin/adapters/dds_adapter_subscribers.hpp"
 #include <advrf_interfaces/msg/MotorTxPdo.hpp>
 
+namespace advrf::cyclonedds_plugin {
+
 bool DDSAdapterSubscribers::init(
     const config::ConfigTopics& config_topics, 
-    const RobotConfig& robot_config,
+    const config::RobotConfig& robot_config,
     const EcatDiscover::EcatMap& ecat_map,
     dds::domain::DomainParticipant &participant,
     advrf::dds_common::ReaderPolicy reader_policy)
@@ -33,7 +35,7 @@ bool DDSAdapterSubscribers::init(
 }
 
 void DDSAdapterSubscribers::init_ros_graph_bridge(
-    const RobotConfig &robot_config,
+    const config::RobotConfig &robot_config,
     dds::domain::DomainParticipant &participant) {
     if (!robot_config.declare_to_ros) {
         return;
@@ -54,4 +56,6 @@ void DDSAdapterSubscribers::spin_once() {
   for (const auto &subscriber : subscribers_) {
     subscriber->spin_once();
   }
+}
+
 }

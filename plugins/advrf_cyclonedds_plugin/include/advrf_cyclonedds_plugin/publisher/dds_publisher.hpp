@@ -6,11 +6,19 @@
 
 #include <advrf_middleware_core/utils/log.hpp>
 
+namespace advrf::cyclonedds_plugin {
+
 struct DDSPublisherOptions
 {
     std::optional<std::string> user_data;
 };
 
+/**
+ * @brief Generic DDS writer for a message type.
+ *
+ * @tparam Msg DDS message type written by this publisher.
+ *
+ */
 template <typename Msg>
 class DDSPublisher {
     public:
@@ -23,6 +31,14 @@ class DDSPublisher {
 
         virtual ~DDSPublisher() = default;
 
+        /**
+         * @brief Create the DDS topic, publisher, and data writer.
+         *
+         * @param topic_name DDS topic name.
+         * @param participant DDS participant that owns the created entities.
+         * @param options Optional writer configuration, including user data.
+         * @return True on success; false if DDS entity creation throws an exception.
+         */
         bool init_dds(const std::string& topic_name, 
                       dds::domain::DomainParticipant& participant, 
                       const DDSPublisherOptions& options = {
@@ -61,6 +77,11 @@ class DDSPublisher {
             }
         }
 
+        /**
+         * @brief Return the QoS used by the writer.
+         *
+         * Uses best-effort reliability and history depth one by default.
+         */
         dds::pub::qos::DataWriterQos writer_qos()
         {
             return dds::pub::qos::DataWriterQos()
@@ -68,6 +89,7 @@ class DDSPublisher {
                 << dds::core::policy::History::KeepLast(1);
         }
 
+        /// Publish one DDS message.
         void publish(const Msg& msg) {
             try {
                 writer_.write(msg);
@@ -77,6 +99,7 @@ class DDSPublisher {
             }
         }
 
+        /// Return the underlying DDS data writer.
         dds::pub::DataWriter<Msg>& dds_writer()
         {
             return writer_;
@@ -91,3 +114,5 @@ class DDSPublisher {
     private:
         inline static const std::string default_user_data_ = "advrf=1;";  
 };
+
+}

@@ -3,6 +3,7 @@
 #include <atomic>
 #include <chrono>
 #include <memory>
+#include <vector>
 #include <string>
 #include <thread>
 #include <csignal>
@@ -13,9 +14,20 @@
 namespace advrf::plugin
 {
 
+/**
+ * @brief Runs one middleware adapter in a periodic worker thread.
+ *
+ * The adapter is started once, then @ref AdapterBase::spin_once is called at
+ * the configured period until the shared @p running flag becomes false.
+ */
 class Process
 {
 public:
+    /**
+     * @param name Name used in log messages.
+     * @param adapter Adapter owned and executed by this process.
+     * @param period Desired execution period.
+     */
     Process(std::string name,
             std::shared_ptr<AdapterBase> adapter,
             std::chrono::microseconds period = std::chrono::microseconds{10})
@@ -36,6 +48,12 @@ public:
         stop();
     }
 
+    /**
+     * @brief Start the adapter and its periodic worker thread.
+     *
+     * @param running Shared application-running flag.
+     * @return False if the adapter is null or cannot be started.
+     */
     bool start(std::atomic_bool& running)
     {
         if (!adapter_)
@@ -79,6 +97,11 @@ public:
         return true;
     }
 
+    /**
+     * @brief Wait for the worker thread to terminate.
+     *
+     * The caller must first set the shared running flag to false.
+     */
     void stop()
     {
         if (thread_.joinable())
@@ -97,9 +120,16 @@ private:
 namespace advrf::plugin
 {
 
+/**
+ * @brief Coordinates the lifecycle of multiple middleware adapter processes.
+ *
+ * Installs SIGINT and SIGTERM handlers. Receiving either signal requests all
+ * registered processes to stop.
+ */
 class PluginExec
 {
 public:
+    /// Install termination-signal handlers.
     PluginExec()
     {
         instance_ = this;
@@ -114,11 +144,20 @@ public:
         instance_ = nullptr;
     }
 
+    /**
+     * @brief Register an adapter process before starting the application.
+     */
     void register_adapter(Process process)
     {
         processes_.push_back(std::move(process));
     }
 
+    /**
+     * @brief Start all registered processes.
+     *
+     * @param wait_for_exit If true, block until a termination signal or an
+     *                      adapter-health failure stops the application.
+     */
     void start(bool wait_for_exit = true)
     {
         LOG_INFO("Application started (Ctrl+C to exit).");
@@ -145,10 +184,12 @@ public:
         LOG_INFO("Application exited.");
     }
 
+    /**
+     * @brief Request termination and join all worker threads.
+     */
     void stop()
     {
-        if (!running_.exchange(false))
-            return;
+        running_ = false;
 
         for (auto& process : processes_)
             process.stop();

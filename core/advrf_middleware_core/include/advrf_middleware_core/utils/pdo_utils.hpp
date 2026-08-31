@@ -2,21 +2,33 @@
 
 #include "advrf_middleware_core/utils/clock_utils.hpp"
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
+#include "advrf_middleware_core/utils/log.hpp"
 
 #include <cstring>
+#include <cstdint>
+#include <set>
+#include <string>
+#include <utility>
 #include <iostream>
 #include <ctime>
 
-/**
- * Frame layout:
- *   bytes [0..3]  -- uint32_t little-endian (LSB to MSB) payload length
- *   bytes [4..N]  -- serialised iit::advrf::Ec_slave_pdo
- */
 namespace pdo_utils {
 
-    using Pdo = iit::advrf::Ec_slave_pdo;
-    using EcatId = std::uint32_t;
+using Pdo = iit::advrf::Ec_slave_pdo;
+using EcatId = std::uint32_t;
 
+/**
+ * @brief Deserialize a length-prefixed EtherCAT PDO frame.
+ *
+ * The frame begins with a 4-byte little-endian payload length, followed by a
+ * serialized @c iit::advrf::Ec_slave_pdo Protobuf message.
+ *
+ * @param buf Input frame bytes.
+ * @param n Number of bytes in @p buf.
+ * @param pdo_out Destination PDO.
+ * @return True if the frame is well formed and Protobuf deserialization
+ *         succeeds; otherwise false.
+ */
 inline bool parse_frame(const uint8_t* buf, ssize_t n,
                         iit::advrf::Ec_slave_pdo& pdo_out)
 {
@@ -33,6 +45,9 @@ inline bool parse_frame(const uint8_t* buf, ssize_t n,
     return pdo_out.ParseFromArray(buf + 4, static_cast<int>(pb_len));
 }
 
+/**
+ * @brief Expected device category for a PDO consumer.
+ */
 enum class PdoExpected { 
     Motor, 
     Imu, 
@@ -43,6 +58,9 @@ enum class PdoExpected {
     Gripper
 };
 
+/**
+ * @brief Log a PDO-type mismatch once for each received/expected type pair.
+ */
 inline void warn_type_mismatch(iit::advrf::Ec_slave_pdo::Type got, PdoExpected expected)
 {
     const char* expected_str = 
@@ -119,6 +137,12 @@ inline bool is_expected_type(iit::advrf::Ec_slave_pdo::Type t, PdoExpected expec
     return false;
 }
 
+/**
+ * @brief Check whether a PDO has the expected device type.
+ *
+ * Hub and client-pipe PDOs are always rejected. Unexpected types cause a
+ * warning, emitted once per type pair.
+ */
 inline bool check_expected_type(const iit::advrf::Ec_slave_pdo& pdo, PdoExpected expected)
 {
     const auto t = pdo.type();
@@ -128,6 +152,14 @@ inline bool check_expected_type(const iit::advrf::Ec_slave_pdo& pdo, PdoExpected
     return false;
 }
 
+/**
+ * @brief Return a PDO timestamp converted to Unix-epoch nanoseconds.
+ *
+ * Uses the timestamp embedded in the PDO when available; otherwise uses the
+ * current local monotonic time as a reception-time fallback.
+ *
+ * @pre clock_utils::init() has been called.
+ */
 inline uint64_t extract_timestamp_ns(const iit::advrf::Ec_slave_pdo& pdo)
 {
     if (pdo.has_header() && pdo.header().has_stamp())
@@ -139,9 +171,12 @@ inline uint64_t extract_timestamp_ns(const iit::advrf::Ec_slave_pdo& pdo)
     return clock_utils::monotonic_to_realtime(clock_utils::monotonic_now_ns());
 }
 
-} 
-
-#include "advrf_middleware_core/utils/log.hpp"
+/**
+ * @brief Extract the numeric EtherCAT ID after the final underscore.
+ *
+ * @param component_name Identifier such as `motor_12`.
+ * @return Parsed EtherCAT ID, or -1 if the identifier has an invalid format.
+ */
 inline int get_ecat_id(const std::string &component_name) {
   const std::size_t pos = component_name.rfind('_');
 
@@ -158,4 +193,6 @@ inline int get_ecat_id(const std::string &component_name) {
 
     return -1;
   }
+}
+
 }

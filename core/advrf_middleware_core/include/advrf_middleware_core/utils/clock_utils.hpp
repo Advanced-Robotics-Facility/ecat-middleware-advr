@@ -4,18 +4,11 @@
 #include <ctime>
 #include <iostream>
 
-/**
- * The EtherCAT master stamps every PDO with CLOCK_MONOTONIC (nanoseconds since system boot) 
- * ROS2 and most logging tools expect CLOCK_REALTIME (nanoseconds since Unix epoch, Jan 1 1970)
- *
- * Both clocks tick at the same hardware rate, so their difference K is a fixed constant:
- *
- *   Realtime(t) = Monotonic(t) + K, where K = (Realtime_at_boot(t) - Monotonic_at_boot(t))
- *
- * We measure K once at startup by sampling both clocks back-to-back, then convert any PDO timestamp with a single addition.
- */
 namespace clock_utils {
 
+/**
+ * @brief Sampled offset between CLOCK_REALTIME and CLOCK_MONOTONIC.
+ */
 struct ClockOffset {
     uint64_t realtime_ns  = 0; 
     uint64_t monotonic_ns = 0;
@@ -23,6 +16,11 @@ struct ClockOffset {
 };
 inline ClockOffset g_offset;
 
+/**
+ * @brief Sample realtime and monotonic clocks and calculate their offset.
+ *
+ * Call once during initialization, before monotonic_to_realtime().
+ */
 inline void init()
 {
     struct timespec rt{};
@@ -36,12 +34,22 @@ inline void init()
     g_offset.K = g_offset.realtime_ns - g_offset.monotonic_ns;
 }
 
+
+/**
+ * @brief Convert a monotonic timestamp to an estimated Unix-epoch timestamp.
+ *
+ * The conversion uses the offset sampled by init().
+ */
 inline uint64_t monotonic_to_realtime(uint64_t mono_ns)
 {
     return mono_ns + g_offset.K;
 }
 
-// Fallback function (used when PDO has no timestamp)
+/**
+ * @brief Return the current CLOCK_MONOTONIC time in nanoseconds.
+ *
+ * Used when an incoming PDO has no timestamp.
+ */
 inline uint64_t monotonic_now_ns()
 {
     struct timespec ts{};

@@ -126,7 +126,7 @@ int main(int argc, char** argv)
     try
     {
         const auto options = parse_args(argc, argv);
-        auto robot = load_robot_config(
+        auto robot = config::load_robot_config(
             ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
             ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
         if (!robot)
@@ -138,7 +138,7 @@ int main(int argc, char** argv)
             LOG_ERROR("Failed to connect to EtherCAT PDO shared memory.");
             return 1;
         }
-        const auto ecat_map = ecat_discover.discover(extract_pdo_ids(*robot));
+        const auto ecat_map = ecat_discover.discover(config::extract_pdo_ids(*robot));
 
         zenoh::init_log_from_env_or("error");
         auto session = zenoh::Session::open(make_zenoh_config(options));

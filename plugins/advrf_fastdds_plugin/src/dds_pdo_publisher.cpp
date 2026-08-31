@@ -1,6 +1,8 @@
 #include "advrf_fastdds_plugin/adapters/dds_pdo_publisher.hpp"
 #include "advrf_middleware_core/utils/name_resolver.hpp"
 
+namespace advrf::fastdds_plugin {
+
 bool ImuPublisher::process(const iit::advrf::Ec_slave_pdo& pdo) {
     switch (pdo.type()) {
         case iit::advrf::Ec_slave_pdo::RX_IMU_VN:
@@ -134,4 +136,6 @@ bool GripperPublisher::process(const iit::advrf::Ec_slave_pdo& pdo) {
     message().name().push_back(resolve_name(pdo.header().str_id(), id_to_name_));
     convert::dds::from_protobuf(pdo, message().header());
     return true;
+}
+
 }

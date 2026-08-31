@@ -8,23 +8,45 @@
 namespace config
 {
 
+/**
+ * @brief Base class for building middleware topic names.
+ *
+ * Topic names have the form:
+ * @code
+ * <prefix>/<namespace...>/<suffix>
+ * @endcode
+ *
+ * The prefixes @c rt, @c rq, and @c rr identify ROS topic (rt/), ROS service 
+ * request (rq/), and ROS service reply (rr/) topics respectively.
+ * 
+ * @note There exists also ra/ and rp/ which identify ROS actions
+ * and ROS parameters.
+ */
 struct TopicNamespace
 {
+    /**
+     * @brief Create a topic builder with the given namespace components.
+     *
+     * For example, @c {"advrf", "kyon"} becomes @c advrf/kyon in every topic.
+     */
     explicit TopicNamespace(std::vector<std::string> ns)
         : namespace_(std::move(ns))
     {}
 
 protected:
+    /// Build a ROS topic with the given suffix.
     std::string rt(std::string_view suffix) const
     {
         return build("rt", suffix);
     }
 
+    /// Build a ROS service request topic with the given suffix.
     std::string rq(std::string_view suffix) const
     {
         return build("rq", suffix);
     }
 
+    /// Build a ROS service reply topic with the given suffix.
     std::string rr(std::string_view suffix) const
     {
         return build("rr", suffix);
@@ -54,6 +76,7 @@ private:
 namespace topics
 {
 
+/// ROS state topics published by the EtherCAT middleware.
 struct TopicsState : public TopicNamespace
 {
     using TopicNamespace::TopicNamespace;
@@ -69,7 +92,7 @@ struct TopicsState : public TopicNamespace
     std::string pump(const std::string& device_name)        const { return rt("rx/pump/" + device_name); }
 };
 
-
+/// ROS command topics received by the EtherCAT middleware.
 struct TopicsCommand  : public TopicNamespace
 {
     using TopicNamespace::TopicNamespace;
@@ -82,7 +105,7 @@ struct TopicsCommand  : public TopicNamespace
     std::string forceTorqueCmd()    const { return rt("tx/force_torque"); }
 };
 
-
+/// Request and reply topics for EtherCAT service commands.
 struct TopicsService : public TopicNamespace
 {
     using TopicNamespace::TopicNamespace;
@@ -91,6 +114,7 @@ struct TopicsService : public TopicNamespace
     std::string reply()   const { return rr("replCmd/reply"); }
 };
 
+/// Request and reply topics used to access middleware parameters.
 struct TopicsParameters : public TopicNamespace
 {
     using TopicNamespace::TopicNamespace;
@@ -113,6 +137,11 @@ struct TopicsParameters : public TopicNamespace
 
 } // namespace topics
 
+/**
+ * @brief Complete collection of middleware topic-name builders.
+ *
+ * All groups share the same namespace prefix.
+ */
 struct ConfigTopics
 {
     explicit ConfigTopics(std::vector<std::string> ns)

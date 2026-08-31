@@ -20,14 +20,23 @@
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/utils/log.hpp>
 
-
 namespace middleware_adapter::message {
 
+/**
+ * @brief Reads received EtherCAT PDOs from shared memory and forwards them
+ *        to registered publishers.
+ *
+ * PDOs are grouped by receive channel and EtherCAT ID. A publisher can
+ * subscribe to one or more channels and optionally restrict the accepted IDs.
+ */
 class AdapterPublishers : public AdapterBase {
 public:
-
+  /// Maximum supported EtherCAT ID.
   static constexpr std::size_t MaxEcatIds = 256;
 
+  /**
+   * @brief Cached PDO associated with one EtherCAT ID.
+   */
   struct PdoCache {
     bool valid = false;
     bool updated_this_cycle = false;
@@ -35,14 +44,23 @@ public:
     pdo_utils::Pdo pdo;
   };
 
+  /**
+   * @brief Cache of received PDOs for one received channel.
+   */
   struct ChannelCache {
     std::array<PdoCache, MaxEcatIds> entries;
-    std::vector<pdo_utils::EcatId> active_ids;
+    std::vector<pdo_utils::EcatId> active_ids; ///< IDs currently in the cache.
   };
 
   using Cache = std::array<ChannelCache, CHANNEL_COUNT>;
   using IdMask = std::bitset<MaxEcatIds>;
 
+  /**
+   * @brief Interface implemented by concrete message publishers.
+   *
+   * The adapter calls the methods in this order for each cycle:
+   * begin_cycle(), zero or more consume() calls, then end_cycle().
+   */
   class IPublisher {
   public:
     virtual ~IPublisher() = default;
@@ -59,6 +77,11 @@ public:
     std::unordered_map<pdo_utils::EcatId, std::string> id_to_name_;
   };
 
+  /**
+   * @brief Filtering configuration for one registered publisher.
+   *
+   * An empty ID list accepts all IDs from the configured channels.
+   */
   struct Subscription {
     IPublisher *publisher = nullptr;
     std::vector<ChannelRx> channels;
@@ -77,11 +100,13 @@ public:
   ShmRxReader &shm() noexcept { return shm_; }
   const ShmRxReader &shm() const noexcept { return shm_; }
 
+  /// Drain shared-memory PDOs and dispatch them to registered publishers.
   void spin_once() override {
     fill_cache();
     dispatch();
   }
 
+  /// Connect to the non-real-time RX PDO shared-memory channel.
   bool start() override {
     return shm_.connect(SHM_NRT_RX_PDO, ShmAttachMode::Open);
   }
@@ -92,6 +117,13 @@ public:
 protected:
   ShmRxReader shm_;
 
+  /**
+   * @brief Register a publisher and its channel/ID filters.
+   *
+   * @param channels Receive channels to consume.
+   * @param ids_allowed Optional EtherCAT-ID allowlist.
+   * @return Reference to the registered publisher.
+   */
   template <typename PublisherType>
   PublisherType &
   register_publisher(std::vector<ChannelRx> channels,
@@ -155,6 +187,7 @@ private:
     return cache_[channel_index(channel)];
   }
 
+  /// Drain PDOs from shared memory and update the per-channel cache.
   void fill_cache() {
     for (const ChannelRx channel : CHANNELS_ARRAY) {
       const auto device = device_for(channel);
@@ -170,7 +203,7 @@ private:
       shm_.drain(*device, pdos);
 
       for(const auto &received : pdos) {
-        const int parsed_id = get_ecat_id(received.header().str_id());
+        const int parsed_id = pdo_utils::get_ecat_id(received.header().str_id());
 
         if (parsed_id < 0) {
           LOG_ERROR("Format error for PDO frame with ID {}",
@@ -198,6 +231,7 @@ private:
     }
   }
 
+  /// Deliver cached PDOs to each registered publisher.
   void dispatch() {
     for (auto &subscription : subscriptions_) {
       subscription.ids_seen.reset();
@@ -233,4 +267,4 @@ private:
   }
 };
 
-} // namespace middleware_adapter::message
+}

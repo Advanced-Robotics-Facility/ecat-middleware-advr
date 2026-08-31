@@ -6,10 +6,10 @@
 #include <unordered_map>
 #include <cstdint>
 
-
+namespace advrf::fastdds_plugin {
 
 void DDSAdapterPublishers::init_ros_graph_bridge(
-    const RobotConfig& robot_config,
+    const config::RobotConfig& robot_config,
     eprosima::fastdds::dds::DomainParticipant* dp)
 {
     if (!robot_config.declare_to_ros) {
@@ -34,7 +34,7 @@ void DDSAdapterPublishers::init_ros_graph_bridge(
 
 bool DDSAdapterPublishers::init(
     const config::ConfigTopics& config_topics, 
-    const RobotConfig& robot_config,
+    const config::RobotConfig& robot_config,
     const EcatDiscover::EcatMap& ecat_map,
     eprosima::fastdds::dds::DomainParticipant* dp) 
 {
@@ -224,4 +224,6 @@ bool DDSAdapterPublishers::init(
     init_ros_graph_bridge(robot_config, dp);
 
     return true;
+}
+
 }

@@ -15,9 +15,10 @@
 #include <advrf_dds_common/converter/converter.hpp>
 #include <advrf_dds_common/qos/reader_policy.hpp>
 
+namespace advrf::fastdds_plugin {
+
 using Msg = advrf_interfaces::msg::dds_::ReplCmd_Content_Vector_;
 using MsgPubSubType = advrf_interfaces::msg::dds_::ReplCmd_Content_Vector_PubSubType;
-
 
 template <typename Msg, typename MsgPubSubType>
 class DDSPdoSubscriber
@@ -38,7 +39,7 @@ class DDSAdapterSubscribers: public middleware_adapter::message::AdapterSubscrib
 public:
     
     bool init(const config::ConfigTopics& config_topics, 
-              const RobotConfig& robot_config,
+              const config::RobotConfig& robot_config,
               const EcatDiscover::EcatMap& ecat_map,
               eprosima::fastdds::dds::DomainParticipant* participant,
               advrf::dds_common::ReaderPolicy reader_policy = {});
@@ -108,7 +109,7 @@ protected:
     }
 
     void init_ros_graph_bridge(
-        const RobotConfig& robot_config,
+        const config::RobotConfig& robot_config,
         eprosima::fastdds::dds::DomainParticipant* participant
     );
 
@@ -118,3 +119,5 @@ private:
     std::unique_ptr<FastRosGraphBridge> ros_graph_bridge_;
     std::vector<std::reference_wrapper<IConnectRosGraphBridge>> ros_connectables_;
 };
+
+}

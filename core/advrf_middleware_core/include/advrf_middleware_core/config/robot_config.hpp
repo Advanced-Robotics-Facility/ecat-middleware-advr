@@ -9,14 +9,35 @@
 #include <advrf_middleware_core/utils/channel.hpp>
 #include <advrf_middleware_core/utils/pdo_utils.hpp>
 
+namespace config
+{
+
+/**
+ * @brief Runtime configuration of a robot middleware instance.
+ *
+ * Values are loaded from the EtherCAT configuration and joint-ID map YAML
+ * files.
+ */
 struct RobotConfig {
+    /// Robot name read from ecat config file.
     std::string robot_name {"NoNe"};
+    /// DDS domain ID.
     uint32_t domain_id {0};
+    /// Middleware namespace used for topic construction.
     std::string ns {""};
+    /// Whether middleware data should be declared to ROS2.
     bool declare_to_ros {false};
+    /// Mapping from EtherCAT IDs to configured joint/device names.
     std::unordered_map<pdo_utils::EcatId, std::string> map_ecat_id;
 };
 
+/**
+ * @brief Load general robot and DDS settings from an EtherCAT YAML file.
+ *
+ * Missing YAML keys preserve the current values in @p cfg.
+ * YAML parsing failures are reported to stderr and leave already-loaded
+ * configuration values unchanged.
+ */
 inline void load_from_ecat_config(RobotConfig& cfg, const std::string& ecat_config_path) {
     try {
         YAML::Node root = YAML::LoadFile(ecat_config_path);
@@ -32,18 +53,20 @@ inline void load_from_ecat_config(RobotConfig& cfg, const std::string& ecat_conf
             
             YAML::Node qos = dds["qos"];
             if(qos) {
-                
-                
+                // TODO
             }
         
         }
-
-
     } catch (const YAML::Exception& e) {
         std::cerr << "[RobotConfig] Failed to parse '" << ecat_config_path << "': " << e.what() << '\n';
     }
 }
 
+/**
+ * @brief Load EtherCAT-ID-to-device-name mappings from a YAML file.
+ *
+ * Expects a `joint_map` YAML entry.
+ */
 inline void load_from_robot_id_map(RobotConfig& cfg, const std::string& ecat_robot_id_map_path) {
     try {
         YAML::Node root = YAML::LoadFile(ecat_robot_id_map_path);
@@ -53,14 +76,14 @@ inline void load_from_robot_id_map(RobotConfig& cfg, const std::string& ecat_rob
                 cfg.map_ecat_id[j.first.as<int>()] = j.second.as<std::string>();
             }
         }
-
     } catch (const YAML::Exception& e) {
         std::cerr << "[RobotConfig] Failed to parse '" << ecat_robot_id_map_path << "': " << e.what() << '\n';
     }
-
 }
 
-
+/**
+ * @brief Load a complete robot configuration from the two YAML files.
+ */
 inline std::optional<RobotConfig> load_robot_config(const std::string& ecat_map_id_path, 
                                                     const std::string& ecat_config_path) {
     RobotConfig cfg;
@@ -69,7 +92,9 @@ inline std::optional<RobotConfig> load_robot_config(const std::string& ecat_map_
     return cfg;
 }
 
-
+/**
+ * @brief Return all EtherCAT PDO IDs configured for the robot.
+ */
 inline std::set<uint32_t> extract_pdo_ids(const RobotConfig& cfg) {
     std::set<uint32_t> pdo_ids;
     const auto add_ids = [&pdo_ids](const auto& devices) {
@@ -81,20 +106,25 @@ inline std::set<uint32_t> extract_pdo_ids(const RobotConfig& cfg) {
     return pdo_ids;
 }
 
-
+/**
+ * @brief Fluent builder for composing a @ref RobotConfig from YAML sources.
+ */
 class RobotConfigBuilder {
 
 public:
+    /// Merge general robot and DDS settings from an EtherCAT configuration.
     RobotConfigBuilder& from_ecat_config(const std::string& ecat_config_path){
         load_from_ecat_config(robot_config_, ecat_config_path);
         return *this;
     }
 
+    /// Merge EtherCAT-ID-to-device-name mappings from a joint-map file.
     RobotConfigBuilder& from_robot_id_map(const std::string& ecat_robot_id_map_path){
         load_from_robot_id_map(robot_config_, ecat_robot_id_map_path);
         return *this;
     }
 
+    /// Return the accumulated configuration.
     const RobotConfig& build() {
         return robot_config_;
     }
@@ -102,3 +132,5 @@ public:
 private:
     RobotConfig robot_config_;
 };
+
+}

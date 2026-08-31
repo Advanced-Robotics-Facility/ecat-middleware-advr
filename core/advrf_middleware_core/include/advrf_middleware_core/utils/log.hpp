@@ -6,9 +6,20 @@
 namespace advrf::log
 {
 
+    /**
+     * @brief One-time initialization of the project's spdlog configuration.
+     *
+     * The configured log level follows @c SPDLOG_ACTIVE_LEVEL. Log messages
+     * uses a timestamp, colourized console format. 
+     */
     class Log
     {
     public:
+        /**
+         * @brief Initialize spdlog once in a thread-safe manner.
+         *
+         * Repeated calls have no effect.
+         */
         static inline void init()
         {
             static std::once_flag once;
@@ -38,6 +49,9 @@ namespace advrf::log
 
 } // namespace advrf::log
 
+/**
+ * @brief Convenience macros forwarding to spdlog at the corresponding level.
+ */
 #define LOG_TRACE(...)    SPDLOG_TRACE(__VA_ARGS__)
 #define LOG_DEBUG(...)    SPDLOG_DEBUG(__VA_ARGS__)
 #define LOG_INFO(...)     SPDLOG_INFO(__VA_ARGS__)

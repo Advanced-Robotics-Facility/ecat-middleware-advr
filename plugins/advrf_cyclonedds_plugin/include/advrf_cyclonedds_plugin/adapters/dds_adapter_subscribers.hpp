@@ -20,35 +20,64 @@
 #include "advrf_cyclonedds_plugin/ros_metadata/ros_graph_bridge.hpp"
 #include "advrf_cyclonedds_plugin/subscriber/dds_subscriber.hpp"
 
+namespace advrf::cyclonedds_plugin {
+
+/**
+ * @brief DDS subscriber that can be registered with the ROS graph bridge.
+ *
+ * @tparam Msg DDS message type read from the topic.
+ */
 template <typename Msg>
 class DDSPdoSubscriber
     : public IConnectRosGraphBridge,
       public DDSSubscriber<Msg>
 {
 public:
+    /// Register this subscriber's DDS reader with the ROS graph bridge.
     void connect_ros_graph_bridge(CycloneDDSRosGraphBridge& bridge) override
     {
         bridge.add_reader(this->dds_reader());
     }
 };
 
-
+/**
+ * @brief Adapter that forwards DDS command messages to EtherCAT shared memory.
+ *
+ * Each configured DDS topic is converted to one or more transmit PDOs and
+ * pushed to its associated @c ChannelTx channel.
+ */
 class DDSAdapterSubscribers
     : public middleware_adapter::message::AdapterSubscribers
 {
 public:
 
+    /**
+     * @brief Configure command-topic subscribers and ROS graph integration.
+     *
+     * @param config_topics Topic-name builders.
+     * @param robot_config Robot DDS configuration.
+     * @param ecat_map Metadata from EtherCAT PDO discovery.
+     * @param participant DDS participant used to create readers.
+     * @param reader_policy QoS policy applied to every reader.
+     * @return True if every required subscriber is initialized.
+     */
     bool init(
         const config::ConfigTopics& config_topics,
-        const RobotConfig& robot_config,
+        const config::RobotConfig& robot_config,
         const EcatDiscover::EcatMap &ecat_map,
         dds::domain::DomainParticipant& participant,
         advrf::dds_common::ReaderPolicy reader_policy = {}
     );
 
+    /// Process all available samples from registered DDS readers.
     void spin_once() override;
 
 private:
+    /**
+     * @brief Register a DDS topic whose message converts to multiple PDOs.
+     *
+     * @return False if the DDS reader cannot be initialized.
+     */
     template <typename Msg>
     bool register_subscriber(
         const std::string& topic_name,
@@ -87,6 +116,11 @@ private:
         return true;
     }
 
+    /**
+     * @brief Register a DDS topic whose message converts to one PDO.
+     *
+     * @return False if the DDS reader cannot be initialized.
+     */
     template <typename Msg>
     bool register_subscriber(
         const std::string& topic_name,
@@ -122,8 +156,9 @@ private:
         return true;
     }
 
+    /// Initialize optional ROS 2 graph-discovery integration.
     void init_ros_graph_bridge(
-        const RobotConfig& robot_config,
+        const config::RobotConfig& robot_config,
         dds::domain::DomainParticipant& participant
     );
 
@@ -132,3 +167,5 @@ private:
     std::unique_ptr<CycloneDDSRosGraphBridge> ros_graph_bridge_;
     std::vector<std::reference_wrapper<IConnectRosGraphBridge>> ros_connectables_;
 };
+
+}

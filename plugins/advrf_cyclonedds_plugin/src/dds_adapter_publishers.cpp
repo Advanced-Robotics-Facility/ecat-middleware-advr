@@ -6,12 +6,10 @@
 #include <unordered_map>
 #include <vector>
 
-namespace {
-
-} // namespace
+namespace advrf::cyclonedds_plugin {
 
 void DDSAdapterPublishers::init_ros_graph_bridge(
-    const RobotConfig& robot_config,
+    const config::RobotConfig& robot_config,
     dds::domain::DomainParticipant& dp)
 {
     if (!robot_config.declare_to_ros) {
@@ -36,7 +34,7 @@ void DDSAdapterPublishers::init_ros_graph_bridge(
 
 bool DDSAdapterPublishers::init(
     const config::ConfigTopics& config_topics,
-    const RobotConfig& robot_config,
+    const config::RobotConfig& robot_config,
     const EcatDiscover::EcatMap& ecat_map,
     dds::domain::DomainParticipant& dp)
 {
@@ -226,4 +224,6 @@ bool DDSAdapterPublishers::init(
     init_ros_graph_bridge(robot_config, dp);
 
     return true;
+}
+
 }
