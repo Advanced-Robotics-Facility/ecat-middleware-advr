@@ -3,3 +3,6 @@
 
 #clangd
 .clangd
+
+#docs
+docs/build
