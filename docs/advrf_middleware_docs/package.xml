@@ -9,7 +9,9 @@
   <maintainer email="manuel.delucchi@iit.it">Manuel Delucchi</maintainer>
   <license>TODO</license>
 
+  <build_depend>sphinx</build_depend>
   <build_depend>doxygen</build_depend>
+  <build_depend>python3-breathe</build_depend>
 
   <export>
     <build_type>cmake</build_type>
