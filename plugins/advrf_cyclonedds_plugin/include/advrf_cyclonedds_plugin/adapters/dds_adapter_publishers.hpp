@@ -40,7 +40,7 @@ public:
      * @return True if initialization succeeds.
      */
     bool init(
-        const advrf::middleware::advrf::middleware::config::ConfigTopics& config_topics,
+        const advrf::middleware::config::ConfigTopics& config_topics,
         const advrf::middleware::config::RobotConfig& robot_config,
         const advrf::middleware::ecat::EcatDiscover::EcatMap& ecat_map,
         dds::domain::DomainParticipant& dp

@@ -62,7 +62,7 @@ public:
      * @return True if every required subscriber is initialized.
      */
     bool init(
-        const advrf::middleware::advrf::middleware::config::ConfigTopics& config_topics,
+        const advrf::middleware::config::ConfigTopics& config_topics,
         const advrf::middleware::config::RobotConfig& robot_config,
         const advrf::middleware::ecat::EcatDiscover::EcatMap &ecat_map,
         dds::domain::DomainParticipant& participant,

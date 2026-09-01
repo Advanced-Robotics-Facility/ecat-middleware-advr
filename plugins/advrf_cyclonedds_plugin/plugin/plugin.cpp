@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
   advrf::log::Log::init();
   const auto options = parse_args(argc, argv);
 
-  auto config_robot = advrf::middleware::advrf::middleware::config::RobotConfigBuilder()
+  auto config_robot = advrf::middleware::config::RobotConfigBuilder()
     .from_ecat_config(ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml")
     .from_robot_id_map(ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml")
     .build();

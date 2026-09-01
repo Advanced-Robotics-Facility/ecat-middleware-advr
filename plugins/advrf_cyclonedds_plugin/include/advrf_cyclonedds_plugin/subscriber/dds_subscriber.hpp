@@ -32,7 +32,6 @@ public:
  */
 struct DDSSubscriberOptions
 {
-    
     std::optional<std::string> user_data;
 };
 
