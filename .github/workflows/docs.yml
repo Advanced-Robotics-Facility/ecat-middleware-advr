@@ -25,8 +25,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           submodules: recursive
-          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+          token: ${{ secrets.SUBMODULE_TOKEN }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
