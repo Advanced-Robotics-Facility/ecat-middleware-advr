@@ -1,9 +1,11 @@
-API reference
+API Reference
 =============
 
 This section is generated from the Doxygen XML output.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
+   :caption: API reference
 
    middleware
+   idl
