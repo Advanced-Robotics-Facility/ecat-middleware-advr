@@ -1,5 +1,7 @@
 #pragma once
 
+namespace advrf::middleware::adapters {
+
 /**
  * @brief Common lifecycle interface for middleware adapters.
  */
@@ -19,3 +21,5 @@ class AdapterBase {
         /// Release adapter resources and disconnect.
         virtual void close() = 0;
 };
+
+}

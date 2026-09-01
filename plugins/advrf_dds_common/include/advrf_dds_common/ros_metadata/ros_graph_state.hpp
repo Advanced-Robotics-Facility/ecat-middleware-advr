@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <vector>
 
+namespace advrf::dds_common::ros_metadata {
+
 class RosGraphState {
 public:
     using GidBytes = std::array<uint8_t, 16>;
@@ -65,3 +67,5 @@ private:
     std::vector<GidBytes> reader_gids_;
     std::vector<GidBytes> writer_gids_;
 };
+
+}

@@ -10,7 +10,7 @@
 #include <advrf_interfaces_protobuf/repl_cmd.pb.h>
 #include <advrf_middleware_core/utils/log.hpp>
 
-namespace middleware_adapter::service
+namespace advrf::middleware::adapters::service
 {
 
 /**
@@ -20,7 +20,7 @@ namespace middleware_adapter::service
  * waits for the matching reply. Requests are serialized: only one can be
  * pending at a time.
  */
-class AdapterServiceServer : public AdapterBase
+class AdapterServiceServer : public advrf::middleware::adapters::AdapterBase
 {
 public:
     AdapterServiceServer() = default;

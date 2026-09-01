@@ -7,14 +7,16 @@
 
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 
+namespace advrf::middleware::ecat {
+
 /**
  * @brief Metadata describing an EtherCAT device discovered from a received PDO.
  */
 struct EcatMetadata {
-  pdo_utils::EcatId ecat_id;              ///< Numeric EtherCAT device ID.
+  advrf::middleware::pdo::EcatId ecat_id;              ///< Numeric EtherCAT device ID.
   std::string name;                       ///< Device identifier from the PDO header.
   iit::advrf::Ec_slave_pdo::Type type;    ///< Protobuf PDO type.
-  ChannelRx channel;                      ///< Middleware receive channel.
+  advrf::middleware::shm::ChannelRx channel;                      ///< Middleware receive channel.
   DeviceTypeRx device;                    ///< Corresponding shared-memory device.
 };
 
@@ -27,7 +29,7 @@ struct EcatMetadata {
 class EcatDiscover {
 public:
   using Pdo = iit::advrf::Ec_slave_pdo;
-  using EcatMap = std::unordered_map<pdo_utils::EcatId, EcatMetadata>;
+  using EcatMap = std::unordered_map<advrf::middleware::pdo::EcatId, EcatMetadata>;
 
   EcatDiscover() = default;
   ~EcatDiscover() = default;
@@ -70,8 +72,8 @@ public:
 private:
 
   void discover_once(const std::set<uint32_t> &ecat_ids, EcatMap &ecat_map) {
-    for (const auto channel : CHANNELS_ARRAY) {
-      const auto device = device_for(channel);
+    for (const auto channel : advrf::middleware::shm::CHANNELS_ARRAY) {
+      const auto device = advrf::middleware::shm::device_for(channel);
 
       if (!device) {
         LOG_ERROR("Failed to get device for channel {}",
@@ -84,7 +86,7 @@ private:
 
       for (const auto &pdo : pdos) {
         const auto &str_id = pdo.header().str_id();
-        const int parsed_id = pdo_utils::get_ecat_id(str_id);
+        const int parsed_id = advrf::middleware::pdo::get_ecat_id(str_id);
 
         if (parsed_id < 0) {
           LOG_ERROR("Format error for PDO frame with ID {}", str_id);
@@ -119,7 +121,7 @@ private:
  *         found.
  */
 inline iit::advrf::Ec_slave_pdo::Type resolve_type(const EcatDiscover::EcatMap& ecat_map, 
-                                                  pdo_utils::EcatId ecat_id) {
+                                                   advrf::middleware::pdo::EcatId ecat_id) {
     auto it = ecat_map.find(ecat_id);
     if (it != ecat_map.end()) {
       return it->second.type;
@@ -128,3 +130,5 @@ inline iit::advrf::Ec_slave_pdo::Type resolve_type(const EcatDiscover::EcatMap& 
       return iit::advrf::Ec_slave_pdo::Type::Ec_slave_pdo_Type__UNSPECIFIED;
     }
   }
+
+}

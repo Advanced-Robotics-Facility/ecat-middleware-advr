@@ -22,7 +22,7 @@ namespace advrf::fastdds_plugin {
 template <typename Msg, typename MsgPubSubType>
 class DDSPdoPublisher
     : public DDSPublisher<Msg, MsgPubSubType>
-    , public middleware_adapter::message::AdapterPublishers::IPublisher,
+    , public advrf::middleware::adapters::message::AdapterPublishers::IPublisher,
     public IConnectRosGraphBridge
 {
 public:

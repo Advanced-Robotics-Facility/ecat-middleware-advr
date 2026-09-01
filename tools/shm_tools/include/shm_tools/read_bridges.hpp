@@ -6,6 +6,8 @@
 #include <advrf_interfaces_protobuf/repl_cmd.pb.h>
 #include <shm_types.hpp>
 
+namespace advrf::middleware::tools::shm {
+
 class ReadBridgeRx : public BridgeInspector<SharedProtoPubBridge> {
 public:
   using Base = BridgeInspector<SharedProtoPubBridge>;
@@ -74,3 +76,5 @@ protected:
     register_queue<iit::advrf::Cmd_reply>("reply", bridge_->payload.reply);
   }
 };
+
+}

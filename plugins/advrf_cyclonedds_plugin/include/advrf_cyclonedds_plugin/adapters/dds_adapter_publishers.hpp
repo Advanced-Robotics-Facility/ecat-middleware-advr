@@ -18,9 +18,9 @@
 
 namespace advrf::cyclonedds_plugin {
 
-using AdapterPublishers = middleware_adapter::message::AdapterPublishers;
-using IPublisher = middleware_adapter::message::AdapterPublishers::IPublisher;
-using Subscription = middleware_adapter::message::AdapterPublishers::Subscription;
+using AdapterPublishers = advrf::middleware::adapters::message::AdapterPublishers;
+using IPublisher = advrf::middleware::adapters::message::AdapterPublishers::IPublisher;
+using Subscription = advrf::middleware::adapters::message::AdapterPublishers::Subscription;
 
 /**
  * @brief Adapter that publishes received EtherCAT PDO data through DDS.
@@ -40,9 +40,9 @@ public:
      * @return True if initialization succeeds.
      */
     bool init(
-        const config::ConfigTopics& config_topics,
-        const config::RobotConfig& robot_config,
-        const EcatDiscover::EcatMap& ecat_map,
+        const advrf::middleware::advrf::middleware::config::ConfigTopics& config_topics,
+        const advrf::middleware::config::RobotConfig& robot_config,
+        const advrf::middleware::ecat::EcatDiscover::EcatMap& ecat_map,
         dds::domain::DomainParticipant& dp
     );
 
@@ -55,9 +55,9 @@ private:
      */
     template<typename Publisher, typename Topic>
     Publisher& create_publisher(
-        std::initializer_list<ChannelRx> channels,
-        const std::vector<pdo_utils::EcatId>& ids,
-        const std::unordered_map<pdo_utils::EcatId, std::string>& names,
+        std::initializer_list<advrf::middleware::shm::ChannelRx> channels,
+        const std::vector<advrf::middleware::pdo::EcatId>& ids,
+        const std::unordered_map<advrf::middleware::pdo::EcatId, std::string>& names,
         const Topic& topic,
         dds::domain::DomainParticipant& dp
     )
@@ -71,7 +71,7 @@ private:
 
     /// Initialize optional ROS 2 graph-discovery integration.
     void init_ros_graph_bridge(
-        const config::RobotConfig& robot_config,
+        const advrf::middleware::config::RobotConfig& robot_config,
         dds::domain::DomainParticipant& dp
     );
 

@@ -10,25 +10,25 @@
 
 namespace advrf::fastdds_plugin {
 
-using AdapterPublishers = middleware_adapter::message::AdapterPublishers;
-using IPublisher = middleware_adapter::message::AdapterPublishers::IPublisher;
-using Subscription = middleware_adapter::message::AdapterPublishers::Subscription;
+using AdapterPublishers = advrf::middleware::adapters::message::AdapterPublishers;
+using IPublisher = advrf::middleware::adapters::message::AdapterPublishers::IPublisher;
+using Subscription = advrf::middleware::adapters::message::AdapterPublishers::Subscription;
 
 class DDSAdapterPublishers : public AdapterPublishers {
 public:
     bool init(
-        const config::ConfigTopics& config_topics,
-        const config::RobotConfig& robot_config,
-        const EcatDiscover::EcatMap& ecat_map,
+        const advrf::middleware::config::ConfigTopics& config_topics,
+        const advrf::middleware::config::RobotConfig& robot_config,
+        const advrf::middleware::ecat::EcatDiscover::EcatMap& ecat_map,
         eprosima::fastdds::dds::DomainParticipant* dp
     );
 
 private:
     template<typename Publisher, typename Topic>
     Publisher& create_publisher(
-        std::initializer_list<ChannelRx> channels,
-        const std::vector<pdo_utils::EcatId>& ids,
-        const std::unordered_map<pdo_utils::EcatId, std::string>& names,
+        std::initializer_list<advrf::middleware::shm::ChannelRx> channels,
+        const std::vector<advrf::middleware::pdo::EcatId>& ids,
+        const std::unordered_map<advrf::middleware::pdo::EcatId, std::string>& names,
         const Topic& topic,
         eprosima::fastdds::dds::DomainParticipant* dp
     )
@@ -41,7 +41,7 @@ private:
     }
 
     void init_ros_graph_bridge(
-        const config::RobotConfig& robot_config,
+        const advrf::middleware::config::RobotConfig& robot_config,
         eprosima::fastdds::dds::DomainParticipant* dp
     );
 

@@ -4,7 +4,7 @@
 #include <ctime>
 #include <iostream>
 
-namespace clock_utils {
+namespace advrf::middleware::clock {
 
 /**
  * @brief Sampled offset between CLOCK_REALTIME and CLOCK_MONOTONIC.

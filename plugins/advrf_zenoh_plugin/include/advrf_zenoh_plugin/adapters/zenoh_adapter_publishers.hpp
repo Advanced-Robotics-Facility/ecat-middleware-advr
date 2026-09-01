@@ -13,12 +13,12 @@ namespace advrf::zenoh_plugin
 {
 
 class ZenohAdapterPublishers
-    : public middleware_adapter::message::AdapterPublishers
+    : public advrf::middleware::adapters::message::AdapterPublishers
 {
 public:
-    bool init(const config::ConfigTopics& topics,
-              const config::RobotConfig& robot,
-              const EcatDiscover::EcatMap& ecat_map,
+    bool init(const advrf::middleware::config::ConfigTopics& topics,
+              const advrf::middleware::config::RobotConfig& robot,
+              const advrf::middleware::ecat::EcatDiscover::EcatMap& ecat_map,
               zenoh::Session& session,
               WireFormat wire_format);
 };

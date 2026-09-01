@@ -47,12 +47,12 @@ public:
 };
 
 
-class DDSAdapterService: public middleware_adapter::service::AdapterServiceServer
-{
+class DDSAdapterService: 
+    public advrf::middleware::adapters::service::AdapterServiceServer{
     
 public:
-    DDSAdapterService(const config::ConfigTopics& config_topics,
-                      const config::RobotConfig& robot_config,
+    DDSAdapterService(const advrf::middleware::config::ConfigTopics& config_topics,
+                      const advrf::middleware::config::RobotConfig& robot_config,
                       eprosima::fastdds::dds::DomainParticipant* participant);
     
     void spin_once() override { server_.spin_once(); }
@@ -64,7 +64,7 @@ private:
     ResponseProtobuf process_request_protobuf(const RequestProtobuf& request);
 
     void init_ros_graph_bridge(
-        const config::RobotConfig& robot_config,
+        const advrf::middleware::config::RobotConfig& robot_config,
         eprosima::fastdds::dds::DomainParticipant* dp
     );
 

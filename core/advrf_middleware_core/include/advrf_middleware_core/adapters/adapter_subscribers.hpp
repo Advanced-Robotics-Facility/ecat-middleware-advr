@@ -10,7 +10,7 @@
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_interfaces_protobuf/repl_cmd.pb.h>
 
-namespace middleware_adapter::message {
+namespace advrf::middleware::adapters::message {
 
 /**
  * @brief Base adapter for forwarding middleware messages to shared memory.
@@ -18,7 +18,7 @@ namespace middleware_adapter::message {
  * Derived classes translate their message types and call @ref push to enqueue
  * them on the appropriate EtherCAT transmit channel.
  */
-class AdapterSubscribers : public AdapterBase {
+class AdapterSubscribers : public advrf::middleware::adapters::AdapterBase {
 public:
   AdapterSubscribers() = default;
   virtual ~AdapterSubscribers() = default;
@@ -41,8 +41,8 @@ protected:
    * @return True if a matching shared-memory device exists and accepts the
    *         message; otherwise false.
    */
-  template <typename Proto> bool push(ChannelTx channel, const Proto &msg) {
-    auto device = device_for(channel);
+  template <typename Proto> bool push(advrf::middleware::shm::ChannelTx channel, const Proto &msg) {
+    auto device = advrf::middleware::shm::device_for(channel);
     if (!device) {
       LOG_ERROR("No SHM device mapped for ChannelTx {}", static_cast<int>(channel));
       return false;

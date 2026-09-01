@@ -33,14 +33,14 @@ public:
 };
 
 
-class DDSAdapterSubscribers: public middleware_adapter::message::AdapterSubscribers
+class DDSAdapterSubscribers: public advrf::middleware::adapters::message::AdapterSubscribers
 {
     
 public:
     
-    bool init(const config::ConfigTopics& config_topics, 
-              const config::RobotConfig& robot_config,
-              const EcatDiscover::EcatMap& ecat_map,
+    bool init(const advrf::middleware::config::ConfigTopics& config_topics, 
+              const advrf::middleware::config::RobotConfig& robot_config,
+              const advrf::middleware::ecat::EcatDiscover::EcatMap& ecat_map,
               eprosima::fastdds::dds::DomainParticipant* participant,
               advrf::dds_common::ReaderPolicy reader_policy = {});
 
@@ -52,7 +52,7 @@ protected:
     bool register_subscriber(
         const std::string& topic_name,
         eprosima::fastdds::dds::DomainParticipant* participant,
-        ChannelTx channel,
+        advrf::middleware::shm::ChannelTx channel,
         std::function<std::vector<iit::advrf::Ec_slave_pdo>(const Msg&)> converter)
     {
         auto subscriber =
@@ -90,7 +90,7 @@ protected:
     bool register_subscriber(
         const std::string& topic_name,
         eprosima::fastdds::dds::DomainParticipant* participant,
-        ChannelTx channel,
+        advrf::middleware::shm::ChannelTx channel,
         std::function<iit::advrf::Ec_slave_pdo(const Msg&)> converter) 
     {
         auto subscriber = std::make_shared<DDSSubscriber<Msg ,MsgPubSubType>>();
@@ -109,7 +109,7 @@ protected:
     }
 
     void init_ros_graph_bridge(
-        const config::RobotConfig& robot_config,
+        const advrf::middleware::config::RobotConfig& robot_config,
         eprosima::fastdds::dds::DomainParticipant* participant
     );
 

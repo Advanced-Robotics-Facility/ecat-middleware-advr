@@ -5,8 +5,8 @@
 
 namespace advrf::fastdds_plugin {
 
-DDSAdapterService::DDSAdapterService(const config::ConfigTopics& config_topics,
-                                     const config::RobotConfig& robot_config,
+DDSAdapterService::DDSAdapterService(const advrf::middleware::config::ConfigTopics& config_topics,
+                                     const advrf::middleware::config::RobotConfig& robot_config,
                                      eprosima::fastdds::dds::DomainParticipant* participant)
     : server_(participant, config_topics.service.request(), config_topics.service.reply())
 {
@@ -21,17 +21,17 @@ DDSAdapterService::DDSAdapterService(const config::ConfigTopics& config_topics,
 ResponseDDS DDSAdapterService::process_request_dds(const RequestDDS& request)
 {
     RequestProtobuf pb_req;
-    convert::protobuf::from_dds(request, pb_req);
+    advrf::dds_common::convert::protobuf::from_dds(request, pb_req);
     ResponseProtobuf pb_resp = this->process_request(pb_req);
     ResponseDDS resp;
-    convert::dds::from_protobuf(pb_resp, resp);
+    advrf::dds_common::convert::dds::from_protobuf(pb_resp, resp);
     resp.request_id() = request.request_id();
     return resp;
 }
 
 
 void DDSAdapterService::init_ros_graph_bridge(
-    const config::RobotConfig& robot_config,
+    const advrf::middleware::config::RobotConfig& robot_config,
     eprosima::fastdds::dds::DomainParticipant* dp
 )   {
     if (!robot_config.declare_to_ros) {

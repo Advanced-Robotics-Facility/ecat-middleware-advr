@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-namespace config
+namespace advrf::middleware::config
 {
 
 /**

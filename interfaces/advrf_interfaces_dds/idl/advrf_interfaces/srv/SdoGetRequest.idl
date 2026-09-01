@@ -3,7 +3,7 @@
 #include "../../rcl_interfaces/msg/Parameter.idl"
 #include "../../rcl_interfaces/msg/RequestHeader.idl"
 
-module std_srvs {
+module advrf_interfaces {
   module srv {
     module dds_ {
 

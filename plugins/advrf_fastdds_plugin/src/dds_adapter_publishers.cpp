@@ -9,7 +9,7 @@
 namespace advrf::fastdds_plugin {
 
 void DDSAdapterPublishers::init_ros_graph_bridge(
-    const config::RobotConfig& robot_config,
+    const advrf::middleware::config::RobotConfig& robot_config,
     eprosima::fastdds::dds::DomainParticipant* dp)
 {
     if (!robot_config.declare_to_ros) {
@@ -33,30 +33,30 @@ void DDSAdapterPublishers::init_ros_graph_bridge(
 }
 
 bool DDSAdapterPublishers::init(
-    const config::ConfigTopics& config_topics, 
-    const config::RobotConfig& robot_config,
-    const EcatDiscover::EcatMap& ecat_map,
+    const advrf::middleware::config::ConfigTopics& config_topics, 
+    const advrf::middleware::config::RobotConfig& robot_config,
+    const advrf::middleware::ecat::EcatDiscover::EcatMap& ecat_map,
     eprosima::fastdds::dds::DomainParticipant* dp) 
 {
     
-    const auto filter = [&](ChannelRx channel) {
-        std::vector<pdo_utils::EcatId> ids;
+    const auto filter = [&](advrf::middleware::shm::ChannelRx channel) {
+        std::vector<advrf::middleware::pdo::EcatId> ids;
         ids.reserve(ecat_map.size());
         for (const auto& [id, device] : ecat_map) {
             if (ecat_map.find(id) == ecat_map.end() 
                 || ecat_map.at(id).channel != channel) {
                 continue;
             }
-            ids.push_back(static_cast<pdo_utils::EcatId>(device.ecat_id));
+            ids.push_back(static_cast<advrf::middleware::pdo::EcatId>(device.ecat_id));
         }
         return ids;
     };
 
-    const auto motor_ids = filter(ChannelRx::Motor);
-    const auto gripper_ids = filter(ChannelRx::Gripper);
-    const auto valve_ids = filter(ChannelRx::Valve);
+    const auto motor_ids = filter(advrf::middleware::shm::ChannelRx::Motor);
+    const auto gripper_ids = filter(advrf::middleware::shm::ChannelRx::Gripper);
+    const auto valve_ids = filter(advrf::middleware::shm::ChannelRx::Valve);
     
-    std::vector<pdo_utils::EcatId> joint_ids;
+    std::vector<advrf::middleware::pdo::EcatId> joint_ids;
     joint_ids.reserve(
         motor_ids.size() +
         gripper_ids.size() +
@@ -88,9 +88,9 @@ bool DDSAdapterPublishers::init(
     if (!joint_ids.empty()) {
         create_publisher<JointStatePublisher>(
             {
-                ChannelRx::Motor,
-                ChannelRx::Gripper,
-                ChannelRx::Valve
+                advrf::middleware::shm::ChannelRx::Motor,
+                advrf::middleware::shm::ChannelRx::Gripper,
+                advrf::middleware::shm::ChannelRx::Valve
             },
             joint_ids,
             robot_config.map_ecat_id,
@@ -101,7 +101,7 @@ bool DDSAdapterPublishers::init(
 
     if (!motor_ids.empty()) {
         create_publisher<MotorsPublisher>(
-            {ChannelRx::Motor},
+            {advrf::middleware::shm::ChannelRx::Motor},
             motor_ids,
             robot_config.map_ecat_id,
             config_topics.rx.motor(),
@@ -111,7 +111,7 @@ bool DDSAdapterPublishers::init(
 
     if (!gripper_ids.empty()) {
         create_publisher<GripperPublisher>(
-            {ChannelRx::Gripper},
+            {advrf::middleware::shm::ChannelRx::Gripper},
             gripper_ids,
             robot_config.map_ecat_id,
             config_topics.rx.gripper(),
@@ -121,7 +121,7 @@ bool DDSAdapterPublishers::init(
 
     if (!valve_ids.empty()) {
         create_publisher<ValvePublisher>(
-            {ChannelRx::Valve},
+            {advrf::middleware::shm::ChannelRx::Valve},
             valve_ids,
             robot_config.map_ecat_id,
             config_topics.rx.valve(),
@@ -132,7 +132,7 @@ bool DDSAdapterPublishers::init(
     // ---------------------------------------------------------------------
     // IMUs
     // ---------------------------------------------------------------------
-    const auto imu_ids = filter(ChannelRx::Imu);
+    const auto imu_ids = filter(advrf::middleware::shm::ChannelRx::Imu);
     if (imu_ids.size() == 1) {
         if(robot_config.map_ecat_id.find(imu_ids[0]) == robot_config.map_ecat_id.end()) {
             LOG_ERROR("IMU ECAT ID {} not found in robot configuration.", imu_ids[0]);
@@ -140,7 +140,7 @@ bool DDSAdapterPublishers::init(
         }
         const std::string& imu_name = robot_config.map_ecat_id.at(imu_ids[0]);
         create_publisher<ImuPublisher>(
-            {ChannelRx::Imu},
+            {advrf::middleware::shm::ChannelRx::Imu},
             imu_ids,
             robot_config.map_ecat_id,
             config_topics.rx.imu(imu_name),
@@ -155,7 +155,7 @@ bool DDSAdapterPublishers::init(
     // Power boards
     // ---------------------------------------------------------------------
 
-    const auto power_board_ids = filter(ChannelRx::PowerBoard);
+    const auto power_board_ids = filter(advrf::middleware::shm::ChannelRx::PowerBoard);
     if (power_board_ids.size() == 1) {
         if(robot_config.map_ecat_id.find(power_board_ids[0]) == robot_config.map_ecat_id.end()) {
             LOG_ERROR("Power board ECAT ID {} not found in robot configuration.", power_board_ids[0]);
@@ -163,7 +163,7 @@ bool DDSAdapterPublishers::init(
         }
         const std::string& power_board_name = robot_config.map_ecat_id.at(power_board_ids[0]);
         create_publisher<PowerBoardPublisher>(
-            {ChannelRx::PowerBoard},
+            {advrf::middleware::shm::ChannelRx::PowerBoard},
             power_board_ids,
             robot_config.map_ecat_id,
             config_topics.rx.powerBoard(power_board_name),
@@ -178,7 +178,7 @@ bool DDSAdapterPublishers::init(
     // Pumps
     // ---------------------------------------------------------------------
 
-    const auto pump_ids = filter(ChannelRx::Pump);
+    const auto pump_ids = filter(advrf::middleware::shm::ChannelRx::Pump);
     if (pump_ids.size() == 1) {
         if(robot_config.map_ecat_id.find(pump_ids[0]) == robot_config.map_ecat_id.end()) {
             LOG_ERROR("Pump ECAT ID {} not found in robot configuration.", pump_ids[0]);
@@ -186,7 +186,7 @@ bool DDSAdapterPublishers::init(
         }
         const std::string& pump_name = robot_config.map_ecat_id.at(pump_ids[0]);
         create_publisher<PumpPublisher>(
-            {ChannelRx::Pump},          
+            {advrf::middleware::shm::ChannelRx::Pump},          
             pump_ids,
             robot_config.map_ecat_id,
             config_topics.rx.pump(pump_name),
@@ -201,7 +201,7 @@ bool DDSAdapterPublishers::init(
     // Force / Torque
     // ---------------------------------------------------------------------
 
-    const auto force_torque_ids = filter(ChannelRx::ForceTorque);
+    const auto force_torque_ids = filter(advrf::middleware::shm::ChannelRx::ForceTorque);
     if (force_torque_ids.size() == 1) {
         if(robot_config.map_ecat_id.find(force_torque_ids[0]) == robot_config.map_ecat_id.end()) {
             LOG_ERROR("Force/Torque ECAT ID {} not found in robot configuration.", force_torque_ids[0]);
@@ -209,7 +209,7 @@ bool DDSAdapterPublishers::init(
         }
         const std::string& force_torque_name = robot_config.map_ecat_id.at(force_torque_ids[0]);
         create_publisher<ForceTorquePublisher>(
-            {ChannelRx::ForceTorque},
+            {advrf::middleware::shm::ChannelRx::ForceTorque},
             force_torque_ids,
             robot_config.map_ecat_id,
             config_topics.rx.forceTorque(force_torque_name),

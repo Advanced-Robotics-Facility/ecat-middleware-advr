@@ -86,15 +86,15 @@ int main(int argc, char **argv)
 
 
 
-    auto config_robot = config::load_robot_config(
+    auto config_robot = advrf::middleware::config::load_robot_config(
       ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
       ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
 
     
-    auto config = config::ConfigTopics({config_robot->ns, config_robot->robot_name});
-    EcatDiscover pdo_discover;
+    auto config = advrf::middleware::config::ConfigTopics({config_robot->ns, config_robot->robot_name});
+    advrf::middleware::ecat::EcatDiscover pdo_discover;
     pdo_discover.start(SHM_NRT_RX_PDO);
-    auto pdo_map = pdo_discover.discover(config::extract_pdo_ids(*config_robot));
+    auto pdo_map = pdo_discover.discover(advrf::middleware::config::extract_pdo_ids(*config_robot));
     
     // publishers
     auto* dds_participant_pub = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
@@ -126,7 +126,7 @@ int main(int argc, char **argv)
     );
     auto dds_adapter_service = std::make_shared<DDSAdapterService>(config, *config_robot, dds_participant_service);
 
-    advrf::plugin::PluginExec plugin_exec;
+    advrf::middleware::plugin::PluginExec plugin_exec;
     plugin_exec.register_adapter({
         "dds_adapter_publishers",
         dds_adapter_publishers,

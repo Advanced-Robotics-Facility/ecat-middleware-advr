@@ -1,1 +1,3 @@
-namespace advrf_middleware_core {}
+int main()  {
+    return 0;
+}

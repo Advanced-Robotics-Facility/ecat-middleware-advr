@@ -4,9 +4,9 @@
 namespace advrf::cyclonedds_plugin {
 
 bool DDSAdapterSubscribers::init(
-    const config::ConfigTopics& config_topics, 
-    const config::RobotConfig& robot_config,
-    const EcatDiscover::EcatMap& ecat_map,
+    const advrf::middleware::config::ConfigTopics& config_topics, 
+    const advrf::middleware::config::RobotConfig& robot_config,
+    const advrf::middleware::ecat::EcatDiscover::EcatMap& ecat_map,
     dds::domain::DomainParticipant &participant,
     advrf::dds_common::ReaderPolicy reader_policy)
 {
@@ -16,7 +16,7 @@ bool DDSAdapterSubscribers::init(
     ok &= register_subscriber<advrf_interfaces::msg::dds_::MotorTxPdoVector_>(
         config_topics.tx.motorCmd(),
         participant,
-        ChannelTx::Motor,
+        advrf::middleware::shm::ChannelTx::Motor,
         [&](const advrf_interfaces::msg::dds_::MotorTxPdoVector_& msg) {
           std::vector<iit::advrf::Ec_slave_pdo> result;
           result.reserve(msg.data().size());
@@ -24,7 +24,7 @@ bool DDSAdapterSubscribers::init(
           for (const auto& element : msg.data()) {
             auto& pdo = result.emplace_back();
             const auto type = resolve_type(ecat_map, element.ecat_id());
-            convert::protobuf::from_dds(element, type, pdo);
+            advrf::dds_common::convert::protobuf::from_dds(element, type, pdo);
           }
 
           return result;
@@ -35,7 +35,7 @@ bool DDSAdapterSubscribers::init(
 }
 
 void DDSAdapterSubscribers::init_ros_graph_bridge(
-    const config::RobotConfig &robot_config,
+    const advrf::middleware::config::RobotConfig &robot_config,
     dds::domain::DomainParticipant &participant) {
     if (!robot_config.declare_to_ros) {
         return;

@@ -11,13 +11,13 @@
 #include "advrf_middleware_core/adapters/adapter_base.hpp"
 #include "advrf_middleware_core/utils/log.hpp"
 
-namespace advrf::plugin
+namespace advrf::middleware::plugin
 {
 
 /**
  * @brief Runs one middleware adapter in a periodic worker thread.
  *
- * The adapter is started once, then @ref AdapterBase::spin_once is called at
+ * The adapter is started once, then @ref advrf::middleware::adapters::AdapterBase::spin_once is called at
  * the configured period until the shared @p running flag becomes false.
  */
 class Process
@@ -29,7 +29,7 @@ public:
      * @param period Desired execution period.
      */
     Process(std::string name,
-            std::shared_ptr<AdapterBase> adapter,
+            std::shared_ptr<advrf::middleware::adapters::AdapterBase> adapter,
             std::chrono::microseconds period = std::chrono::microseconds{10})
         : name_(std::move(name))
         , adapter_(std::move(adapter))
@@ -110,14 +110,14 @@ public:
 
 private:
     std::string name_;
-    std::shared_ptr<AdapterBase> adapter_;
+    std::shared_ptr<advrf::middleware::adapters::AdapterBase> adapter_;
     std::chrono::microseconds period_;
     std::thread thread_;
 };
 
-} // namespace advrf::plugin
+} // namespace advrf::middleware::plugin
 
-namespace advrf::plugin
+namespace advrf::middleware::plugin
 {
 
 /**
@@ -208,4 +208,4 @@ private:
     std::vector<Process> processes_;
 };
 
-} // namespace advrf::plugin
+} // namespace advrf::middleware::plugin

@@ -6,42 +6,42 @@ namespace advrf::zenoh_plugin
 {
 
 ZenohAdapterSubscribers::ZenohAdapterSubscribers(
-        const config::ConfigTopics& topics,
+        const advrf::middleware::config::ConfigTopics& topics,
         zenoh::Session& session,
         WireFormat wire_format)
     : session_(session)
     , wire_format_(wire_format)
     , topics_{
 #ifdef ZENOH_ROS2_SUPPORT
-        {topics.tx.jointCmd(), Pdo::TX_CIA402, ChannelTx::Motor,
+        {topics.tx.jointCmd(), Pdo::TX_CIA402, advrf::middleware::shm::ChannelTx::Motor,
             deserialization::Ros2CommandType::Joint},
-        {topics.tx.motorCmd(), Pdo::TX_MOTOR, ChannelTx::Motor,
+        {topics.tx.motorCmd(), Pdo::TX_MOTOR, advrf::middleware::shm::ChannelTx::Motor,
             deserialization::Ros2CommandType::Motor},
-        {topics.tx.valveCmd(), Pdo::TX_HYQ_KNEE, ChannelTx::Valve,
+        {topics.tx.valveCmd(), Pdo::TX_HYQ_KNEE, advrf::middleware::shm::ChannelTx::Valve,
             deserialization::Ros2CommandType::Valve},
-        {topics.tx.gripperCmd(), Pdo::TX_GRIPPER, ChannelTx::Gripper,
+        {topics.tx.gripperCmd(), Pdo::TX_GRIPPER, advrf::middleware::shm::ChannelTx::Gripper,
             deserialization::Ros2CommandType::Gripper},
-        {topics.tx.pumpCmd(), Pdo::TX_HYQ_HPU, ChannelTx::Pump,
+        {topics.tx.pumpCmd(), Pdo::TX_HYQ_HPU, advrf::middleware::shm::ChannelTx::Pump,
             deserialization::Ros2CommandType::Pump},
-        {topics.tx.powerBoardCmd(), Pdo::TX_POW_F28M36, ChannelTx::PowerBoard,
+        {topics.tx.powerBoardCmd(), Pdo::TX_POW_F28M36, advrf::middleware::shm::ChannelTx::PowerBoard,
             deserialization::Ros2CommandType::PowerBoard},
-        {topics.tx.forceTorqueCmd(), Pdo::TX_FT6, ChannelTx::ForceTorque,
+        {topics.tx.forceTorqueCmd(), Pdo::TX_FT6, advrf::middleware::shm::ChannelTx::ForceTorque,
             deserialization::Ros2CommandType::ForceTorque},
 #else
-        {topics.tx.jointCmd(), Pdo::TX_CIA402, ChannelTx::Motor},
-        {topics.tx.motorCmd(), Pdo::TX_MOTOR, ChannelTx::Motor},
-        {topics.tx.valveCmd(), Pdo::TX_HYQ_KNEE, ChannelTx::Valve},
-        {topics.tx.gripperCmd(), Pdo::TX_GRIPPER, ChannelTx::Gripper},
-        {topics.tx.pumpCmd(), Pdo::TX_HYQ_HPU, ChannelTx::Pump},
-        {topics.tx.powerBoardCmd(), Pdo::TX_POW_F28M36, ChannelTx::PowerBoard},
-        {topics.tx.forceTorqueCmd(), Pdo::TX_FT6, ChannelTx::ForceTorque},
+        {topics.tx.jointCmd(), Pdo::TX_CIA402, advrf::middleware::shm::ChannelTx::Motor},
+        {topics.tx.motorCmd(), Pdo::TX_MOTOR, advrf::middleware::shm::ChannelTx::Motor},
+        {topics.tx.valveCmd(), Pdo::TX_HYQ_KNEE, advrf::middleware::shm::ChannelTx::Valve},
+        {topics.tx.gripperCmd(), Pdo::TX_GRIPPER, advrf::middleware::shm::ChannelTx::Gripper},
+        {topics.tx.pumpCmd(), Pdo::TX_HYQ_HPU, advrf::middleware::shm::ChannelTx::Pump},
+        {topics.tx.powerBoardCmd(), Pdo::TX_POW_F28M36, advrf::middleware::shm::ChannelTx::PowerBoard},
+        {topics.tx.forceTorqueCmd(), Pdo::TX_FT6, advrf::middleware::shm::ChannelTx::ForceTorque},
 #endif
     }
 {}
 
 bool ZenohAdapterSubscribers::start()
 {
-    if (!middleware_adapter::message::AdapterSubscribers::start())
+    if (!advrf::middleware::adapters::message::AdapterSubscribers::start())
         return false;
 
     subscribers_.clear();

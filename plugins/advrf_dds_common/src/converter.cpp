@@ -1,12 +1,12 @@
 #include "advrf_dds_common/converter/converter.hpp"
 
-void convert::protobuf::from_dds(const builtin_interfaces::msg::dds_::Time_& msgdds, iit::advrf::Time& pb)
+void advrf::dds_common::convert::protobuf::from_dds(const builtin_interfaces::msg::dds_::Time_& msgdds, iit::advrf::Time& pb)
 {
     pb.set_sec(msgdds.sec());
     pb.set_nsec(msgdds.nanosec());
 }
 
-void convert::protobuf::from_dds(
+void advrf::dds_common::convert::protobuf::from_dds(
         const std_msgs::msg::dds_::Header_& msgdds,
         iit::advrf::Header& pb)
 {
@@ -17,7 +17,7 @@ void convert::protobuf::from_dds(
     stamp->set_nsec(msgdds.stamp().nanosec());
 }
 
-void convert::protobuf::from_dds(
+void advrf::dds_common::convert::protobuf::from_dds(
         const advrf_interfaces::msg::dds_::Gains_& msgdds,
         iit::advrf::Gains& pb)
 {
@@ -29,7 +29,7 @@ void convert::protobuf::from_dds(
     pb.set_tor_kd(msgdds.tor_kd());
 }
 
-void convert::protobuf::from_dds(
+void advrf::dds_common::convert::protobuf::from_dds(
         const advrf_interfaces::msg::dds_::TrajectoryCmd_& msgdds,
         iit::advrf::Trajectory_cmd& pb)
 {
@@ -66,7 +66,7 @@ void convert::protobuf::from_dds(
     pb_smooth_vel_par->set_magic(msgdds.smooth_vel_par().magic());
 }
 
-void convert::protobuf::from_dds(
+void advrf::dds_common::convert::protobuf::from_dds(
         const advrf_interfaces::msg::dds_::CtrlCmd_& msgdds,
         iit::advrf::Ctrl_cmd& pb)
 {
@@ -77,7 +77,7 @@ void convert::protobuf::from_dds(
     from_dds(msgdds.gains(), *pb.mutable_gains());
 }
 
-void convert::protobuf::from_dds(
+void advrf::dds_common::convert::protobuf::from_dds(
     const advrf_interfaces::msg::dds_::FlashCmd_& msgdds,
         iit::advrf::Flash_cmd& pb)
 {
@@ -85,7 +85,7 @@ void convert::protobuf::from_dds(
     pb.set_board_id(msgdds.board_id());
 }
 
-void convert::protobuf::from_dds(
+void advrf::dds_common::convert::protobuf::from_dds(
         const advrf_interfaces::msg::dds_::EcatMasterCmd_& msgdds,
         iit::advrf::Ecat_Master_cmd& pb)
 {
@@ -99,7 +99,7 @@ void convert::protobuf::from_dds(
     }
 }
 
-void convert::protobuf::from_dds(
+void advrf::dds_common::convert::protobuf::from_dds(
         const advrf_interfaces::msg::dds_::FoeMaster_& msgdds,
         iit::advrf::FOE_Master& pb)
     {
@@ -110,7 +110,7 @@ void convert::protobuf::from_dds(
    pb.set_board_id(msgdds.board_id());
     }
 
-void convert::protobuf::from_dds(
+void advrf::dds_common::convert::protobuf::from_dds(
         const advrf_interfaces::msg::dds_::TrjQueueCmd_& msgdds,
         iit::advrf::Trj_queue_cmd& pb)
     {
@@ -121,7 +121,7 @@ void convert::protobuf::from_dds(
    }
     }
 
-void convert::protobuf::from_dds(
+void advrf::dds_common::convert::protobuf::from_dds(
         const advrf_interfaces::msg::dds_::SlaveSdoCmd_& msgdds,
         iit::advrf::Slave_SDO_cmd& pb)
     {
@@ -138,7 +138,7 @@ void convert::protobuf::from_dds(
    }
     }
 
-void convert::protobuf::from_dds(
+void advrf::dds_common::convert::protobuf::from_dds(
         const advrf_interfaces::msg::dds_::SlaveSdoInfo_& msgdds,
         iit::advrf::Slave_SDO_info& pb)
     {
@@ -146,7 +146,7 @@ void convert::protobuf::from_dds(
    pb.set_board_id(msgdds.board_id());
     }
 
-void convert::protobuf::from_dds(
+void advrf::dds_common::convert::protobuf::from_dds(
         const advrf_interfaces::msg::dds_::MotorsPdoCmd_& msgdds,
         iit::advrf::Motors_PDO_cmd& pb)
     {
@@ -161,7 +161,7 @@ void convert::protobuf::from_dds(
    }
     }
 
-void convert::protobuf::from_dds(
+void advrf::dds_common::convert::protobuf::from_dds(
         const advrf_interfaces::msg::dds_::SlaveRegistryWrite_& msgdds,
         iit::advrf::Slave_registry_write& pb)
     {
@@ -169,7 +169,7 @@ void convert::protobuf::from_dds(
    pb.set_board_id(msgdds.board_id());
     }
 
-void convert::protobuf::from_dds(
+void advrf::dds_common::convert::protobuf::from_dds(
         const advrf_interfaces::msg::dds_::PdoAuxCmd_& msgdds,
         iit::advrf::PDOs_aux_cmd& pb)
     {
@@ -180,7 +180,7 @@ void convert::protobuf::from_dds(
        pb_aux_cmd->set_board_id(aux_cmd.board_id());
    }
     }
-void convert::protobuf::from_dds(
+void advrf::dds_common::convert::protobuf::from_dds(
         const advrf_interfaces::msg::dds_::ReplCmd_Content_& request,
         iit::advrf::Repl_cmd& pb)
     {
@@ -199,7 +199,7 @@ void convert::protobuf::from_dds(
         from_dds(request.pdos_aux_cmd(), *pb.mutable_pdos_aux_cmd());
     }
 
-void convert::protobuf::from_dds(
+void advrf::dds_common::convert::protobuf::from_dds(
         const advrf_interfaces::msg::dds_::ReplCmd_Content_Vector_& request,
         iit::advrf::Repl_cmd_vector& pb)
     {
@@ -209,7 +209,7 @@ void convert::protobuf::from_dds(
         }
     }
 
-void convert::protobuf::from_dds(
+void advrf::dds_common::convert::protobuf::from_dds(
         const advrf_interfaces::srv::dds_::ReplCmd_Request_& request,
         iit::advrf::Repl_cmd& pb)
     {
@@ -217,7 +217,7 @@ void convert::protobuf::from_dds(
     }
 
 
-void convert::protobuf::from_dds(
+void advrf::dds_common::convert::protobuf::from_dds(
         const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
         iit::advrf::Motor_xt_tx_pdo& pb)
         {
@@ -235,7 +235,7 @@ void convert::protobuf::from_dds(
             pb.set_aux(msgdds.aux());
         }
 
-void convert::protobuf::from_dds(
+void advrf::dds_common::convert::protobuf::from_dds(
     const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
     iit::advrf::Motor_tx_pdo& pb){
         pb.set_pos_ref(msgdds.pos_ref());
@@ -245,7 +245,7 @@ void convert::protobuf::from_dds(
         pb.set_ts(msgdds.ts());
     }
 
-void convert::protobuf::from_dds(
+void advrf::dds_common::convert::protobuf::from_dds(
     const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
     iit::advrf::Cia402_tx_pdo& pb){
         pb.set_gain_0(msgdds.gain_0());
@@ -257,7 +257,7 @@ void convert::protobuf::from_dds(
         pb.set_target_pos(msgdds.pos_ref());
     }
 
-void convert::protobuf::from_dds(const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
+void advrf::dds_common::convert::protobuf::from_dds(const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
                                  iit::advrf::Ec_slave_pdo::Type type,
                                  iit::advrf::Ec_slave_pdo& pb) {
     switch (type) 
@@ -279,13 +279,13 @@ void convert::protobuf::from_dds(const advrf_interfaces::msg::dds_::MotorTxPdo_&
 
 
 
-void convert::dds::from_protobuf(uint64_t timestamp_ns, builtin_interfaces::msg::dds_::Time_& msgdds)
+void advrf::dds_common::convert::dds::from_protobuf(uint64_t timestamp_ns, builtin_interfaces::msg::dds_::Time_& msgdds)
     {
    msgdds.sec() = static_cast<int32_t>(timestamp_ns / 1'000'000'000ULL);
    msgdds.nanosec() = static_cast<uint32_t>(timestamp_ns % 1'000'000'000ULL);
     }
 
-void convert::dds::from_protobuf(const iit::advrf::Ec_slave_pdo& pb, std_msgs::msg::dds_::Header_& dds_time)
+void advrf::dds_common::convert::dds::from_protobuf(const iit::advrf::Ec_slave_pdo& pb, std_msgs::msg::dds_::Header_& dds_time)
     {
    dds_time.frame_id() = pb.has_header() ? pb.header().str_id() : "";
    if (pb.has_header() && pb.header().has_stamp()) {
@@ -298,7 +298,7 @@ void convert::dds::from_protobuf(const iit::advrf::Ec_slave_pdo& pb, std_msgs::m
    }
     }
 
-void convert::dds::from_protobuf(const iit::advrf::Cmd_reply& pb, advrf_interfaces::srv::dds_::ReplCmd_Response_& dds_response)
+void advrf::dds_common::convert::dds::from_protobuf(const iit::advrf::Cmd_reply& pb, advrf_interfaces::srv::dds_::ReplCmd_Response_& dds_response)
     {
    dds_response.type() = static_cast<uint8_t>(pb.type());
    dds_response.msg() = pb.msg();
@@ -308,7 +308,7 @@ void convert::dds::from_protobuf(const iit::advrf::Cmd_reply& pb, advrf_interfac
    dds_response.pdo() = pb.pdo();
     }
 
-void convert::dds::from_protobuf(const iit::advrf::ImuVN_rx_pdo& pb, advrf_interfaces::msg::dds_::Imu_& ddsmsg)
+void advrf::dds_common::convert::dds::from_protobuf(const iit::advrf::ImuVN_rx_pdo& pb, advrf_interfaces::msg::dds_::Imu_& ddsmsg)
     {
    ddsmsg.linear_acceleration().x()  = pb.x_acc();
    ddsmsg.linear_acceleration().y()  = pb.y_acc();
@@ -330,14 +330,14 @@ void convert::dds::from_protobuf(const iit::advrf::ImuVN_rx_pdo& pb, advrf_inter
    ddsmsg.rtt()                      = pb.rtt();
     }
 
-void convert::dds::from_protobuf(const iit::advrf::Cia402_rx_pdo& pb, sensor_msgs::msg::dds_::JointState_& ddsmsg)
+void advrf::dds_common::convert::dds::from_protobuf(const iit::advrf::Cia402_rx_pdo& pb, sensor_msgs::msg::dds_::JointState_& ddsmsg)
     {
    ddsmsg.position().push_back(pb.link_pos());
    ddsmsg.velocity().push_back(pb.link_vel());
    ddsmsg.effort().push_back(pb.torque());
     }
 
-void convert::dds::from_protobuf(const iit::advrf::Cia402_rx_pdo& pb, advrf_interfaces::msg::dds_::Motor_& ddsmsg)
+void advrf::dds_common::convert::dds::from_protobuf(const iit::advrf::Cia402_rx_pdo& pb, advrf_interfaces::msg::dds_::Motor_& ddsmsg)
     {
    // from protobuf to dds
    ddsmsg.statusword().push_back(pb.statusword());
@@ -363,14 +363,14 @@ void convert::dds::from_protobuf(const iit::advrf::Cia402_rx_pdo& pb, advrf_inte
 
     }
 
-void convert::dds::from_protobuf(const iit::advrf::Motor_xt_rx_pdo& pb, sensor_msgs::msg::dds_::JointState_& ddsmsg)
+void advrf::dds_common::convert::dds::from_protobuf(const iit::advrf::Motor_xt_rx_pdo& pb, sensor_msgs::msg::dds_::JointState_& ddsmsg)
     {
    ddsmsg.position().push_back(pb.link_pos());
    ddsmsg.velocity().push_back(pb.link_vel());
    ddsmsg.effort().push_back(pb.torque());
     }
 
-void convert::dds::from_protobuf(const iit::advrf::Motor_xt_rx_pdo& pb, advrf_interfaces::msg::dds_::Motor_& ddsmsg)
+void advrf::dds_common::convert::dds::from_protobuf(const iit::advrf::Motor_xt_rx_pdo& pb, advrf_interfaces::msg::dds_::Motor_& ddsmsg)
     {
    // from protobuf to dds
    ddsmsg.motor_pos().push_back(pb.motor_pos());
@@ -395,14 +395,14 @@ void convert::dds::from_protobuf(const iit::advrf::Motor_xt_rx_pdo& pb, advrf_in
    ddsmsg.error_report().push_back(0);
     }
 
-void convert::dds::from_protobuf(const iit::advrf::Motor_rx_pdo& pb, sensor_msgs::msg::dds_::JointState_& ddsmsg)
+void advrf::dds_common::convert::dds::from_protobuf(const iit::advrf::Motor_rx_pdo& pb, sensor_msgs::msg::dds_::JointState_& ddsmsg)
     {
    ddsmsg.position().push_back(pb.link_pos());
    ddsmsg.velocity().push_back(0.0);
    ddsmsg.effort().push_back(static_cast<float>(pb.torque()));
     }
 
-void convert::dds::from_protobuf(const iit::advrf::Motor_rx_pdo& pb, advrf_interfaces::msg::dds_::Motor_& ddsmsg)
+void advrf::dds_common::convert::dds::from_protobuf(const iit::advrf::Motor_rx_pdo& pb, advrf_interfaces::msg::dds_::Motor_& ddsmsg)
     {
    // from protobuf to dds
    ddsmsg.motor_pos().push_back(pb.motor_pos());
@@ -427,14 +427,14 @@ void convert::dds::from_protobuf(const iit::advrf::Motor_rx_pdo& pb, advrf_inter
    ddsmsg.error_report().push_back(0);
     }
 
-void convert::dds::from_protobuf(const iit::advrf::HyqKnee_rx_pdo& pb, sensor_msgs::msg::dds_::JointState_& ddsmsg)
+void advrf::dds_common::convert::dds::from_protobuf(const iit::advrf::HyqKnee_rx_pdo& pb, sensor_msgs::msg::dds_::JointState_& ddsmsg)
     {
    ddsmsg.position().push_back(0.0);
    ddsmsg.velocity().push_back(0.0);
    ddsmsg.effort().push_back(pb.force());
     }
 
-void convert::dds::from_protobuf(const iit::advrf::HyqKnee_rx_pdo& pb, advrf_interfaces::msg::dds_::Valve_& ddsmsg)
+void advrf::dds_common::convert::dds::from_protobuf(const iit::advrf::HyqKnee_rx_pdo& pb, advrf_interfaces::msg::dds_::Valve_& ddsmsg)
     {
    ddsmsg.force().push_back(pb.force());
    ddsmsg.pressure1().push_back(pb.pressure_1());
@@ -451,7 +451,7 @@ void convert::dds::from_protobuf(const iit::advrf::HyqKnee_rx_pdo& pb, advrf_int
    ddsmsg.force_ref_fb().push_back(pb.force_ref_fb());
     }
 
-void convert::dds::from_protobuf(const iit::advrf::HyqHpu_rx_pdo& pb, advrf_interfaces::msg::dds_::Pump_& ddsmsg)
+void advrf::dds_common::convert::dds::from_protobuf(const iit::advrf::HyqHpu_rx_pdo& pb, advrf_interfaces::msg::dds_::Pump_& ddsmsg)
     {
    
    ddsmsg.motor_current()       = pb.motor_current();
@@ -467,7 +467,7 @@ void convert::dds::from_protobuf(const iit::advrf::HyqHpu_rx_pdo& pb, advrf_inte
    ddsmsg.aux()                 = pb.aux();
     }
 
-void convert::dds::from_protobuf(const iit::advrf::Gripper_rx_pdo& pb, advrf_interfaces::msg::dds_::Gripper_& ddsmsg)
+void advrf::dds_common::convert::dds::from_protobuf(const iit::advrf::Gripper_rx_pdo& pb, advrf_interfaces::msg::dds_::Gripper_& ddsmsg)
     {
    ddsmsg.statusword().push_back(pb.statusword());
    ddsmsg.motor_pos().push_back(pb.motor_pos());
@@ -477,14 +477,14 @@ void convert::dds::from_protobuf(const iit::advrf::Gripper_rx_pdo& pb, advrf_int
    ddsmsg.error_code().push_back(pb.error_code());
     }
 
-void convert::dds::from_protobuf(const iit::advrf::Gripper_rx_pdo& pb, sensor_msgs::msg::dds_::JointState_ & ddsmsg)
+void advrf::dds_common::convert::dds::from_protobuf(const iit::advrf::Gripper_rx_pdo& pb, sensor_msgs::msg::dds_::JointState_ & ddsmsg)
     {
    ddsmsg.position().push_back(pb.link_pos());
    ddsmsg.velocity().push_back(0.0);
    ddsmsg.effort().push_back(0.0);
     }
 
-void convert::dds::from_protobuf(const iit::advrf::PowF28M36_rx_pdo& pb, advrf_interfaces::msg::dds_::PowerBoard_ & ddsmsg)
+void advrf::dds_common::convert::dds::from_protobuf(const iit::advrf::PowF28M36_rx_pdo& pb, advrf_interfaces::msg::dds_::PowerBoard_ & ddsmsg)
     {
    ddsmsg.v_batt()         = pb.v_batt();
    ddsmsg.v_load()         = pb.v_load();
@@ -499,7 +499,7 @@ void convert::dds::from_protobuf(const iit::advrf::PowF28M36_rx_pdo& pb, advrf_i
    ddsmsg.aux()            = pb.aux();
     }
 
-void convert::dds::from_protobuf(const iit::advrf::FT6_rx_pdo& pb, advrf_interfaces::msg::dds_::ForceTorque_& ddsmsg)
+void advrf::dds_common::convert::dds::from_protobuf(const iit::advrf::FT6_rx_pdo& pb, advrf_interfaces::msg::dds_::ForceTorque_& ddsmsg)
     {
    auto& wrench = ddsmsg.wrench();
    wrench.force().x() = pb.force_x();

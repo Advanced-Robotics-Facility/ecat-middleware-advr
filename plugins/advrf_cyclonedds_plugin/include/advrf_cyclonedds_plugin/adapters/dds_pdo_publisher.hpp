@@ -21,7 +21,7 @@ template <typename Msg>
 class DDSPdoPublisher
     : public DDSPublisher<Msg>,
       public IConnectRosGraphBridge,
-      public middleware_adapter::message::AdapterPublishers::IPublisher
+      public advrf::middleware::adapters::message::AdapterPublishers::IPublisher
 {
 public:
     using Pdo  = iit::advrf::Ec_slave_pdo;

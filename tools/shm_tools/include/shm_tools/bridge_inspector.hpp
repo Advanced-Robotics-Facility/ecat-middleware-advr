@@ -19,6 +19,8 @@
 #include <shm_types.hpp>
 #include <shm_utils.hpp>
 
+namespace advrf::middleware::tools::shm {
+
 class IInspectorSource {
 public:
   virtual ~IInspectorSource() = default;
@@ -219,3 +221,5 @@ private:
   std::string shm_name_;
   std::unique_ptr<SharedMemory<Bridge>> shm_;
 };
+
+}

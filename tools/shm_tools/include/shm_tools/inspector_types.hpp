@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+namespace advrf::middleware::tools::shm {
+
 struct InspectorOptions
 {
     int rate{10};
@@ -33,3 +35,5 @@ struct InspectorSnapshot
     bool keep_last_queue{false};
     std::string error;
 };
+
+}

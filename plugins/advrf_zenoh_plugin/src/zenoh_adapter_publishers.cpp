@@ -10,19 +10,19 @@ namespace advrf::zenoh_plugin
 namespace
 {
 
-using EcatId = pdo_utils::EcatId;
+using EcatId = advrf::middleware::pdo::EcatId;
 using Ros2MessageType = serialization::Ros2MessageType;
 
 } 
 
-bool ZenohAdapterPublishers::init(const config::ConfigTopics& topics,
-                                  const config::RobotConfig& robot,
-                                  const EcatDiscover::EcatMap& ecat_map,
+bool ZenohAdapterPublishers::init(const advrf::middleware::config::ConfigTopics& topics,
+                                  const advrf::middleware::config::RobotConfig& robot,
+                                  const advrf::middleware::ecat::EcatDiscover::EcatMap& ecat_map,
                                   zenoh::Session& session,
                                   WireFormat wire_format)
 {
     auto register_topic = [this, &session, wire_format]
-        (std::vector<ChannelRx> channels,
+        (std::vector<advrf::middleware::shm::ChannelRx> channels,
         std::vector<EcatId> ids,
         const std::string& key,
         Ros2MessageType ros2_message_type)
@@ -35,7 +35,7 @@ bool ZenohAdapterPublishers::init(const config::ConfigTopics& topics,
         return publisher.init(session, key, wire_format, ros2_message_type);
     };
 
-    const auto filter_ids = [&ecat_map](ChannelRx channel)
+    const auto filter_ids = [&ecat_map](advrf::middleware::shm::ChannelRx channel)
     {
         std::vector<EcatId> ids;
         ids.reserve(ecat_map.size());
@@ -47,9 +47,9 @@ bool ZenohAdapterPublishers::init(const config::ConfigTopics& topics,
         return ids;
     };
 
-    const auto motor_ids = filter_ids(ChannelRx::Motor);
-    const auto valve_ids = filter_ids(ChannelRx::Valve);
-    const auto gripper_ids = filter_ids(ChannelRx::Gripper);
+    const auto motor_ids = filter_ids(advrf::middleware::shm::ChannelRx::Motor);
+    const auto valve_ids = filter_ids(advrf::middleware::shm::ChannelRx::Valve);
+    const auto gripper_ids = filter_ids(advrf::middleware::shm::ChannelRx::Gripper);
 
     auto joint_ids = motor_ids;
     joint_ids.insert(joint_ids.end(), valve_ids.begin(), valve_ids.end());
@@ -57,22 +57,24 @@ bool ZenohAdapterPublishers::init(const config::ConfigTopics& topics,
 
     bool success = true;
     success &= register_topic(
-        {ChannelRx::Motor, ChannelRx::Gripper, ChannelRx::Valve},
+        {advrf::middleware::shm::ChannelRx::Motor, 
+        advrf::middleware::shm::ChannelRx::Gripper, 
+        advrf::middleware::shm::ChannelRx::Valve},
         joint_ids,
         topics.rx.jointState(),
         Ros2MessageType::JointState);
     success &= register_topic(
-        {ChannelRx::Motor}, motor_ids, topics.rx.motor(),
+        {advrf::middleware::shm::ChannelRx::Motor}, motor_ids, topics.rx.motor(),
         Ros2MessageType::Motor);
     success &= register_topic(
-        {ChannelRx::Valve}, valve_ids, topics.rx.valve(),
+        {advrf::middleware::shm::ChannelRx::Valve}, valve_ids, topics.rx.valve(),
         Ros2MessageType::Valve);
     success &= register_topic(
-        {ChannelRx::Gripper}, gripper_ids, topics.rx.gripper(),
+        {advrf::middleware::shm::ChannelRx::Gripper}, gripper_ids, topics.rx.gripper(),
         Ros2MessageType::Gripper);
 
     auto register_devices = [&register_topic, &robot, &filter_ids](
-        ChannelRx channel,
+        advrf::middleware::shm::ChannelRx channel,
         const auto& make_key,
         Ros2MessageType ros2_message_type)
     {
@@ -97,19 +99,19 @@ bool ZenohAdapterPublishers::init(const config::ConfigTopics& topics,
     };
 
     success &= register_devices(
-        ChannelRx::Imu,
+        advrf::middleware::shm::ChannelRx::Imu,
         [&topics](const std::string& name) { return topics.rx.imu(name); },
         Ros2MessageType::Imu);
     success &= register_devices(
-        ChannelRx::PowerBoard,
+        advrf::middleware::shm::ChannelRx::PowerBoard,
         [&topics](const std::string& name) { return topics.rx.powerBoard(name); },
         Ros2MessageType::PowerBoard);
     success &= register_devices(
-        ChannelRx::Pump,
+        advrf::middleware::shm::ChannelRx::Pump,
         [&topics](const std::string& name) { return topics.rx.pump(name); },
         Ros2MessageType::Pump);
     success &= register_devices(
-        ChannelRx::ForceTorque,
+        advrf::middleware::shm::ChannelRx::ForceTorque,
         [&topics](const std::string& name) { return topics.rx.forceTorque(name); },
         Ros2MessageType::ForceTorque);
 

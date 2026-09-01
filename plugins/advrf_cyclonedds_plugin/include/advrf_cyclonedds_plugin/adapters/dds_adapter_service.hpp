@@ -53,15 +53,15 @@ public:
 /**
  * @brief CycloneDDS implementation of the middleware command service.
  */
-class DDSAdapterService: public middleware_adapter::service::AdapterServiceServer
+class DDSAdapterService: public advrf::middleware::adapters::service::AdapterServiceServer
 {
     
 public:
     /**
      * @brief Create and configure the DDS command service.
      */
-    DDSAdapterService(const config::ConfigTopics& config_topics,
-                     const config::RobotConfig& robot_config,
+    DDSAdapterService(const advrf::middleware::advrf::middleware::config::ConfigTopics& config_topics,
+                     const advrf::middleware::config::RobotConfig& robot_config,
                      dds::domain::DomainParticipant& participant);
     
     /// Process pending DDS service requests.
@@ -74,7 +74,7 @@ private:
     ResponseProtobuf process_request_protobuf(const RequestProtobuf& request);
     
     void init_ros_graph_bridge(
-        const config::RobotConfig& robot_config,
+        const advrf::middleware::config::RobotConfig& robot_config,
         dds::domain::DomainParticipant& dp
     );
 

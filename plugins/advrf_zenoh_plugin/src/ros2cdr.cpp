@@ -347,19 +347,19 @@ bool serialize_joint_state(const std::vector<Pdo>& pdos, Payload& payload)
             switch (pdo.type())
             {
                 case Pdo::RX_CIA402:
-                    convert::dds::from_protobuf(pdo.cia402_rx_pdo(), message);
+                    advrf::dds_common::convert::dds::from_protobuf(pdo.cia402_rx_pdo(), message);
                     break;
                 case Pdo::RX_XT_MOTOR:
-                    convert::dds::from_protobuf(pdo.motor_xt_rx_pdo(), message);
+                    advrf::dds_common::convert::dds::from_protobuf(pdo.motor_xt_rx_pdo(), message);
                     break;
                 case Pdo::RX_MOTOR:
-                    convert::dds::from_protobuf(pdo.motor_rx_pdo(), message);
+                    advrf::dds_common::convert::dds::from_protobuf(pdo.motor_rx_pdo(), message);
                     break;
                 case Pdo::RX_GRIPPER:
-                    convert::dds::from_protobuf(pdo.gripper_rx_pdo(), message);
+                    advrf::dds_common::convert::dds::from_protobuf(pdo.gripper_rx_pdo(), message);
                     break;
                 case Pdo::RX_HYQ_KNEE:
-                    convert::dds::from_protobuf(pdo.hyqknee_rx_pdo(), message);
+                    advrf::dds_common::convert::dds::from_protobuf(pdo.hyqknee_rx_pdo(), message);
                     break;
                 default:
                     return false;
@@ -379,13 +379,13 @@ bool serialize_motor(const std::vector<Pdo>& pdos, Payload& payload)
             switch (pdo.type())
             {
                 case Pdo::RX_CIA402:
-                    convert::dds::from_protobuf(pdo.cia402_rx_pdo(), message);
+                    advrf::dds_common::convert::dds::from_protobuf(pdo.cia402_rx_pdo(), message);
                     break;
                 case Pdo::RX_XT_MOTOR:
-                    convert::dds::from_protobuf(pdo.motor_xt_rx_pdo(), message);
+                    advrf::dds_common::convert::dds::from_protobuf(pdo.motor_xt_rx_pdo(), message);
                     break;
                 case Pdo::RX_MOTOR:
-                    convert::dds::from_protobuf(pdo.motor_rx_pdo(), message);
+                    advrf::dds_common::convert::dds::from_protobuf(pdo.motor_rx_pdo(), message);
                     break;
                 default:
                     return false;
@@ -403,7 +403,7 @@ bool serialize_valve(const std::vector<Pdo>& pdos, Payload& payload)
         [](const Pdo& pdo, Message& message)
         {
             if (pdo.type() != Pdo::RX_HYQ_KNEE) return false;
-            convert::dds::from_protobuf(pdo.hyqknee_rx_pdo(), message);
+            advrf::dds_common::convert::dds::from_protobuf(pdo.hyqknee_rx_pdo(), message);
             message.name().push_back(pdo.header().str_id());
             return true;
         });
@@ -416,7 +416,7 @@ bool serialize_gripper(const std::vector<Pdo>& pdos, Payload& payload)
         [](const Pdo& pdo, Message& message)
         {
             if (pdo.type() != Pdo::RX_GRIPPER) return false;
-            convert::dds::from_protobuf(pdo.gripper_rx_pdo(), message);
+            advrf::dds_common::convert::dds::from_protobuf(pdo.gripper_rx_pdo(), message);
             message.name().push_back(pdo.header().str_id());
             return true;
         });
@@ -428,7 +428,7 @@ bool serialize_imu(const std::vector<Pdo>& pdos, Payload& payload)
     return serialize_device<Message>(pdos, Pdo::RX_IMU_VN, payload,
         [](const Pdo& pdo, Message& message)
         {
-            convert::dds::from_protobuf(pdo.imuvn_rx_pdo(), message);
+            advrf::dds_common::convert::dds::from_protobuf(pdo.imuvn_rx_pdo(), message);
         });
 }
 
@@ -438,7 +438,7 @@ bool serialize_power_board(const std::vector<Pdo>& pdos, Payload& payload)
     return serialize_device<Message>(pdos, Pdo::RX_POW_F28M36, payload,
         [](const Pdo& pdo, Message& message)
         {
-            convert::dds::from_protobuf(pdo.powf28m36_rx_pdo(), message);
+            advrf::dds_common::convert::dds::from_protobuf(pdo.powf28m36_rx_pdo(), message);
         });
 }
 
@@ -448,7 +448,7 @@ bool serialize_pump(const std::vector<Pdo>& pdos, Payload& payload)
     return serialize_device<Message>(pdos, Pdo::RX_HYQ_HPU, payload,
         [](const Pdo& pdo, Message& message)
         {
-            convert::dds::from_protobuf(pdo.hyqhpu_rx_pdo(), message);
+            advrf::dds_common::convert::dds::from_protobuf(pdo.hyqhpu_rx_pdo(), message);
             message.name() = pdo.header().str_id();
         });
 }
@@ -459,7 +459,7 @@ bool serialize_force_torque(const std::vector<Pdo>& pdos, Payload& payload)
     return serialize_device<Message>(pdos, Pdo::RX_FT6, payload,
         [](const Pdo& pdo, Message& message)
         {
-            convert::dds::from_protobuf(pdo.ft6_rx_pdo(), message);
+            advrf::dds_common::convert::dds::from_protobuf(pdo.ft6_rx_pdo(), message);
         });
 }
 

@@ -8,8 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace
-{
+namespace advrf::middleware::tools::shm {
 
 enum class SourceKind
 {
@@ -144,6 +143,8 @@ std::string make_label(
 }
 
 } // namespace
+
+using namespace advrf::middleware::tools::shm;
 
 int main(int argc, char** argv)
 {

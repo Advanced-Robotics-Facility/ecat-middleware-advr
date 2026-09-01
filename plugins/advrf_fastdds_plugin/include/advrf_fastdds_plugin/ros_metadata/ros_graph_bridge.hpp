@@ -17,7 +17,7 @@
 
 namespace advrf::fastdds_plugin {
 
-class FastRosGraphBridge : public RosGraphState {
+class FastRosGraphBridge : public advrf::dds_common::ros_metadata::RosGraphState {
 public:
   using Participant = eprosima::fastdds::dds::DomainParticipant;
   using DataWriter = eprosima::fastdds::dds::DataWriter;

@@ -26,7 +26,7 @@ struct Command
     Pdo pdo;
 };
 
-Pdo make_pdo(const EcatMetadata& device, Pdo::Type type)
+Pdo make_pdo(const advrf::middleware::ecat::EcatMetadata& device, Pdo::Type type)
 {
     Pdo pdo;
     pdo.set_type(type);
@@ -36,8 +36,8 @@ Pdo make_pdo(const EcatMetadata& device, Pdo::Type type)
 }
 
 void add_motor_commands(std::vector<Command>& commands,
-                        const config::ConfigTopics& topics,
-                        const EcatMetadata& motor)
+                        const advrf::middleware::config::ConfigTopics& topics,
+                        const advrf::middleware::ecat::EcatMetadata& motor)
 {
     auto joint = make_pdo(motor, Pdo::TX_CIA402);
     joint.mutable_cia402_tx_pdo()->set_target_pos(0.0F);
@@ -53,8 +53,8 @@ void add_motor_commands(std::vector<Command>& commands,
 }
 
 void add_valve_command(std::vector<Command>& commands,
-                       const config::ConfigTopics& topics,
-                       const EcatMetadata& valve)
+                       const advrf::middleware::config::ConfigTopics& topics,
+                       const advrf::middleware::ecat::EcatMetadata& valve)
 {
     auto pdo = make_pdo(valve, Pdo::TX_HYQ_KNEE);
     pdo.mutable_hyqknee_tx_pdo()->set_position_ref(0.0F);
@@ -62,8 +62,8 @@ void add_valve_command(std::vector<Command>& commands,
 }
 
 void add_gripper_command(std::vector<Command>& commands,
-                         const config::ConfigTopics& topics,
-                         const EcatMetadata& gripper)
+                         const advrf::middleware::config::ConfigTopics& topics,
+                         const advrf::middleware::ecat::EcatMetadata& gripper)
 {
     auto pdo = make_pdo(gripper, Pdo::TX_GRIPPER);
     pdo.mutable_gripper_tx_pdo()->set_target_pos(0.0F);
@@ -71,8 +71,8 @@ void add_gripper_command(std::vector<Command>& commands,
 }
 
 void add_pump_command(std::vector<Command>& commands,
-                      const config::ConfigTopics& topics,
-                      const EcatMetadata& pump)
+                      const advrf::middleware::config::ConfigTopics& topics,
+                      const advrf::middleware::ecat::EcatMetadata& pump)
 {
     auto pdo = make_pdo(pump, Pdo::TX_HYQ_HPU);
     pdo.mutable_hyqhpu_tx_pdo()->set_pump_target(0.0F);
@@ -80,8 +80,8 @@ void add_pump_command(std::vector<Command>& commands,
 }
 
 void add_powerboard_command(std::vector<Command>& commands,
-                            const config::ConfigTopics& topics,
-                            const EcatMetadata& power_board)
+                            const advrf::middleware::config::ConfigTopics& topics,
+                            const advrf::middleware::ecat::EcatMetadata& power_board)
 {
     auto pdo = make_pdo(power_board, Pdo::TX_POW_F28M36);
     pdo.mutable_powf28m36_tx_pdo()->set_master_command(0);
@@ -89,8 +89,8 @@ void add_powerboard_command(std::vector<Command>& commands,
 }
 
 void add_forcetorque_command(std::vector<Command>& commands,
-                             const config::ConfigTopics& topics,
-                             const EcatMetadata& force_torque)
+                             const advrf::middleware::config::ConfigTopics& topics,
+                             const advrf::middleware::ecat::EcatMetadata& force_torque)
 {
     auto pdo = make_pdo(force_torque, Pdo::TX_FT6);
     pdo.mutable_ft6_tx_pdo()->set_op_idx_aux(0);
@@ -128,19 +128,19 @@ int main()
     {
         const auto id_map_path = ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml";
         const auto ecat_config_path = ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml";
-        const auto robot = config::load_robot_config(id_map_path.string(), ecat_config_path.string());
+        const auto robot = advrf::middleware::config::load_robot_config(id_map_path.string(), ecat_config_path.string());
         if (!robot)
             return 1;
 
-        EcatDiscover ecat_discover;
+        advrf::middleware::ecat::EcatDiscover ecat_discover;
         if (!ecat_discover.start(SHM_NRT_RX_PDO))
         {
             std::cerr << "Failed to connect to EtherCAT PDO shared memory.\n";
             return 1;
         }
-        const auto ecat_map = ecat_discover.discover(config::extract_pdo_ids(*robot));
+        const auto ecat_map = ecat_discover.discover(advrf::middleware::config::extract_pdo_ids(*robot));
 
-        const config::ConfigTopics topics{{robot->ns, robot->robot_name}};
+        const advrf::middleware::config::ConfigTopics topics{{robot->ns, robot->robot_name}};
         std::vector<Command> commands;
         commands.reserve(8);
 
@@ -149,22 +149,22 @@ int main()
             const auto& device = entry.second;
             switch (device.channel)
             {
-                case ChannelRx::Motor:
+                case advrf::middleware::shm::ChannelRx::Motor:
                     add_motor_commands(commands, topics, device);
                     break;
-                case ChannelRx::Valve:
+                case advrf::middleware::shm::ChannelRx::Valve:
                     add_valve_command(commands, topics, device);
                     break;
-                case ChannelRx::Gripper:
+                case advrf::middleware::shm::ChannelRx::Gripper:
                     add_gripper_command(commands, topics, device);
                     break;
-                case ChannelRx::Pump:
+                case advrf::middleware::shm::ChannelRx::Pump:
                     add_pump_command(commands, topics, device);
                     break;
-                case ChannelRx::PowerBoard:
+                case advrf::middleware::shm::ChannelRx::PowerBoard:
                     add_powerboard_command(commands, topics, device);
                     break;
-                case ChannelRx::ForceTorque:
+                case advrf::middleware::shm::ChannelRx::ForceTorque:
                     add_forcetorque_command(commands, topics, device);
                     break;
                 default:

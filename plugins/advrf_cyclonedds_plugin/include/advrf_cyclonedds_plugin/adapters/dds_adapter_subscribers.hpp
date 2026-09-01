@@ -47,7 +47,7 @@ public:
  * pushed to its associated @c ChannelTx channel.
  */
 class DDSAdapterSubscribers
-    : public middleware_adapter::message::AdapterSubscribers
+    : public advrf::middleware::adapters::message::AdapterSubscribers
 {
 public:
 
@@ -62,9 +62,9 @@ public:
      * @return True if every required subscriber is initialized.
      */
     bool init(
-        const config::ConfigTopics& config_topics,
-        const config::RobotConfig& robot_config,
-        const EcatDiscover::EcatMap &ecat_map,
+        const advrf::middleware::advrf::middleware::config::ConfigTopics& config_topics,
+        const advrf::middleware::config::RobotConfig& robot_config,
+        const advrf::middleware::ecat::EcatDiscover::EcatMap &ecat_map,
         dds::domain::DomainParticipant& participant,
         advrf::dds_common::ReaderPolicy reader_policy = {}
     );
@@ -82,7 +82,7 @@ private:
     bool register_subscriber(
         const std::string& topic_name,
         dds::domain::DomainParticipant& participant,
-        ChannelTx channel,
+        advrf::middleware::shm::ChannelTx channel,
         std::function<std::vector<iit::advrf::Ec_slave_pdo>(const Msg&)> converter)
     {
         auto subscriber =
@@ -125,7 +125,7 @@ private:
     bool register_subscriber(
         const std::string& topic_name,
         dds::domain::DomainParticipant& participant,
-        ChannelTx channel,
+        advrf::middleware::shm::ChannelTx channel,
         std::function<iit::advrf::Ec_slave_pdo(const Msg&)> converter)
     {
         auto subscriber =
@@ -158,7 +158,7 @@ private:
 
     /// Initialize optional ROS 2 graph-discovery integration.
     void init_ros_graph_bridge(
-        const config::RobotConfig& robot_config,
+        const advrf::middleware::config::RobotConfig& robot_config,
         dds::domain::DomainParticipant& participant
     );
 

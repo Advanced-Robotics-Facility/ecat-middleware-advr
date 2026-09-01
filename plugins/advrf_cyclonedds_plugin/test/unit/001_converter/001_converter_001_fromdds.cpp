@@ -129,7 +129,7 @@ int main()
     request_proto.request() = request;
 
     iit::advrf::Repl_cmd pb;
-    convert::protobuf::from_dds(request_proto, pb);
+    advrf::dds_common::convert::protobuf::from_dds(request_proto, pb);
 
     assert(pb.type() == static_cast<iit::advrf::CmdType>(request.type()));
 

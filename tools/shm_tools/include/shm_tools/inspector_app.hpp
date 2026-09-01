@@ -14,6 +14,8 @@
 #include <utility>
 #include <vector>
 
+namespace advrf::middleware::tools::shm {
+
 class InspectorApp {
 public:
   template <typename Inspector>
@@ -184,3 +186,5 @@ private:
 
   std::vector<Source> sources_;
 };
+
+}

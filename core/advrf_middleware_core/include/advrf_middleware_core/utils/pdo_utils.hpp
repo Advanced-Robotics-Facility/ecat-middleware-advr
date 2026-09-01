@@ -12,7 +12,7 @@
 #include <iostream>
 #include <ctime>
 
-namespace pdo_utils {
+namespace advrf::middleware::pdo {
 
 using Pdo = iit::advrf::Ec_slave_pdo;
 using EcatId = std::uint32_t;
@@ -158,7 +158,7 @@ inline bool check_expected_type(const iit::advrf::Ec_slave_pdo& pdo, PdoExpected
  * Uses the timestamp embedded in the PDO when available; otherwise uses the
  * current local monotonic time as a reception-time fallback.
  *
- * @pre clock_utils::init() has been called.
+ * @pre advrf::middleware::clock::init() has been called.
  */
 inline uint64_t extract_timestamp_ns(const iit::advrf::Ec_slave_pdo& pdo)
 {
@@ -166,9 +166,9 @@ inline uint64_t extract_timestamp_ns(const iit::advrf::Ec_slave_pdo& pdo)
     {
         const auto& s = pdo.header().stamp();
         const uint64_t mono_ns = static_cast<uint64_t>(s.sec())  * 1'000'000'000ULL + static_cast<uint64_t>(s.nsec());
-        return clock_utils::monotonic_to_realtime(mono_ns);
+        return advrf::middleware::clock::monotonic_to_realtime(mono_ns);
     }
-    return clock_utils::monotonic_to_realtime(clock_utils::monotonic_now_ns());
+    return advrf::middleware::clock::monotonic_to_realtime(advrf::middleware::clock::monotonic_now_ns());
 }
 
 /**

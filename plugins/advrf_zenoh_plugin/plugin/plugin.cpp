@@ -126,23 +126,23 @@ int main(int argc, char** argv)
     try
     {
         const auto options = parse_args(argc, argv);
-        auto robot = config::load_robot_config(
+        auto robot = advrf::middleware::config::load_robot_config(
             ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
             ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
         if (!robot)
             return 1;
 
-        EcatDiscover ecat_discover;
+        advrf::middleware::ecat::EcatDiscover ecat_discover;
         if (!ecat_discover.start(SHM_NRT_RX_PDO))
         {
             LOG_ERROR("Failed to connect to EtherCAT PDO shared memory.");
             return 1;
         }
-        const auto ecat_map = ecat_discover.discover(config::extract_pdo_ids(*robot));
+        const auto ecat_map = ecat_discover.discover(advrf::middleware::config::extract_pdo_ids(*robot));
 
         zenoh::init_log_from_env_or("error");
         auto session = zenoh::Session::open(make_zenoh_config(options));
-        auto config = config::ConfigTopics{{robot->ns, robot->robot_name}};
+        auto config = advrf::middleware::config::ConfigTopics{{robot->ns, robot->robot_name}};
 
         auto publishers = std::make_shared<advrf::zenoh_plugin::ZenohAdapterPublishers>();
         if (!publishers->init(config, *robot, ecat_map, session, options.wire_format)) {
@@ -154,7 +154,7 @@ int main(int argc, char** argv)
             config, session, options.wire_format);
         //auto service = std::make_shared<advrf::zenoh_plugin::ZenohAdapterService>(topics, session);
 
-        advrf::plugin::PluginExec plugin_exec;
+        advrf::middleware::plugin::PluginExec plugin_exec;
         
         plugin_exec.register_adapter({
             "zenoh_adapter_publishers",

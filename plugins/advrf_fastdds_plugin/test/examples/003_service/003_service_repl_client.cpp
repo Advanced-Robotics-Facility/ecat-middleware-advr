@@ -31,12 +31,12 @@ int main()
         return 1;
     }
 
-    auto config_robot = config::load_robot_config(
+    auto config_robot = advrf::middleware::config::load_robot_config(
       ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
       ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
     if (!config_robot) return 1;
 
-    config::ConfigTopics config_topics({config_robot->ns, config_robot->robot_name});
+    advrf::middleware::config::ConfigTopics config_topics({config_robot->ns, config_robot->robot_name});
 
     advrf::fastdds_plugin::ServiceClient<RequestDDS, RequestPubSubType, ResponseDDS, ResponsePubSubType> client(
         participant,

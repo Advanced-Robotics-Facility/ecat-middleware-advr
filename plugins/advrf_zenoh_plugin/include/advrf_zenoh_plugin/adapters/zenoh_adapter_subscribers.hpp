@@ -20,10 +20,10 @@ namespace advrf::zenoh_plugin
 {
 
 class ZenohAdapterSubscribers
-    : public middleware_adapter::message::AdapterSubscribers
+    : public advrf::middleware::adapters::message::AdapterSubscribers
 {
 public:
-    ZenohAdapterSubscribers(const config::ConfigTopics& topics,
+    ZenohAdapterSubscribers(const advrf::middleware::config::ConfigTopics& topics,
                             zenoh::Session& session,
                             WireFormat wire_format);
 
@@ -37,7 +37,7 @@ private:
     {
         std::string key;
         Pdo::Type expected_type;
-        ChannelTx channel;
+        advrf::middleware::shm::ChannelTx channel;
 #ifdef ZENOH_ROS2_SUPPORT
         deserialization::Ros2CommandType cdr_type;
 #endif

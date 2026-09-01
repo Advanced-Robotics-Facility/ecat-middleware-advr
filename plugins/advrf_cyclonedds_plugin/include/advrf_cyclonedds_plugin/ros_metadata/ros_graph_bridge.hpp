@@ -22,7 +22,7 @@ namespace advrf::cyclonedds_plugin {
  * its reader and writer GIDs on the `ros_discovery_info` topic. This lets ROS
  * tools discover entities created directly with CycloneDDS.
  */
-class CycloneDDSRosGraphBridge : private RosGraphState {
+class CycloneDDSRosGraphBridge : private advrf::dds_common::ros_metadata::RosGraphState {
 public:
     using GidMsg = rmw_dds_common::msg::dds_::Gid_;
     using NodeInfo = rmw_dds_common::msg::dds_::NodeEntitiesInfo_;

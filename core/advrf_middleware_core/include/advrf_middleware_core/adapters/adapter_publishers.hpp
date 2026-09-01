@@ -20,7 +20,7 @@
 #include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/utils/log.hpp>
 
-namespace middleware_adapter::message {
+namespace advrf::middleware::adapters::message {
 
 /**
  * @brief Reads received EtherCAT PDOs from shared memory and forwards them
@@ -29,7 +29,7 @@ namespace middleware_adapter::message {
  * PDOs are grouped by receive channel and EtherCAT ID. A publisher can
  * subscribe to one or more channels and optionally restrict the accepted IDs.
  */
-class AdapterPublishers : public AdapterBase {
+class AdapterPublishers : public advrf::middleware::adapters::AdapterBase {
 public:
   /// Maximum supported EtherCAT ID.
   static constexpr std::size_t MaxEcatIds = 256;
@@ -40,8 +40,8 @@ public:
   struct PdoCache {
     bool valid = false;
     bool updated_this_cycle = false;
-    pdo_utils::EcatId ecat_id = 0;
-    pdo_utils::Pdo pdo;
+    advrf::middleware::pdo::EcatId ecat_id = 0;
+    advrf::middleware::pdo::Pdo pdo;
   };
 
   /**
@@ -49,10 +49,10 @@ public:
    */
   struct ChannelCache {
     std::array<PdoCache, MaxEcatIds> entries;
-    std::vector<pdo_utils::EcatId> active_ids; ///< IDs currently in the cache.
+    std::vector<advrf::middleware::pdo::EcatId> active_ids; ///< IDs currently in the cache.
   };
 
-  using Cache = std::array<ChannelCache, CHANNEL_COUNT>;
+  using Cache = std::array<ChannelCache, advrf::middleware::shm::CHANNEL_COUNT>;
   using IdMask = std::bitset<MaxEcatIds>;
 
   /**
@@ -66,7 +66,7 @@ public:
     virtual ~IPublisher() = default;
 
     virtual void begin_cycle() = 0;
-    virtual void consume(const pdo_utils::Pdo &pdo) = 0;
+    virtual void consume(const advrf::middleware::pdo::Pdo &pdo) = 0;
     virtual void end_cycle(bool valid) = 0;
 
     void set_names(std::unordered_map<uint32_t, std::string> m) {
@@ -74,7 +74,7 @@ public:
     }
 
   protected:
-    std::unordered_map<pdo_utils::EcatId, std::string> id_to_name_;
+    std::unordered_map<advrf::middleware::pdo::EcatId, std::string> id_to_name_;
   };
 
   /**
@@ -84,7 +84,7 @@ public:
    */
   struct Subscription {
     IPublisher *publisher = nullptr;
-    std::vector<ChannelRx> channels;
+    std::vector<advrf::middleware::shm::ChannelRx> channels;
 
   private:
     friend class AdapterPublishers;
@@ -126,8 +126,8 @@ protected:
    */
   template <typename PublisherType>
   PublisherType &
-  register_publisher(std::vector<ChannelRx> channels,
-                     const std::vector<pdo_utils::EcatId> &ids_allowed = {}) {
+  register_publisher(std::vector<advrf::middleware::shm::ChannelRx> channels,
+                     const std::vector<advrf::middleware::pdo::EcatId> &ids_allowed = {}) {
     static_assert(std::is_base_of_v<IPublisher, PublisherType>,
                   "PublisherType must derive from IPublisher");
 
@@ -139,7 +139,7 @@ protected:
     subscription.channels = std::move(channels);
     subscription.accept_all_ids = ids_allowed.empty();
 
-    for (const pdo_utils::EcatId id : ids_allowed) {
+    for (const advrf::middleware::pdo::EcatId id : ids_allowed) {
       if (id >= MaxEcatIds) {
         LOG_ERROR("Configured ECAT ID {} exceeds maximum supported ID {}", id,
                   MaxEcatIds - 1);
@@ -163,7 +163,7 @@ protected:
 
   // API unit test
 
-  ChannelCache &mutable_channel_cache(ChannelRx channel) noexcept {
+  ChannelCache &mutable_channel_cache(advrf::middleware::shm::ChannelRx channel) noexcept {
     return cache_[channel_index(channel)];
   }
 
@@ -175,22 +175,22 @@ private:
   std::vector<Subscription> subscriptions_;
   Cache cache_;
 
-  static constexpr std::size_t channel_index(ChannelRx channel) noexcept {
+  static constexpr std::size_t channel_index(advrf::middleware::shm::ChannelRx channel) noexcept {
     return static_cast<std::size_t>(channel);
   }
 
-  ChannelCache &channel_cache(ChannelRx channel) noexcept {
+  ChannelCache &channel_cache(advrf::middleware::shm::ChannelRx channel) noexcept {
     return cache_[channel_index(channel)];
   }
 
-  const ChannelCache &channel_cache(ChannelRx channel) const noexcept {
+  const ChannelCache &channel_cache(advrf::middleware::shm::ChannelRx channel) const noexcept {
     return cache_[channel_index(channel)];
   }
 
   /// Drain PDOs from shared memory and update the per-channel cache.
   void fill_cache() {
-    for (const ChannelRx channel : CHANNELS_ARRAY) {
-      const auto device = device_for(channel);
+    for (const auto channel : advrf::middleware::shm::CHANNELS_ARRAY) {
+      const auto device = advrf::middleware::shm::device_for(channel);
 
       if (!device) {
         LOG_ERROR("No device mapped for ChannelRx {}",
@@ -199,11 +199,11 @@ private:
       }
 
       auto &cache = channel_cache(channel);
-      std::vector<pdo_utils::Pdo> pdos;
+      std::vector<advrf::middleware::pdo::Pdo> pdos;
       shm_.drain(*device, pdos);
 
       for(const auto &received : pdos) {
-        const int parsed_id = pdo_utils::get_ecat_id(received.header().str_id());
+        const int parsed_id = advrf::middleware::pdo::get_ecat_id(received.header().str_id());
 
         if (parsed_id < 0) {
           LOG_ERROR("Format error for PDO frame with ID {}",
@@ -211,7 +211,7 @@ private:
           return;
         }
 
-        const auto id = static_cast<pdo_utils::EcatId>(parsed_id);
+        const auto id = static_cast<advrf::middleware::pdo::EcatId>(parsed_id);
 
         if (id >= MaxEcatIds) {
           LOG_ERROR("ECAT ID {} exceeds maximum supported ID {}", id,
@@ -237,7 +237,7 @@ private:
       subscription.ids_seen.reset();
       subscription.publisher->begin_cycle();
 
-      for (const ChannelRx channel : subscription.channels) {
+      for (const advrf::middleware::shm::ChannelRx channel : subscription.channels) {
         dispatch_cache(channel_cache(channel), subscription);
       }
 
@@ -253,7 +253,7 @@ private:
 
   static void dispatch_cache(const ChannelCache &cache,
                              Subscription &subscription) {
-    for (pdo_utils::EcatId id : cache.active_ids) { 
+    for (advrf::middleware::pdo::EcatId id : cache.active_ids) { 
       if (!subscription.accept_all_ids && !subscription.ids_allowed.test(id))
         continue;
 

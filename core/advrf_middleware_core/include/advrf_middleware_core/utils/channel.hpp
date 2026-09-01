@@ -8,6 +8,8 @@
 // from ecat_master
 #include <shm_types.hpp>
 
+namespace advrf::middleware::shm {
+
 /**
  * @brief Receive data channels accepted by the middleware.
  *
@@ -102,3 +104,5 @@ inline static constexpr std::array<ChannelRx, CHANNEL_COUNT> CHANNELS_ARRAY{
       ChannelRx::Imu,  ChannelRx::Motor,      ChannelRx::Gripper,
       ChannelRx::Pump, ChannelRx::PowerBoard, ChannelRx::ForceTorque,
       ChannelRx::Valve};
+
+}

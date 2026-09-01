@@ -9,7 +9,7 @@
 #include <advrf_middleware_core/utils/channel.hpp>
 #include <advrf_middleware_core/utils/pdo_utils.hpp>
 
-namespace config
+namespace advrf::middleware::config
 {
 
 /**
@@ -28,7 +28,7 @@ struct RobotConfig {
     /// Whether middleware data should be declared to ROS2.
     bool declare_to_ros {false};
     /// Mapping from EtherCAT IDs to configured joint/device names.
-    std::unordered_map<pdo_utils::EcatId, std::string> map_ecat_id;
+    std::unordered_map<advrf::middleware::pdo::EcatId, std::string> map_ecat_id;
 };
 
 /**
