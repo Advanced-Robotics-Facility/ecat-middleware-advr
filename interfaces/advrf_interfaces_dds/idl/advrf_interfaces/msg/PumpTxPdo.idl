@@ -3,18 +3,30 @@
 module advrf_interfaces {
   module msg {
     module dds_ {
+      /** @brief Command PDO transmitted to a hydraulic pump. */
       struct PumpTxPdo_
       {
+        /// EtherCAT device identifier.
         int32 ecat_id;
+        /// Requested pump target.
         float pump_target;
+        /// Pressure-controller proportional gain.
         float pressure_p_gain;
+        /// Pressure-controller integral gain.
         float pressure_i_gain;
+        /// Pressure-controller derivative gain.
         float pressure_d_gain;
+        /// Pressure-controller integral limit.
         float pressure_i_limit;
+        /// Fault-acknowledgement command word.
         uint32 fault_ack;
+        /// Solenoid output command word.
         uint32 solenoid_out;
+        /// Timestamp or cycle counter.
         uint32 ts;
+        /// Auxiliary-operation index.
         uint32 op_idx_aux;
+        /// Device-specific auxiliary command value.
         float aux;
       };
     };

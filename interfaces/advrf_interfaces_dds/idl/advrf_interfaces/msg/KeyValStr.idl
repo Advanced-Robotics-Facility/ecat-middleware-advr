@@ -4,10 +4,13 @@ module advrf_interfaces {
   module msg {
     module dds_ {
 
+      /** @brief Named string argument or configuration value. */
       @final
       struct KeyValStr_
       {        
+        /// Argument or parameter name.
         string name;
+        /// Associated string value.
         string value;
       };
 

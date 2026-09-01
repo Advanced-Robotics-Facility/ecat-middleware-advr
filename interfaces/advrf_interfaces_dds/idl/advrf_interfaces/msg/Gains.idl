@@ -10,14 +10,21 @@ module advrf_interfaces {
       const uint8 TORQUE    = 0xCC;
       const uint8 CURRENT   = 0xDD;
 
+      /** @brief Controller gains and operating-mode selector. */
       @final
       struct Gains_
       {        
+        /// Controller mode, one of @c POSITION through @c CURRENT.
         uint8 type;
+        /// Position-loop proportional gain.
         double pos_kp;
+        /// Position-loop derivative gain.
         double pos_kd;
+        /// Torque-loop proportional gain.
         double tor_kp;
+        /// Torque-loop integral gain.
         double tor_ki;
+        /// Torque-loop derivative gain.
         double tor_kd;
       };
 

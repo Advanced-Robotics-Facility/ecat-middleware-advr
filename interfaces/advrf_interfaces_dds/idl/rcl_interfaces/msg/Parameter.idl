@@ -6,10 +6,13 @@ module rcl_interfaces {
   module msg {
     module dds_ {
 
+      /** @brief Named parameter and its typed value. */
       @final
       struct Parameter_
       {
+        /// Parameter name.
         string name;
+        /// Typed parameter value.
         ParameterValue_ value;
       };
 

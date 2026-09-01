@@ -6,20 +6,35 @@ module rcl_interfaces {
   module msg {
     module dds_ {
 
+      /**
+       * @brief Value storage for a ROS-style parameter.
+       *
+       * The member selected by @c type contains the parameter value.
+       */
       @final
       struct ParameterValue_
       {
+        /// Type selector from @c PARAMETER_NOT_SET through @c PARAMETER_STRING_ARRAY.
         uint8 type;
 
+        /// Value when @c type is @c PARAMETER_BOOL.
         boolean bool_value;
+        /// Value when @c type is @c PARAMETER_INTEGER.
         int64 integer_value;
+        /// Value when @c type is @c PARAMETER_DOUBLE.
         double double_value;
+        /// Value when @c type is @c PARAMETER_STRING.
         string string_value;
         
+        /// Value when @c type is @c PARAMETER_BYTE_ARRAY.
         sequence<octet> byte_array_value;
+        /// Value when @c type is @c PARAMETER_BOOL_ARRAY.
         sequence<boolean> bool_array_value;
+        /// Value when @c type is @c PARAMETER_INTEGER_ARRAY.
         sequence<int64> integer_array_value;
+        /// Value when @c type is @c PARAMETER_DOUBLE_ARRAY.
         sequence<double> double_array_value;
+        /// Value when @c type is @c PARAMETER_STRING_ARRAY.
         sequence<string> string_array_value;
       };
 

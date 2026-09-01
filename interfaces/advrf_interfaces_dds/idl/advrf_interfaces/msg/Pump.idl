@@ -5,20 +5,34 @@
 module advrf_interfaces {
     module msg {
         module dds_ {
+            /** @brief Telemetry and diagnostic state reported by a hydraulic pump. */
             struct Pump_ {
+                /// Message timestamp and frame information.
                 std_msgs::msg::dds_::Header_ header;
                 
+                /// Pump name.
                 string name;
+                /// Pump-motor current.
                 float  motor_current;
+                /// Pump-motor speed.
                 float  motor_speed;
+                /// First pressure measurement.
                 float  pressure1;
+                /// Second pressure measurement.
                 float  pressure2;
+                /// Device temperature.
                 uint32 temperature;
+                /// MOSFET temperature.
                 uint32 mosfet_temperature;
+                /// Motor temperature.
                 int32  motor_temperature;
+                /// Device fault word.
                 uint32 fault;
+                /// Device round-trip-time or cycle diagnostic.
                 uint32 rtt;
+                /// Acknowledged auxiliary-operation index.
                 uint32 op_idx_ack;
+                /// Device-specific auxiliary value.
                 float  aux;
             };
         };

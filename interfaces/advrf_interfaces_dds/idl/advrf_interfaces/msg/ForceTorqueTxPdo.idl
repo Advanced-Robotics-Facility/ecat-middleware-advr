@@ -3,11 +3,16 @@
 module advrf_interfaces {
   module msg {
     module dds_ {
+      /** @brief Command/auxiliary PDO for a force/torque sensor. */
       struct ForceTorqueTxPdo_
       {
+        /// Target EtherCAT device identifier.
         int32 ecat_id;
+        /// Command timestamp or sequence value.
         uint32 ts;
+        /// Auxiliary operation index.
         uint32 op_idx_aux;
+        /// Auxiliary operation value.
         float aux;
       };
     };

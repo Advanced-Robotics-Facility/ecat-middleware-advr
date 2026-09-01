@@ -9,14 +9,19 @@ module advrf_interfaces {
         const uint8 LED_ON = 3;
         const uint8 LED_OFF = 4;
 
+        /** @brief Auxiliary command directed to a controller board. */
         struct AuxCmd_ {
+            /// Command selector, for example @c BRAKE_RELEASE or @c LED_ON.
             uint8 type;
+            /// Target controller-board identifier.
             int32 board_id;
         };
 
+        /** @brief Collection of auxiliary board commands sent through PDOs. */
         @final
         struct PdoAuxCmd_
         {        
+            /// Auxiliary commands to apply.
             sequence<AuxCmd_> aux_cmds;
         };
 

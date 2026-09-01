@@ -7,15 +7,21 @@ module advrf_interfaces {
   module srv {
     module dds_ {
 
+      /** @brief Request an SDO-backed parameter update. */
       @final
       struct SdoSet_Request_ {
+        /// DDS request/reply correlation header.
         rcl_interfaces::msg::dds_::RequestHeader_ request_id;
+        /// Parameters to write through SDO.
         sequence<rcl_interfaces::msg::dds_::Parameter_> parameters;
       };
 
+      /** @brief Result of an SDO-backed parameter update. */
       @final
       struct SdoSet_Response_ {
+        /// DDS request/reply correlation header.
         rcl_interfaces::msg::dds_::RequestHeader_ request_id;
+        /// Whether every requested update completed successfully.
         boolean success;
       };
 

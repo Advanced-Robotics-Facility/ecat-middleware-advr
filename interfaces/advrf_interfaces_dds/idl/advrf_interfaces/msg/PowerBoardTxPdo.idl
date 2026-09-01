@@ -3,12 +3,18 @@
 module advrf_interfaces {
   module msg {
     module dds_ {
+      /** @brief Command PDO transmitted to a power board. */
       struct PowerBoardTxPdo_
       {
+        /// EtherCAT device identifier.
         int32 ecat_id;
+        /// Master command word.
         uint32 master_command;
+        /// Fault-acknowledgement command word.
         uint32 fault_ack;
+        /// Auxiliary-operation index.
         uint32 op_idx_aux;
+        /// Device-specific auxiliary command value.
         float aux;
       };
     };

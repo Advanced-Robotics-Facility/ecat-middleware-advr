@@ -6,11 +6,15 @@ module advrf_interfaces {
       const uint8 GET = 2;
       const uint8 SET = 3;
 
+      /** @brief Auxiliary per-device PDO operation. */
       @final
       struct AuxPdo_
       {        
+        /// Operation selector: @c NOP, @c GET, or @c SET.
         uint8 type;
+        /// Device-specific auxiliary parameter index.
         int32 idx;
+        /// Value read from or written to the auxiliary parameter.
         float value;
       };
     };

@@ -7,10 +7,13 @@ module advrf_interfaces {
       const uint8 SDO_NAME = 1;
       const uint8 SDO_OBJD = 2;
 
+      /** @brief Request for SDO metadata from one EtherCAT slave. */
       @final
       struct SlaveSdoInfo_
       {        
+        /// Requested representation: @c SDO_NAME or @c SDO_OBJD.
         uint8 type;
+        /// Target controller-board identifier.
         int32 board_id;
       };
 

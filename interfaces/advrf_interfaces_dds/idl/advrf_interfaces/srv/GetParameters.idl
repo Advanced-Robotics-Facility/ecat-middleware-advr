@@ -7,18 +7,25 @@ module advrf_interfaces {
   module srv {
     module dds_ {
 
+      /** @brief Request selected parameters by name. */
       @final
       struct GetParameters_Request_
       {
+        /// DDS request/reply correlation header.
         rcl_interfaces::msg::dds_::RequestHeader_ request_id;
+        /// Names of the requested parameters.
         sequence<string> names;
       };
 
+      /** @brief Result of a parameter lookup. */
       @final
       struct GetParameters_Response_
       {
+        /// DDS request/reply correlation header.
         rcl_interfaces::msg::dds_::RequestHeader_ request_id;
+        /// Whether the request was processed successfully.
         boolean success;
+        /// Values for the requested parameters.
         sequence<rcl_interfaces::msg::dds_::Parameter_> parameters;
       };
 

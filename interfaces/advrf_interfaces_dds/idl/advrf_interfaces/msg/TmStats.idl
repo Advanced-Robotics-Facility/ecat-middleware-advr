@@ -6,15 +6,23 @@ module advrf_interfaces {
   module msg {
     module dds_ {
 
+      /** @brief EtherCAT distributed-clock and cycle timing statistics. */
       @final
       struct TmStats_
       {        
+        /// Received distributed-clock time.
         int64 recv_dc_time;
+        /// Estimated clock offset.
         int64 offset;
+        /// Duration of the control loop.
         uint64 loop_time;
+        /// EtherCAT receive working counter.
         int32 ecat_rx_wkc;
+        /// Timing delta used by the synchronization logic.
         int64 delta;
+        /// Configured EtherCAT cycle period, in nanoseconds.
         uint64 ec_cycle_ns;
+        /// Timestamp at which these statistics were collected.
         builtin_interfaces::msg::dds_::Time_ ts;
       };
 

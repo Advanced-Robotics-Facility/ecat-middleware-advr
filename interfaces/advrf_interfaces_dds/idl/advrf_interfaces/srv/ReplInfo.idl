@@ -9,22 +9,31 @@ module advrf_interfaces {
   module srv {
     module dds_ {
 
+      /** @brief Request current EtherCAT control-interface information. */
       @final
       struct ReplInfo_Request_
       {
+        /// DDS request/reply correlation header.
         rcl_interfaces::msg::dds_::RequestHeader_ request_id;
       };
 
+      /** @brief Current EtherCAT control-interface information. */
       @final
       struct ReplInfo_Response_
       {
+        /// DDS request/reply correlation header.
         rcl_interfaces::msg::dds_::RequestHeader_ request_id;
 
+        /// Timestamp and frame information for the response.
         std_msgs::msg::dds_::Header_ header;
+        /// Human-readable diagnostic information.
         string info;
+        /// Trajectory queue status.
         advrf_interfaces::msg::dds_::TrjStatus_ trj_status;
+        /// EtherCAT timing statistics.
         advrf_interfaces::msg::dds_::TmStats_ tm_stats;
         
+        /// Whether the information was obtained successfully.
         boolean success; 
       };
 

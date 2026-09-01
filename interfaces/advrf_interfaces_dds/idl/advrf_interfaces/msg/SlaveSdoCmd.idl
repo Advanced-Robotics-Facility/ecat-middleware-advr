@@ -6,11 +6,15 @@ module advrf_interfaces {
   module msg {
     module dds_ {
 
+      /** @brief Batch of SDO reads and writes for one EtherCAT slave. */
       @final
       struct SlaveSdoCmd_
       {        
+        /// Target controller-board identifier.
         int32 board_id;
+        /// Names of SDOs to read.
         sequence<string> rd_sdo;
+        /// Name/value pairs for SDOs to write.
         sequence<advrf_interfaces::msg::dds_::KeyValStr_> wr_sdo;
       };
 

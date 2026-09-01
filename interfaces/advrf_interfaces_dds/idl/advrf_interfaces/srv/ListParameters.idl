@@ -6,18 +6,25 @@ module advrf_interfaces {
   module srv {
     module dds_ {
 
+      /** @brief Request parameter names matching a prefix. */
       @final
       struct ListParameters_Request_
       {
+        /// DDS request/reply correlation header.
         rcl_interfaces::msg::dds_::RequestHeader_ request_id;
+        /// Prefix used to select parameter names.
         string prefix;
       };
 
+      /** @brief Result of a parameter-name lookup. */
       @final
       struct ListParameters_Response_
       {
+        /// DDS request/reply correlation header.
         rcl_interfaces::msg::dds_::RequestHeader_ request_id;
+        /// Whether the request was processed successfully.
         boolean success;
+        /// Names of matching parameters.
         sequence<string> names;
       };
 

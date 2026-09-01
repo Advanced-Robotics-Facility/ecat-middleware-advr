@@ -10,18 +10,25 @@ module advrf_interfaces {
       const uint8 SUB_REQUEST_ALL   = 0;
       const uint8 SUB_REQUEST_GAINS = 1;
 
+      /** @brief Request SDO-backed parameters from a device. */
       @final
       struct SdoGet_Request_
       {
+        /// DDS request/reply correlation header.
         rcl_interfaces::msg::dds_::RequestHeader_ request_id;
+        /// Requested parameter subset: @c SUB_REQUEST_ALL or @c SUB_REQUEST_GAINS.
         uint8 sub_request;
       };
 
+      /** @brief Result of an SDO-backed parameter request. */
       @final
       struct SdoGet_Response_
       {
+        /// DDS request/reply correlation header.
         rcl_interfaces::msg::dds_::RequestHeader_ request_id;
+        /// Whether the SDO request completed successfully.
         boolean success;
+        /// Parameters read through SDO.
         sequence<rcl_interfaces::msg::dds_::Parameter_> parameters;
       };
 

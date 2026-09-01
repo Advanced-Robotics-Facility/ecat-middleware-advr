@@ -3,10 +3,14 @@
 module geometry_msgs {
   module msg {
     module dds_ {
+      /** @brief Three-dimensional vector. */
       @final
       struct Vector3_ {
+        /// X component.
         double x;
+        /// Y component.
         double y;
+        /// Z component.
         double z;
       };
     };

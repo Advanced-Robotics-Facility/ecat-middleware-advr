@@ -4,14 +4,19 @@
 module advrf_interfaces {
     module msg {
         module dds_ {
+            /** @brief Force/torque sensor state received from EtherCAT. */
             struct ForceTorque_ {
+                /// Acquisition timestamp and frame metadata.
                 std_msgs::msg::dds_::Header_ header;
-
+                /// Measured force and torque vector.
                 geometry_msgs::msg::dds_::Wrench_ wrench;
-
+                /// Sensor fault status word.
                 uint32 fault;
+                /// Round-trip-time diagnostic reported by the device.
                 uint32 rtt;
+                /// Acknowledged auxiliary-operation index.
                 uint32 op_idx_ack;
+                /// Device-specific auxiliary feedback value.
                 float aux;
             };
         };

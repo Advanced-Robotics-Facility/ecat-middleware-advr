@@ -4,10 +4,13 @@ module advrf_interfaces {
   module msg {
     module dds_ {
 
+      /** @brief Current state of the trajectory queue. */
       @final
       struct TrjStatus_
       {        
+        /// Number of trajectories currently queued.
         uint8 queue_size;
+        /// Name of the trajectory currently being executed.
         string running_trj;
       };
 

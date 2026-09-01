@@ -2,11 +2,17 @@ module advrf_interfaces {
   module msg {
     module dds_ {
       module enums_ {
+        /** @brief Result code returned by a parameter operation. */
         enum ParameterResult_ {
+          /// The operation completed successfully.
           Success,
+          /// The parameter was already declared.
           AlreadyDeclared,
+          /// The requested parameter does not exist.
           NotFound,
+          /// The parameter cannot be modified.
           ReadOnly,
+          /// The supplied value did not pass validation.
           ValidationFailed
         };
       };

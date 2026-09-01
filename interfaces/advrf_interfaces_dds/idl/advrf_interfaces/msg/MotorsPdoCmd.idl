@@ -6,19 +6,28 @@ module advrf_interfaces {
   module msg {
     module dds_ {
 
+      /** @brief Command PDO for one motor controller. */
       struct MotorPdoCmd_
       {        
+        /// EtherCAT motor/device identifier.
         int32 motor_id;
+        /// Requested position reference.
         float pos_ref;
+        /// Requested velocity reference.
         float vel_ref;
+        /// Requested torque reference.
         float tor_ref;
+        /// Control gains associated with the command.
         advrf_interfaces::msg::dds_::Gains_ gains;
+        /// Auxiliary per-device PDO operation.
         advrf_interfaces::msg::dds_::AuxPdo_ aux_pdo;
       };
 
+      /** @brief Batch of motor command PDOs for one EtherCAT cycle. */
       @final
       struct MotorsPdoCmd_
       {
+        /// Commands, one element per addressed motor.
         sequence<MotorPdoCmd_> motors_pdo;
       };
     };

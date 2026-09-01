@@ -3,25 +3,41 @@
 module advrf_interfaces {
   module msg {
     module dds_ {
+      /** @brief Command PDO transmitted to one valve controller. */
       struct ValveTxPdo_
       {
+        /// EtherCAT device identifier.
         int32 ecat_id;
+        /// Requested current reference.
         float current_ref;
+        /// Requested position reference.
         float position_ref;
+        /// Requested force reference.
         float force_ref;
+        /// Device-specific controller gain 0.
         float gain_0;
+        /// Device-specific controller gain 1.
         float gain_1;
+        /// Device-specific controller gain 2.
         float gain_2;
+        /// Device-specific controller gain 3.
         float gain_3;
+        /// Device-specific controller gain 4.
         float gain_4;
+        /// Fault-acknowledgement command word.
         uint32 fault_ack;
+        /// Timestamp or cycle counter.
         uint32 ts;
+        /// Auxiliary-operation index.
         uint32 op_idx_aux;
+        /// Device-specific auxiliary command value.
         float aux;
       };
 
+      /** @brief Collection of valve command PDOs. */
       struct ValveTxPdoVector_
       {
+        /// Command PDOs, one element per valve controller.
         sequence<ValveTxPdo_> data;
       };
     };
