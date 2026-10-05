@@ -91,13 +91,14 @@ function(add_package name relative_source)
     set(LAST_PACKAGE "${name}" PARENT_SCOPE)
 endfunction()
 
+## Common base
+
 add_package(advrf_config config/advrf_config)
-
-add_package(advrf_interfaces_protobuf
-    interfaces/advrf_interfaces_protobuf)
-
+add_package(advrf_interfaces_protobuf interfaces/advrf_interfaces_protobuf)
 add_package(advrf_middleware_core core/advrf_middleware_core)
 add_package(shm_tools tools/shm_tools)
+ 
+## Library compilations
 
 if(BUILD_FASTDDS)
     add_package(advrf_fastdds_lib plugins/advrf_fastdds_lib)
@@ -111,10 +112,20 @@ if(BUILD_ZENOH)
     add_package(advrf_zenoh_lib plugins/advrf_zenoh_lib)
 endif()
 
-if(BUILD_FASTDDS OR BUILD_CYCLONEDDS OR BUILD_ZENOH)
+if(BUILD_ZMQ)
+    add_package(advrf_zmq_lib plugins/advrf_zmq_lib)
+endif()
+
+## DDS interfaces and common compilations
+
+if(BUILD_FASTDDS 
+    OR BUILD_CYCLONEDDS 
+    OR BUILD_ZENOH)
     add_package(advrf_interfaces_dds interfaces/advrf_interfaces_dds)
     add_package(advrf_dds_common plugins/advrf_dds_common)
 endif()
+
+## Plugin compilations
 
 if(BUILD_FASTDDS)
     add_package(advrf_fastdds_plugin plugins/advrf_fastdds_plugin)
