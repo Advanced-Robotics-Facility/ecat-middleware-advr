@@ -24,6 +24,7 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
 option(BUILD_FASTDDS "Build the FastDDS backend" OFF)
 option(BUILD_CYCLONEDDS "Build the CycloneDDS backend" ON)
 option(BUILD_ZENOH "Build the Zenoh backend" OFF)
+option(BUILD_ZMQ "Build the ZMQ backend" OFF)
 option(BUILD_TESTING "Build tests" OFF)
 
 set(SELECT_CONFIG "ecat-pegasus-config"
@@ -125,4 +126,8 @@ endif()
 
 if(BUILD_ZENOH)
     add_package(advrf_zenoh_plugin plugins/advrf_zenoh_plugin)
+endif()
+
+if(BUILD_ZMQ)
+    add_package(advrf_zmq_plugin plugins/advrf_zmq_plugin)
 endif()
