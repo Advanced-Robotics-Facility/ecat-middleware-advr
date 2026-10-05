@@ -5,6 +5,11 @@ project(advrf_zenoh_lib
     LANGUAGES C CXX
 )
 
+if(NOT BUILD_ZENOH)
+    message(STATUS "Zenoh build disabled")
+    return()
+endif()
+
 include(ExternalProject)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
