@@ -7,10 +7,13 @@ module advrf_interfaces {
       const uint8 DRILL_ON = 1;
       const uint8 DRILL_OFF = 2;
 
+      /** @brief Request to write a device-specific slave registry value. */
       @final
       struct SlaveRegistryWrite_
       {        
+        /// Operation selector, for example @c DRILL_ON or @c DRILL_OFF.
         uint8 type;
+        /// Target controller-board identifier.
         int32 board_id;
       };
 

@@ -8,21 +8,31 @@ module advrf_interfaces {
   module srv {
     module dds_ {
 
+      /** @brief Submit a tagged command to the EtherCAT control interface. */
       @final
       struct ReplCmd_Request_
       {
+        /// DDS request/reply correlation header.
         rcl_interfaces::msg::dds_::RequestHeader_ request_id;
+        /// Tagged command envelope to execute.
         advrf_interfaces::msg::dds_::ReplCmd_Content_ request;
       };
 
+      /** @brief Execution result for a REPL/control command. */
       @final
       struct ReplCmd_Response_
       {
+        /// DDS request/reply correlation header.
         rcl_interfaces::msg::dds_::RequestHeader_ request_id;
+        /// Timestamp and frame information for the response.
         std_msgs::msg::dds_::Header_ header;
+        /// Type of command handled.
         uint8 type;
+        /// Whether the command completed successfully.
         boolean success;
+        /// Human-readable result or diagnostic message.
         string msg;
+        /// PDO-related result payload, when applicable.
         string pdo;
       };
 

@@ -8,10 +8,13 @@ module advrf_interfaces {
       const uint8 STOP_MASTER = 2;
       const uint8 GET_SLAVES_DESCR = 3;
 
+      /** @brief Lifecycle or query command for the EtherCAT master. */
       @final
       struct EcatMasterCmd_
       {        
+        /// Command selector: start, stop, or request slave descriptions.
         uint8 type;
+        /// Named command arguments interpreted by the selected command.
         sequence<advrf_interfaces::msg::dds_::KeyValStr_> args;
       };
 

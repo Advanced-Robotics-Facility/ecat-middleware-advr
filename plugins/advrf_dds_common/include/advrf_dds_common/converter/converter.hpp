@@ -23,7 +23,7 @@
 #include <advrf_interfaces/msg/ReplCmdContent.hpp>
 #include <advrf_interfaces/msg/MotorTxPdo.hpp>
 
-namespace convert::protobuf {
+namespace advrf::dds_common::convert::protobuf {
     template<typename DDS_TYPE, typename PROTOBUF_TYPE>
     PROTOBUF_TYPE from_dds(const DDS_TYPE&) = delete;
 
@@ -128,7 +128,7 @@ namespace convert::protobuf {
     // }
 };
 
-namespace convert::dds {
+namespace advrf::dds_common::convert::dds {
     template<typename DDS_TYPE, typename PROTOBUF_TYPE>
      void from_protobuf(const PROTOBUF_TYPE&, DDS_TYPE) = delete;
      void from_protobuf(uint64_t timestamp_ns, builtin_interfaces::msg::dds_::Time_& msgdds);
@@ -150,7 +150,7 @@ namespace convert::dds {
      void from_protobuf(const iit::advrf::FT6_rx_pdo& pb, advrf_interfaces::msg::dds_::ForceTorque_& ddsmsg);
 };
 
-namespace convert::shm {
+namespace advrf::dds_common::convert::shm {
     template<typename SHM_TYPE, typename PROTOBUF_TYPE>
     SHM_TYPE from_protobuf(const PROTOBUF_TYPE&) = delete;
 

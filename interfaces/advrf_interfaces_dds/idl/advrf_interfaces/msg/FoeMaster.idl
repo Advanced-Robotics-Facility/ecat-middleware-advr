@@ -2,13 +2,19 @@ module advrf_interfaces {
   module msg {
     module dds_ {
 
+      /** @brief File-over-EtherCAT transfer request. */
       @final
       struct FoeMaster_
       {        
+        /// File name used by the transfer.
         string filename;
+        /// Optional FoE password supplied to the slave.
         uint32 password;
+        /// Target MCU or firmware family.
         string mcu_type;
+        /// EtherCAT slave position.
         int32 slave_pos;
+        /// Target board identifier.
         int32 board_id;
       };
 

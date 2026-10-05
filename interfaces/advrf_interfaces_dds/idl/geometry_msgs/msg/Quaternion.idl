@@ -3,17 +3,22 @@
 module geometry_msgs {
   module msg {
     module dds_ {
+        /** @brief Orientation represented as a unit quaternion. */
         @final
         struct Quaternion_ {
+            /// X component of the quaternion vector part.
             @default (value=0.0)
             double x;
 
+            /// Y component of the quaternion vector part.
             @default (value=0.0)
             double y;
 
+            /// Z component of the quaternion vector part.
             @default (value=0.0)
             double z;
 
+            /// W component of the quaternion scalar part.
             @default (value=1.0)
             double w;
         };

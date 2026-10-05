@@ -225,28 +225,28 @@ iit::advrf::Ec_slave_pdo make_ft_pdo(double t, uint64_t sample_index, int force_
 }
 
 #include "advrf_middleware_core/utils/ecat_discover.hpp"
-void add_metadata_info(const std::string& type, EcatMetadata& metadata) {
+void add_metadata_info(const std::string& type, advrf::middleware::ecat::EcatMetadata& metadata) {
     if (type == "motor") {
         metadata.type = iit::advrf::Ec_slave_pdo::RX_MOTOR;
         metadata.device = DeviceTypeRx::MOTOR;
-        metadata.channel = ChannelRx::Motor;
+        metadata.channel = advrf::middleware::shm::ChannelRx::Motor;
     }else if(type == "imu") {
         metadata.type = iit::advrf::Ec_slave_pdo::RX_IMU_VN;
         metadata.device = DeviceTypeRx::IMU;
-        metadata.channel = ChannelRx::Imu;
+        metadata.channel = advrf::middleware::shm::ChannelRx::Imu;
     }
 }
 
-EcatDiscover::EcatMap build_ecat_map(const std::string& config_path) {
-    EcatDiscover::EcatMap ecat_map;
+advrf::middleware::ecat::EcatDiscover::EcatMap build_ecat_map(const std::string& config_path) {
+    advrf::middleware::ecat::EcatDiscover::EcatMap ecat_map;
 
     try {
         YAML::Node root = YAML::LoadFile(config_path);
         const YAML::Node devices = root["devices"];
         if (devices) {
             for (const auto& element : devices) {
-                EcatMetadata metadata;
-                metadata.ecat_id = element["ecat_id"].as<pdo_utils::EcatId>();
+                advrf::middleware::ecat::EcatMetadata metadata;
+                metadata.ecat_id = element["ecat_id"].as<advrf::middleware::pdo::EcatId>();
                 metadata.name = element["name"].as<std::string>();
                 std::string type = element["type"].as<std::string>();
                 add_metadata_info(type, metadata);

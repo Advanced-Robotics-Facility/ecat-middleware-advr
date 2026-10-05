@@ -35,7 +35,7 @@ int main() {
     input.set_rtt(50);
 
     advrf_interfaces::msg::dds_::Imu_ output;
-    convert::dds::from_protobuf(input, output);
+    advrf::dds_common::convert::dds::from_protobuf(input, output);
 
     assert_near(output.angular_velocity().x(), 1.0);
     assert_near(output.angular_velocity().y(), 1.1);

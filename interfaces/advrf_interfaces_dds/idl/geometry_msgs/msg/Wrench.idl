@@ -5,9 +5,12 @@
 module geometry_msgs {
   module msg {
     module dds_ {
+      /** @brief Force and torque applied at a common reference point. */
       @final
       struct Wrench_ {
+        /// Force vector.
         geometry_msgs::msg::dds_::Vector3_ force;
+        /// Torque vector.
         geometry_msgs::msg::dds_::Vector3_ torque;
       };
     };

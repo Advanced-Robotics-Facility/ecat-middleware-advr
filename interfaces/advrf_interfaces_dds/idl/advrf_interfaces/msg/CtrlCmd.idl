@@ -30,13 +30,17 @@ module advrf_interfaces {
       const uint8 CTRL_BRAKE = 24;
       const uint8 CTRL_SET_DAC_FLASH = 25;
 
+      /** @brief Command sent to a motor-controller board. */
       @final
       struct CtrlCmd_
       {        
+        /// Command selector, one of the @c CTRL_* constants above.
         uint8 type;
+        /// Target EtherCAT board identifier.
         int32 board_id;
+        /// Scalar command argument; its meaning depends on @c type.
         float value;
-        
+        /// Gain set used by @c CTRL_SET_GAINS.
         advrf_interfaces::msg::dds_::Gains_ gains;
       };
 

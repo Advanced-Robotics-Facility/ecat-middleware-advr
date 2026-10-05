@@ -3,21 +3,33 @@
 module advrf_interfaces {
   module msg {
     module dds_ {
+      /** @brief Command PDO for one gripper device. */
       struct GripperTxPdo_
       {
+        /// Target EtherCAT device identifier.
         int32 ecat_id;
+        /// Position reference.
         float target_pos;
+        /// Velocity reference.
         float target_vel;
+        /// Torque reference.
         float target_torque;
+        /// Device-specific gain slot 0.
         float gain_0;
+        /// Device-specific gain slot 1.
         float gain_1;
+        /// Device-specific gain slot 2.
         float gain_2;
+        /// Device-specific gain slot 3.
         float gain_3;
+        /// Device-specific gain slot 4.
         float gain_4;
       };
 
+      /** @brief Batch of gripper command PDOs. */
       struct GripperTxPdoVector_
       {
+        /// Commands, one for each addressed gripper.
         sequence<GripperTxPdo_> data;
       };
     };

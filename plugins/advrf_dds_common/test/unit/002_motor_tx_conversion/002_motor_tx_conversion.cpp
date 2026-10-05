@@ -22,7 +22,7 @@ int main() {
     input.ts() = 123;
 
     iit::advrf::Motor_tx_pdo motor;
-    convert::protobuf::from_dds(input, motor);
+    advrf::dds_common::convert::protobuf::from_dds(input, motor);
 
     assert_near(motor.pos_ref(), 1.0);
     assert(motor.gainp() == input.gain_0());

@@ -11,7 +11,17 @@
 #include <dds/dds.hpp>
 #include <dds/dds.h>
 
+namespace advrf::cyclonedds_plugin {
 
+/**
+ * @brief Polling DDS request/reply service server.
+ *
+ * @tparam Request DDS request type.
+ * @tparam Response DDS response type.
+ *
+ * Each valid received request is passed to the callback and its returned
+ * response is published immediately.
+ */
 template<typename Request, typename Response>
 class ServiceServer
 {
@@ -55,11 +65,13 @@ public:
         c_writer_ = writer_.delegate().get()->get_ddsc_entity();
     }
 
+    /// Set the handler invoked for each valid request.
     void set_callback(Callback callback)
     {
         callback_ = std::move(callback);
     }
 
+    /// Process currently available requests.
     void spin_once()
     {
         Request request{};
@@ -81,6 +93,7 @@ public:
         }
     }
 
+    /// Poll requests continuously.
     void spin(std::chrono::milliseconds period = std::chrono::milliseconds(10))
     {
         while (true)
@@ -111,6 +124,13 @@ private:
     inline static const std::string default_user_data_ = "advrf=1;";
 };
 
+/**
+ * @brief DDS service helper that separates request handling from responses.
+ *
+ * Requests are collected and processed first. The callback can later add
+ * replies with @ref add_response, which are published by
+ * @ref process_responses.
+ */
 template<typename Request, typename Response>
 class ServiceServerNotSequential
 {
@@ -147,6 +167,7 @@ public:
         callback_ = std::move(callback);
     }
 
+    /// Retrieve currently available valid requests.
     std::vector<Request> update_requests(std::chrono::milliseconds timeout = std::chrono::seconds(1))
     {
         std::vector<Request> requests;
@@ -168,6 +189,7 @@ public:
         return requests;
     }
 
+    /// Invoke the configured callback for every request.
     void process_requests(const std::vector<Request>& requests)
     {
         for (const auto& request : requests)
@@ -179,6 +201,7 @@ public:
         }
     }
 
+    /// Publish queued replies and clear the reply queue.
     void process_responses(){
         for(const auto& response_pair : response_map_){
             response_pair.second.request_id(response_pair.first);
@@ -203,6 +226,7 @@ public:
         }
     }
 
+    /// Queue a reply for the specified request ID.
     void add_response(long long request_id, const Response& response)
     {
         response_map_[request_id] = response;
@@ -224,6 +248,7 @@ private:
 
     dds_entity_t c_reader_{};
     dds_entity_t c_writer_{};
-
-    
+  
 };
+
+}

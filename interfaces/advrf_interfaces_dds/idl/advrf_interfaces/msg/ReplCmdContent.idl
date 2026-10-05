@@ -32,27 +32,47 @@ module advrf_interfaces {
         const uint8 PDO_AUX_CMD          = 99;
       };
       
+      /**
+       * @brief Tagged command envelope used by the REPL/control interface.
+       *
+       * Only the payload selected by @c type is meaningful.
+       */
       @final
       struct ReplCmd_Content_
       {
+        /// Payload selector from @c ReplCmdType.
         uint8 type;
+        /// Timestamp and frame information for the request.
         std_msgs::msg::dds_::Header_ header;
+        /// Payload for @c TRJ_CMD.
         advrf_interfaces::msg::dds_::TrajectoryCmd_ trajectory_cmd;
+        /// Payload for @c CTRL_CMD.
         advrf_interfaces::msg::dds_::CtrlCmd_ ctrl_cmd;
+        /// Payload for @c FLASH_CMD.
         advrf_interfaces::msg::dds_::FlashCmd_ flash_cmd;
+        /// Payload for @c ECAT_MASTER_CMD.
         advrf_interfaces::msg::dds_::EcatMasterCmd_ ecat_master_cmd;
+        /// Payload for @c FOE_MASTER.
         advrf_interfaces::msg::dds_::FoeMaster_ foe_master;
+        /// Payload for @c TRJ_QUEUE_CMD.
         advrf_interfaces::msg::dds_::TrjQueueCmd_ trj_queue_cmd;
+        /// Payload for @c SLAVE_SDO_CMD.
         advrf_interfaces::msg::dds_::SlaveSdoCmd_ slave_sdo_cmd;
+        /// Payload for @c SLAVE_SDO_INFO.
         advrf_interfaces::msg::dds_::SlaveSdoInfo_ slave_sdo_info;
+        /// Payload for @c MOTOR_PDO_CMD.
         advrf_interfaces::msg::dds_::MotorsPdoCmd_ motors_pdo_cmd;
+        /// Payload for @c SLAVE_REGISTRY_WRITE.
         advrf_interfaces::msg::dds_::SlaveRegistryWrite_ slave_registry_write;
+        /// Payload for @c PDO_AUX_CMD.
         advrf_interfaces::msg::dds_::PdoAuxCmd_ pdos_aux_cmd;
       };
 
+      /** @brief Batch of REPL/control command envelopes. */
       @final
       struct ReplCmd_Content_Vector_
       {
+        /// Commands to process.
         sequence<ReplCmd_Content_> requests;
       };
 

@@ -14,6 +14,8 @@
 #include <advrf_dds_common/qos/reader_policy.hpp>
 #include <advrf_middleware_core/utils/log.hpp>
 
+namespace advrf::fastdds_plugin {
+
 class DDSSubscriberBase {
 public:
     virtual ~DDSSubscriberBase() = default;
@@ -148,3 +150,5 @@ private:
     Callback callback_;
 
 };
+
+}

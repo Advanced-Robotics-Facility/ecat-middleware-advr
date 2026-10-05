@@ -4,15 +4,23 @@
 module advrf_interfaces {
     module msg {
         module dds_ {
+            /** @brief State of the configured gripper devices. */
             struct Gripper_ {
+                /// Acquisition timestamp and frame metadata.
                 std_msgs::msg::dds_::Header_ header;
-                
+                /// Gripper names; every following sequence uses this order.
                 sequence<string> name;
+                /// EtherCAT status words.
                 sequence<uint32> statusword;
+                /// Motor-side positions.
                 sequence<float> motor_pos;
+                /// Link-side positions.
                 sequence<float> link_pos;
+                /// Requested positions.
                 sequence<float> demanded_pos;
+                /// Requested velocities.
                 sequence<float> demanded_vel;
+                /// Device error codes.
                 sequence<uint32> error_code;
             };
         };

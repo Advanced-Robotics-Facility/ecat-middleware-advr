@@ -6,17 +6,25 @@ module advrf_interfaces {
   module srv {
     module dds_ {
 
+        /** @brief Generic request carrying numeric and textual trigger data. */
         @final
         struct Trigger_Request_ {
+          /// DDS request/reply correlation header.
           rcl_interfaces::msg::dds_::RequestHeader_ request_id;
+          /// Numeric trigger value.
           uint8 data;
+          /// Textual trigger value.
           string data_str;
           //sequence<uint8> data_array;
         };
+        /** @brief Result of a generic trigger request. */
         @final
         struct Trigger_Response_ {
+          /// DDS request/reply correlation header.
           rcl_interfaces::msg::dds_::RequestHeader_ request_id;
+          /// Whether the trigger completed successfully.
           boolean success;
+          /// Human-readable result or diagnostic message.
           string message;
         };
     };

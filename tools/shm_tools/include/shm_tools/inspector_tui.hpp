@@ -11,6 +11,8 @@
 #include <string_view>
 #include <vector>
 
+namespace advrf::middleware::tools::shm {
+
 class InspectorTui {
 public:
   enum class ActionKind {
@@ -446,3 +448,5 @@ private:
   bool paused_{false};
   std::string filter_;
 };
+
+}

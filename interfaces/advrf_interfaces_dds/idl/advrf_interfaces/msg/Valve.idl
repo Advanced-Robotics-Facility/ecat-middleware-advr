@@ -5,22 +5,42 @@
 module advrf_interfaces {
     module msg {
         module dds_ {
+            /**
+             * @brief State of a set of valves.
+             *
+             * All sequences use the same valve order and length as @c name.
+             */
             struct Valve_ {
+                /// Message timestamp and frame information.
                 std_msgs::msg::dds_::Header_ header;
                 
+                /// Valve names.
                 sequence<string> name;
+                /// Measured encoder positions.
                 sequence<float> encoder_position;
+                /// Measured forces.
                 sequence<float> force;
+                /// First pressure measurements.
                 sequence<float> pressure1;
+                /// Second pressure measurements.
                 sequence<float> pressure2;
+                /// Measured currents.
                 sequence<float> current;
+                /// Measured temperatures.
                 sequence<float> temperature;
+                /// Device fault words.
                 sequence<uint32> fault;
+                /// Device round-trip-time or cycle diagnostics.
                 sequence<uint32> rtt;
+                /// Acknowledged auxiliary-operation indices.
                 sequence<uint32> op_idx_ack;
+                /// Device-specific auxiliary values.
                 sequence<float> aux;
+                /// Current-reference feedback.
                 sequence<float> current_ref_fb;
+                /// Position-reference feedback.
                 sequence<float> position_ref_fb;
+                /// Force-reference feedback.
                 sequence<float> force_ref_fb;
             };
         };

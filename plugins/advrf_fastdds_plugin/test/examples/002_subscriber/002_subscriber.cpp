@@ -32,13 +32,13 @@ int main(int argc, char** argv)
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);
 
-    auto config_robot = load_robot_config(
+    auto config_robot = advrf::middleware::config::load_robot_config(
       ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
       ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
     
     if (!config_robot) return 1;
 
-    config::ConfigTopics config_topics({config_robot->ns, config_robot->robot_name});
+    advrf::middleware::config::ConfigTopics config_topics({config_robot->ns, config_robot->robot_name});
     auto* participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
         config_robot->domain_id,
         eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT
@@ -49,7 +49,7 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    DDSPublisher<MotorVectorXtTxMsg, MotorTxPubSubType> publisher;
+    advrf::fastdds_plugin::DDSPublisher<MotorVectorXtTxMsg, MotorTxPubSubType> publisher;
     if (!publisher.init_dds(config_topics.tx.motorCmd(), participant)) {
         LOG_ERROR("Failed to initialize DDS publisher");
         eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
