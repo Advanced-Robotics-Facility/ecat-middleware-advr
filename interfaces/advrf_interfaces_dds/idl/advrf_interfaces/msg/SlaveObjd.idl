@@ -4,14 +4,21 @@ module advrf_interfaces {
   module msg {
     module dds_ {
 
+      /** @brief EtherCAT slave object-dictionary entry metadata. */
       @final
       struct SlaveObjd_
       {        
+        /// Object-dictionary index.
         int32 index;
+        /// Object-dictionary subindex.
         int32 subindex;
+        /// EtherCAT object data type identifier.
         int32 datatype;
+        /// Object size in bits.
         int32 bitlength;
+        /// Access-rights descriptor.
         int32 access;
+        /// Human-readable object name.
         string name;
       };
 

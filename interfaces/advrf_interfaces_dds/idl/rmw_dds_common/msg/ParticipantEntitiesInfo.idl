@@ -4,23 +4,33 @@ module rmw_dds_common {
     module msg {
         module dds_ {
 
+            /** @brief Globally unique DDS entity identifier. */
             struct Gid_
             {
+                /// Raw identifier bytes.
                 uint8 data[16];
             };
 
+            /** @brief DDS entities associated with one ROS node. */
             struct NodeEntitiesInfo_
             {
+                /// Namespace of the node.
                 string<256> node_namespace;
+                /// Node name.
                 string<256> node_name;
 
+                /// Global identifiers of the node's readers.
                 sequence<Gid_> reader_gid_seq;
+                /// Global identifiers of the node's writers.
                 sequence<Gid_> writer_gid_seq;
             };
 
+            /** @brief DDS entities advertised by one participant. */
             struct ParticipantEntitiesInfo_
             {
+                /// Global identifier of the participant.
                 Gid_ gid;
+                /// Entities grouped by ROS node.
                 sequence<NodeEntitiesInfo_> node_entities_info_seq;
             };
 

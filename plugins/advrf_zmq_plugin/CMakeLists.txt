@@ -13,7 +13,6 @@ endif()
 find_package(advrf_zmq_lib REQUIRED)
 find_package(advrf_middleware_core REQUIRED)
 find_package(advrf_interfaces_protobuf REQUIRED)
-find_package(ecat_master_future REQUIRED)
 find_package(cppzmq REQUIRED)
 
 message(STATUS "Configuring zmq plugin")

@@ -4,15 +4,26 @@ module rcl_interfaces {
   module msg {
     module dds_ {
 
+      /** @brief Numeric tags used to select a member of @c ParameterValue_. */
+      /// No parameter value is set.
       const uint8 PARAMETER_NOT_SET        = 0;
+      /// Boolean parameter.
       const uint8 PARAMETER_BOOL           = 1;
+      /// Signed 64-bit integer parameter.
       const uint8 PARAMETER_INTEGER        = 2;
+      /// Double-precision floating-point parameter.
       const uint8 PARAMETER_DOUBLE         = 3;
+      /// String parameter.
       const uint8 PARAMETER_STRING         = 4;
+      /// Byte-array parameter.
       const uint8 PARAMETER_BYTE_ARRAY     = 5;
+      /// Boolean-array parameter.
       const uint8 PARAMETER_BOOL_ARRAY     = 6;
+      /// Signed 64-bit integer-array parameter.
       const uint8 PARAMETER_INTEGER_ARRAY  = 7;
+      /// Double-precision floating-point-array parameter.
       const uint8 PARAMETER_DOUBLE_ARRAY   = 8;
+      /// String-array parameter.
       const uint8 PARAMETER_STRING_ARRAY   = 9;
 
     };

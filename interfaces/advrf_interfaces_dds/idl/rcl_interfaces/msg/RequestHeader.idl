@@ -3,9 +3,12 @@
 module rcl_interfaces {
   module msg {
     module dds_ {
+        /** @brief Correlation information for a DDS request/reply exchange. */
         @final
         struct RequestHeader_ {
+            /// Identifier of the requesting participant.
             unsigned long long guid;
+            /// Sequence number assigned to the request.
             long long seq;
         };
     };

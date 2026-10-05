@@ -4,28 +4,49 @@
 module advrf_interfaces {
   module msg {
     module dds_ {
+      /** @brief State of the configured motor drives. */
       struct Motor_ {
+        /// Acquisition timestamp and frame metadata.
         std_msgs::msg::dds_::Header_ header;
-        
+        /// Drive names; every following sequence uses this order.
         sequence<string>  name;
+        /// EtherCAT status words.
         sequence<uint32>  statusword;
+        /// Active drive modes of operation.
         sequence<int32>   modes_of_op;
+        /// Motor-side positions.
         sequence<float>   motor_pos;
+        /// Motor-side velocities.
         sequence<float>   motor_vel;
+        /// Link-side positions.
         sequence<float>   link_pos;
+        /// Link-side velocities.
         sequence<float>   link_vel;
+        /// Measured motor currents.
         sequence<float>   current;
+        /// Measured motor torques.
         sequence<float>   torque;
+        /// Requested positions.
         sequence<float>   demanded_pos;
+        /// Requested velocities.
         sequence<float>   demanded_vel;
+        /// Requested torques.
         sequence<float>   demanded_torque;
+        /// Requested currents.
         sequence<float>   demanded_current;
+        /// Applied controller effort.
         sequence<float>   control_effort;
+        /// Motor temperatures.
         sequence<float>   motor_temp;
+        /// Drive temperatures.
         sequence<int32>   drive_temp;
+        /// Drive error codes.
         sequence<uint32>  error_code;
+        /// Human-readable drive error reports.
         sequence<string>  error_report;
+        /// Device fault status words.
         sequence<uint32>  fault;
+        /// Round-trip-time diagnostics.
         sequence<uint32>  rtt;
       };
     };

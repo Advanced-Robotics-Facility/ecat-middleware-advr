@@ -5,13 +5,28 @@
 module sensor_msgs {
   module msg {
     module dds_ {
+
+        /** 
+         * @brief State of a set of torque-controlled joints.
+         *
+         * All joint-related sequences refer to the same joints and therefore
+         * must have the same order and length as @ref name.
+         */
         @final
         struct JointState_ {
+            /// Timestamp and coordinate-frame information.
             std_msgs::msg::dds_::Header_ header;
 
+            /// Names of the joints.
             sequence<string> name;
+
+            /// Joint positions in radians (or metres for prismatic joints).
             sequence<double> position;
+
+            /// Joint velocities in rad/s (or m/s for prismatic joints).
             sequence<double> velocity;
+
+            /// Joint efforts in Nm (or N for prismatic joints).
             sequence<double> effort;
         };
     };

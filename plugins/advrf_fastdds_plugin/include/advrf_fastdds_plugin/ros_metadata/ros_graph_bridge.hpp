@@ -15,7 +15,9 @@
 #include <advrf_dds_common/ros_metadata/ros_graph_state.hpp>
 #include <rmw_dds_common/msg/ParticipantEntitiesInfoPubSubTypes.hpp>
 
-class FastRosGraphBridge : public RosGraphState {
+namespace advrf::fastdds_plugin {
+
+class FastRosGraphBridge : public advrf::dds_common::ros_metadata::RosGraphState {
 public:
   using Participant = eprosima::fastdds::dds::DomainParticipant;
   using DataWriter = eprosima::fastdds::dds::DataWriter;
@@ -204,3 +206,5 @@ public:
   virtual ~IConnectRosGraphBridge() = default;
   virtual void connect_ros_graph_bridge(FastRosGraphBridge &bridge) = 0;
 };
+
+}

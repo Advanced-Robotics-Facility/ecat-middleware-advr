@@ -9,46 +9,72 @@ module advrf_interfaces {
       const uint8 SMOOTHER = 3;
       const uint8 SMOOTHER_VEL = 4;
 
+      /** @brief Parameters for a homing trajectory. */
       @final
       struct HomingPar_ {
+        /// Homing parameters in the order expected by the controller.
         sequence<double> x;
       };
 
+      /** @brief Parameters for a periodic trajectory. */
       @final
       struct PeriodPar_ {
+        /// Oscillation frequency.
         double freq;
+        /// Oscillation amplitude.
         double ampl;
+        /// Phase offset.
         double teta;
+        /// Duration in seconds.
         double secs;
       };
 
+      /** @brief Parameters for a smooth position trajectory. */
       @final
       struct SmoothPar_ {
+        /// Input waypoints.
         sequence<double> x;
+        /// Output waypoints corresponding to @c x.
         sequence<double> y;
       };
 
+      /** @brief Parameters for a smooth velocity trajectory. */
       @final
       struct SmoothVelPar_ {
+        /// Trajectory time step.
         double dt;
+        /// Initial position.
         double p0;
+        /// Initial velocity.
         double v0;
+        /// Target position.
         double pt;
+        /// Target velocity.
         double vt;
+        /// Distance or displacement parameter.
         double ds;
+        /// Controller-specific tuning parameter.
         double magic;
       };
 
+      /** @brief Trajectory command for a controller board. */
       @final
       struct TrajectoryCmd_
       {        
+        /// Trajectory selector: @c HOMING, @c SINE, @c SMOOTHER, or @c SMOOTHER_VEL.
         uint8 type;
+        /// Name assigned to the trajectory.
         string name;
+        /// Target controller-board identifier.
         int32 board_id; 
         
+        /// Parameters used by a smooth position trajectory.
         advrf_interfaces::msg::dds_::SmoothPar_ smooth_par;
+        /// Parameters used by a periodic trajectory.
         advrf_interfaces::msg::dds_::PeriodPar_ period_par;
+        /// Parameters used by a homing trajectory.
         advrf_interfaces::msg::dds_::HomingPar_ homing_par;
+        /// Parameters used by a smooth velocity trajectory.
         advrf_interfaces::msg::dds_::SmoothVelPar_ smooth_vel_par;
       };
 

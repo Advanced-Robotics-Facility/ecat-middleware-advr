@@ -13,6 +13,8 @@
 
 #include "advrf_cyclonedds_plugin/adapters/dds_adapter_publishers.hpp"
 
+using advrf::cyclonedds_plugin::DDSAdapterPublishers;
+
 namespace
 {
     volatile std::sig_atomic_t keep_running = 1;
@@ -29,7 +31,7 @@ int main(int argc, char** argv)
 
     std::signal(SIGINT, on_signal);
     std::signal(SIGTERM, on_signal);
-    auto config_robot = load_robot_config(
+    auto config_robot = advrf::middleware::config::load_robot_config(
       ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
       ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
     
@@ -37,9 +39,9 @@ int main(int argc, char** argv)
         return 1;
 
 
-    clock_utils::init();
+    advrf::middleware::clock::init();
 
-    auto config_topics = config::ConfigTopics{
+    auto config_topics = advrf::middleware::config::ConfigTopics{
             {config_robot->ns, config_robot->robot_name}
         };
 
@@ -48,9 +50,9 @@ int main(int argc, char** argv)
             config_robot->domain_id
         };
 
-    EcatDiscover ecat_discover;
+    advrf::middleware::ecat::EcatDiscover ecat_discover;
     ecat_discover.start(SHM_NRT_RX_PDO);
-    auto ecat_map = ecat_discover.discover(extract_pdo_ids(*config_robot));
+    auto ecat_map = ecat_discover.discover(advrf::middleware::config::extract_pdo_ids(*config_robot));
 
     DDSAdapterPublishers dds_adapter;
     if (!dds_adapter.init(

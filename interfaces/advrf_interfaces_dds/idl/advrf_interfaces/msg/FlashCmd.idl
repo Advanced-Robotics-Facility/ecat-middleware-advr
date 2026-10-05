@@ -6,10 +6,13 @@ module advrf_interfaces {
       const uint8 LOAD_PARAMS_FROM_FLASH = 2;
       const uint8 LOAD_DEFAULT_PARAMS = 3;
 
+      /** @brief Persistent-parameter operation for a controller board. */
       @final
       struct FlashCmd_
       {        
+        /// Operation selector: save, load, or restore defaults.
         uint8 type;
+        /// Target EtherCAT board identifier.
         int32 board_id;
       };
 

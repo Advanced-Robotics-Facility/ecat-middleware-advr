@@ -6,17 +6,25 @@
 module advrf_interfaces {
   module msg {
     module dds_ {
+      /** @brief Inertial-measurement-unit state received from EtherCAT. */
       struct Imu_ {
+        /// Acquisition timestamp and frame metadata.
         std_msgs::msg::dds_::Header_ header;
-
+        /// Linear acceleration measurement.
         geometry_msgs::msg::dds_::Vector3_ linear_acceleration;
+        /// Angular velocity measurement.
         geometry_msgs::msg::dds_::Vector3_ angular_velocity;
+        /// Estimated sensor orientation.
         geometry_msgs::msg::dds_::Quaternion_ orientation;
-
+        /// Device-provided IMU timestamp.
         uint32 imu_ts;
+        /// Device temperature reading.
         uint32 temperature;
+        /// Digital input state bitmask.
         uint32 digital_in;
+        /// Sensor fault status word.
         uint32 fault;
+        /// Round-trip-time diagnostic.
         uint32 rtt;
       };
     };

@@ -5,19 +5,32 @@
 module advrf_interfaces {
   module msg {
     module dds_ {
+      /** @brief Telemetry and diagnostic state reported by a power board. */
       struct PowerBoard_ {
+        /// Message timestamp and frame information.
         std_msgs::msg::dds_::Header_ header;
         
+        /// Battery voltage.
         float  v_batt;
+        /// Load-side voltage.
         float  v_load;
+        /// Load current.
         float  i_load;
+        /// Board temperature.
         float  temperature;
+        /// Battery temperature.
         float  temp_batt;
+        /// Heatsink temperature.
         float  temp_heatsink;
+        /// Device status word.
         uint32 status;
+        /// Device fault word.
         uint32 fault;
+        /// Device round-trip-time or cycle diagnostic.
         uint32 rtt;
+        /// Acknowledged auxiliary-operation index.
         uint32 op_idx_ack;
+        /// Device-specific auxiliary value.
         float  aux;
       };
     };
