@@ -61,10 +61,9 @@ int main(int argc, char **argv) {
   const auto options = parse_args(argc, argv);
 
   auto config_robot = advrf::middleware::config::RobotConfigBuilder()
-    .from_ecat_config(ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml")
-    .from_robot_id_map(ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml")
-    .build();
-
+  .from_ecat_config(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml")
+  .from_robot_id_map(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml")
+  .build();
 
   auto config_topic =
       advrf::middleware::config::ConfigTopics{{config_robot.ns, config_robot.robot_name}};

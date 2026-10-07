@@ -32,8 +32,8 @@ int main(int argc, char** argv)
     std::signal(SIGINT, on_signal);
     std::signal(SIGTERM, on_signal);
     auto config_robot = advrf::middleware::config::load_robot_config(
-      ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
-      ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
+      ADVRF_CONFIG_SHARE / "middleware" / "config.yaml",
+      ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
     
     if (!config_robot)
         return 1;

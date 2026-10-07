@@ -12,8 +12,8 @@ int main(int argc, char** argv)
 {
     advrf::log::Log::init();
     auto config_robot = advrf::middleware::config::load_robot_config(
-        ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
-        ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
+        ADVRF_CONFIG_SHARE / "middleware" / "config.yaml",
+        ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
 
     advrf::middleware::config::ConfigTopics topics({config_robot->ns, config_robot->robot_name});
     dds::domain::DomainParticipant participant(config_robot->domain_id);

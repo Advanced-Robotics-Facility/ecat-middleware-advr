@@ -41,12 +41,9 @@ struct RobotConfig {
 inline void load_from_ecat_config(RobotConfig& cfg, const std::string& ecat_config_path) {
     try {
         YAML::Node root = YAML::LoadFile(ecat_config_path);
-        YAML::Node ecat_board_ctrl = root["ec_board_ctrl"];
-        if (ecat_board_ctrl) {
-            cfg.robot_name = ecat_board_ctrl["robot_name"] ? ecat_board_ctrl["robot_name"].as<std::string>() : cfg.robot_name;
-        }
         YAML::Node dds = root["dds"];
         if (dds) {
+            cfg.robot_name = dds["robot_name"] ? dds["robot_name"].as<std::string>() : cfg.robot_name;
             cfg.ns = dds["namespace"] ? dds["namespace"].as<std::string>() : cfg.ns;
             cfg.domain_id = dds["domain"] ? dds["domain"].as<uint32_t>() : cfg.domain_id;
             cfg.declare_to_ros = dds["declare_to_ros"] ? dds["declare_to_ros"].as<bool>() : cfg.declare_to_ros;

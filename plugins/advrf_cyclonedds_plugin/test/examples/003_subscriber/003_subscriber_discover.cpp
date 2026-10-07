@@ -9,8 +9,8 @@ int main(int argc, char** argv)
 {
     advrf::log::Log::init();
     auto config_robot = advrf::middleware::config::load_robot_config(
-        ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
-        ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
+        ADVRF_CONFIG_SHARE / "middleware" / "config.yaml",
+        ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
 
     advrf::middleware::ecat::EcatDiscover ecat_discover;
     if (!ecat_discover.start(SHM_NRT_RX_PDO)) {
