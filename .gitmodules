@@ -39,3 +39,7 @@
 	path = config/advrf_config/configs/ecat-kyon-config
 	url = https://github.com/Advanced-Robotics-Facility/ecat-kyon-config.git
 	branch = advrf/test_kyon1_V3
+[submodule "config/advrf_config/configs/ecat-miranda-config"]
+	path = config/advrf_config/configs/ecat-miranda-config
+	url = https://github.com/Advanced-Robotics-Facility/ecat-miranda-config.git
+	branch = advrf_middleware
