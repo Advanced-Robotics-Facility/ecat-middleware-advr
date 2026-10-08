@@ -5,7 +5,7 @@ project(advrf_cyclonedds_plugin
     LANGUAGES CXX
 )
 
-if(NOT BUILD_CYCLONEDDS)
+if(NOT BUILD_MIDDLEWARE_CYCLONEDDS)
     message(STATUS "CycloneDDS build disabled")
     return()
 endif()
@@ -96,8 +96,8 @@ install(
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
-option(BUILD_TESTING "Build unit tests" OFF)
-if(BUILD_TESTING)
+option(BUILD_TEST_UNIT "Build unit tests" OFF)
+if(BUILD_TEST_UNIT)
     enable_testing()
     add_subdirectory(test/unit)    
 endif()

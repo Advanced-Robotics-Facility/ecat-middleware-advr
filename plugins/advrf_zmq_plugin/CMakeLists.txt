@@ -5,7 +5,7 @@ project(advrf_zmq_plugin
     LANGUAGES C CXX
 )
 
-if(NOT BUILD_ZMQ)
+if(NOT BUILD_MIDDLEWARE_ZMQ)
     message(STATUS "ZMQ build disabled")
     return()
 endif()
@@ -35,8 +35,8 @@ target_link_libraries(ecat_plugin_zmq
         cppzmq
 )
 
-option(BUILD_EXAMPLES "Build ZMQ examples" OFF)
+option(BUILD_TEST_EXAMPLESS "Build ZMQ examples" OFF)
 
-if(BUILD_EXAMPLES)
+if(BUILD_TEST_EXAMPLESS)
     add_subdirectory(examples)
 endif()

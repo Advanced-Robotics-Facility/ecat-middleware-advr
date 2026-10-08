@@ -5,7 +5,7 @@ project(advrf_fastdds_lib
     LANGUAGES C CXX
 )
 
-if(NOT BUILD_FASTDDS)
+if(NOT BUILD_MIDDLEWARE_FASTDDS)
     message(STATUS "FastDDS build disabled")
     return()
 endif()

@@ -5,7 +5,7 @@ project(advrf_zenoh_plugin
     LANGUAGES CXX
 )
 
-if(NOT BUILD_ZENOH)
+if(NOT BUILD_MIDDLEWARE_ZENOH)
     message(STATUS "Zenoh build disabled")
     return()
 endif()
@@ -124,13 +124,13 @@ if(BUILD_PLUGIN)
     add_subdirectory(plugin)
 endif()
 
-option(BUILD_EXAMPLES "Build Zenoh examples" OFF)
-if(BUILD_EXAMPLES)
+option(BUILD_TEST_EXAMPLESS "Build Zenoh examples" OFF)
+if(BUILD_TEST_EXAMPLESS)
     add_subdirectory(test/examples)
 endif()
 
-option(BUILD_TESTING "Build Zenoh plugin tests" OFF)
-if(BUILD_TESTING)
+option(BUILD_TEST_UNIT "Build Zenoh plugin tests" OFF)
+if(BUILD_TEST_UNIT)
     enable_testing()
     add_subdirectory(test/unit)
 endif()

@@ -8,9 +8,9 @@ project(advrf_dds_common
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-option(BUILD_FASTDDS "Build FastDDS backend" OFF)
-option(BUILD_CYCLONEDDS "Build CycloneDDS backend" OFF)
-option(BUILD_ZENOH "Build the CDR-only backend used by Zenoh" OFF)
+option(BUILD_MIDDLEWARE_FASTDDS "Build FastDDS backend" OFF)
+option(BUILD_MIDDLEWARE_CYCLONEDDS "Build CycloneDDS backend" OFF)
+option(BUILD_MIDDLEWARE_ZENOH "Build the CDR-only backend used by Zenoh" OFF)
 
 find_package(advrf_interfaces_dds REQUIRED)
 find_package(advrf_interfaces_protobuf REQUIRED)
@@ -57,15 +57,15 @@ function(advrf_dds_common_add_backend backend)
     )
 endfunction()
 
-if(BUILD_FASTDDS)
+if(BUILD_MIDDLEWARE_FASTDDS)
     advrf_dds_common_add_backend(fastdds)
 endif()
 
-if(BUILD_CYCLONEDDS)
+if(BUILD_MIDDLEWARE_CYCLONEDDS)
     advrf_dds_common_add_backend(cyclonedds)
 endif()
 
-if(BUILD_ZENOH)
+if(BUILD_MIDDLEWARE_ZENOH)
     advrf_dds_common_add_backend(cdr)
 endif()
 

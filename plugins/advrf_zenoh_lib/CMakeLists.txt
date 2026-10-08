@@ -5,7 +5,7 @@ project(advrf_zenoh_lib
     LANGUAGES C CXX
 )
 
-if(NOT BUILD_ZENOH)
+if(NOT BUILD_MIDDLEWARE_ZENOH)
     message(STATUS "Zenoh build disabled")
     return()
 endif()

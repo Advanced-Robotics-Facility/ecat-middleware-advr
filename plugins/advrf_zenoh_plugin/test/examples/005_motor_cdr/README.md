@@ -13,7 +13,7 @@ Select and build the Zenoh middleware with ROS 2 CDR support and examples:
 ./scripts/select_middleware.sh zenoh
 colcon build \
   --packages-select advrf_zenoh_plugin \
-  --cmake-args -DBUILD_ZENOH=ON -DZENOH_ROS2_SUPPORT=ON -DBUILD_EXAMPLES=ON
+  --cmake-args -DBUILD_MIDDLEWARE_ZENOH=ON -DZENOH_ROS2_SUPPORT=ON -DBUILD_TEST_EXAMPLESS=ON
 source install/setup.bash
 ```
 

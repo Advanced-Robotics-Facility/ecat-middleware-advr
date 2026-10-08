@@ -6,11 +6,11 @@ project(advrf_interfaces_dds
 )
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-option(BUILD_FASTDDS "Build FastDDS backend" OFF)
-option(BUILD_CYCLONEDDS "Build CycloneDDS backend" OFF)
-option(BUILD_ZENOH "Build Zenoh backend" OFF)
+option(BUILD_MIDDLEWARE_FASTDDS "Build FastDDS backend" OFF)
+option(BUILD_MIDDLEWARE_CYCLONEDDS "Build CycloneDDS backend" OFF)
+option(BUILD_MIDDLEWARE_ZENOH "Build Zenoh backend" OFF)
 
-if(NOT BUILD_FASTDDS AND NOT BUILD_CYCLONEDDS AND NOT BUILD_ZENOH)
+if(NOT BUILD_MIDDLEWARE_FASTDDS AND NOT BUILD_MIDDLEWARE_CYCLONEDDS AND NOT BUILD_MIDDLEWARE_ZENOH)
     message(FATAL_ERROR
         "At least one DDS (or Zenoh) backend must be enabled."
     )
@@ -23,7 +23,7 @@ include(CMakePackageConfigHelpers)
 # FastDDS
 #
 
-if(BUILD_FASTDDS)
+if(BUILD_MIDDLEWARE_FASTDDS)
 
     message(STATUS "[advrf_interfaces_dds] Configuring FastDDS")
 
@@ -46,7 +46,7 @@ endif()
 # Zenoh
 #
 
-if(BUILD_ZENOH)
+if(BUILD_MIDDLEWARE_ZENOH)
     message(STATUS "[advrf_interfaces_dds] Configuring CDR-only Zenoh types")
 
     find_package(advrf_zenoh_lib REQUIRED)
@@ -64,7 +64,7 @@ endif()
 # CycloneDDS
 #
 
-if(BUILD_CYCLONEDDS)
+if(BUILD_MIDDLEWARE_CYCLONEDDS)
 
     message(STATUS "[advrf_interfaces_dds] Configuring CycloneDDS")
 
@@ -97,7 +97,7 @@ set(DDS_INTERFACE_PACKAGES
     rmw_dds_common
 )
 
-if(BUILD_FASTDDS OR BUILD_ZENOH)
+if(BUILD_MIDDLEWARE_FASTDDS OR BUILD_MIDDLEWARE_ZENOH)
     set(FASTDDS_GENERATED_OUTPUTS "")
 
     file(GLOB_RECURSE FASTDDS_IDL_FILES
@@ -152,7 +152,7 @@ if(BUILD_FASTDDS OR BUILD_ZENOH)
 
 endif()
 
-if(BUILD_FASTDDS)
+if(BUILD_MIDDLEWARE_FASTDDS)
     add_library(advrf_interfaces_dds_fastdds INTERFACE)
     add_library(advrf_interfaces_dds::fastdds ALIAS advrf_interfaces_dds_fastdds)
 
@@ -166,7 +166,7 @@ if(BUILD_FASTDDS)
     )
 endif()
 
-if(BUILD_ZENOH)
+if(BUILD_MIDDLEWARE_ZENOH)
     add_library(advrf_interfaces_dds_cdr INTERFACE)
     add_library(advrf_interfaces_dds::cdr ALIAS advrf_interfaces_dds_cdr)
 
@@ -180,7 +180,7 @@ if(BUILD_ZENOH)
     )
 endif()
 
-if(BUILD_CYCLONEDDS)
+if(BUILD_MIDDLEWARE_CYCLONEDDS)
     add_library(advrf_interfaces_dds_cyclonedds INTERFACE)
     add_library(advrf_interfaces_dds::cyclonedds ALIAS advrf_interfaces_dds_cyclonedds)
 
@@ -230,7 +230,7 @@ foreach(package IN LISTS DDS_INTERFACE_PACKAGES)
     endforeach()
 
     # --- FastDDS ---
-    if(BUILD_FASTDDS)
+    if(BUILD_MIDDLEWARE_FASTDDS)
         set(target_fastdds "${package}_fastdds")
         set(ALL_GEN_SOURCES "")
 
@@ -278,7 +278,7 @@ foreach(package IN LISTS DDS_INTERFACE_PACKAGES)
     endif()
 
     # --- Zenoh --- 
-    if(BUILD_ZENOH)
+    if(BUILD_MIDDLEWARE_ZENOH)
         set(target_cdr "${package}_cdr")
         set(cdr_wrapper_sources "")
 
@@ -324,7 +324,7 @@ foreach(package IN LISTS DDS_INTERFACE_PACKAGES)
     endif()
 
     # --- CycloneDDS ---
-    if(BUILD_CYCLONEDDS)
+    if(BUILD_MIDDLEWARE_CYCLONEDDS)
         set(target_cyclonedds "${package}_cyclonedds")
 
         idlcxx_generate(
@@ -396,7 +396,7 @@ endforeach()
 #
 # Inter-packages dependencies FastDDS
 #
-if(BUILD_FASTDDS)
+if(BUILD_MIDDLEWARE_FASTDDS)
     # Fast DDS-Gen emits calls into the generated support code of included
     # IDLs. Express those relationships so consumers of a package library get
     # all required serialization and TypeObject symbols transitively.
@@ -420,7 +420,7 @@ if(BUILD_FASTDDS)
     )
 endif()
 
-if(BUILD_ZENOH)
+if(BUILD_MIDDLEWARE_ZENOH)
     target_link_libraries(std_msgs_cdr PUBLIC builtin_interfaces_cdr)
     target_link_libraries(sensor_msgs_cdr
         PUBLIC
@@ -448,7 +448,7 @@ endif()
 #
 # Installation CycloneDDS
 #
-if(BUILD_CYCLONEDDS)
+if(BUILD_MIDDLEWARE_CYCLONEDDS)
     install(
         DIRECTORY "${CYCLONEDDS_GENERATED_DIR}/"
         DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/cyclonedds"

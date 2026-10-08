@@ -2,21 +2,21 @@
 
 include(CMakeFindDependencyMacro)
 
-set(advrf_interfaces_dds_BUILD_FASTDDS @BUILD_FASTDDS@)
-set(advrf_interfaces_dds_BUILD_CYCLONEDDS @BUILD_CYCLONEDDS@)
-set(advrf_interfaces_dds_BUILD_ZENOH @BUILD_ZENOH@)
+set(advrf_interfaces_dds_BUILD_MIDDLEWARE_FASTDDS @BUILD_MIDDLEWARE_FASTDDS@)
+set(advrf_interfaces_dds_BUILD_MIDDLEWARE_CYCLONEDDS @BUILD_MIDDLEWARE_CYCLONEDDS@)
+set(advrf_interfaces_dds_BUILD_MIDDLEWARE_ZENOH @BUILD_MIDDLEWARE_ZENOH@)
 
-if(advrf_interfaces_dds_BUILD_FASTDDS)
+if(advrf_interfaces_dds_BUILD_MIDDLEWARE_FASTDDS)
     find_dependency(fastcdr 2)
     find_dependency(fastdds 3)
 endif()
 
-if(advrf_interfaces_dds_BUILD_CYCLONEDDS)
+if(advrf_interfaces_dds_BUILD_MIDDLEWARE_CYCLONEDDS)
     find_dependency(CycloneDDS)
     find_dependency(CycloneDDS-CXX)
 endif()
 
-if(advrf_interfaces_dds_BUILD_ZENOH)
+if(advrf_interfaces_dds_BUILD_MIDDLEWARE_ZENOH)
     find_dependency(fastcdr 2)
 endif()
 

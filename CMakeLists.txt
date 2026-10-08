@@ -21,14 +21,38 @@ endif()
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
     Debug Release RelWithDebInfo MinSizeRel)
 
-option(BUILD_FASTDDS "Build the FastDDS backend" OFF)
-option(BUILD_CYCLONEDDS "Build the CycloneDDS backend" ON)
-option(BUILD_ZENOH "Build the Zenoh backend" OFF)
-option(BUILD_ZMQ "Build the ZMQ backend" OFF)
-option(BUILD_TESTING "Build tests" OFF)
+option(BUILD_MIDDLEWARE_FASTDDS "Build the FastDDS backend" OFF)
+option(BUILD_MIDDLEWARE_CYCLONEDDS "Build the CycloneDDS backend" ON)
+option(BUILD_MIDDLEWARE_ZENOH "Build the Zenoh backend" OFF)
+option(BUILD_MIDDLEWARE_ZMQ "Build the ZMQ backend" OFF)
+option(BUILD_TEST_UNIT "Build tests" ON)
+option(BUILD_TEST_EXAMPLES "Build examples" ON)
+
+# Path containing robot configurations
+set(CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/config/advrf_config/configs")
+
+# Find all entries in the configs directory
+file(GLOB CONFIG_ENTRIES
+    LIST_DIRECTORIES true
+    "${CONFIG_DIR}/*"
+)
+
+set(AVAILABLE_CONFIGS "")
+
+foreach(ENTRY ${CONFIG_ENTRIES})
+    if(IS_DIRECTORY "${ENTRY}")
+        get_filename_component(CONFIG_NAME "${ENTRY}" NAME)
+        list(APPEND AVAILABLE_CONFIGS "${CONFIG_NAME}")
+    endif()
+endforeach()
 
 set(SELECT_CONFIG "ecat-pegasus-config"
-    CACHE STRING "Robot configuration")
+    CACHE STRING "Robot configuration"
+)
+
+set_property(CACHE SELECT_CONFIG PROPERTY STRINGS
+    ${AVAILABLE_CONFIGS}
+)
 
 set(STAGING_PREFIX "${CMAKE_BINARY_DIR}/stage")
 
@@ -58,10 +82,11 @@ function(add_package name relative_source)
             "-DADVRF_RUNTIME_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}"
             "-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}"
             "-DSELECT_CONFIG:STRING=${SELECT_CONFIG}"
-            "-DBUILD_FASTDDS:BOOL=${BUILD_FASTDDS}"
-            "-DBUILD_CYCLONEDDS:BOOL=${BUILD_CYCLONEDDS}"
-            "-DBUILD_ZENOH:BOOL=${BUILD_ZENOH}"
-            "-DBUILD_TESTING:BOOL=${BUILD_TESTING}"
+            "-DBUILD_MIDDLEWARE_FASTDDS:BOOL=${BUILD_MIDDLEWARE_FASTDDS}"
+            "-DBUILD_MIDDLEWARE_CYCLONEDDS:BOOL=${BUILD_MIDDLEWARE_CYCLONEDDS}"
+            "-DBUILD_MIDDLEWARE_ZENOH:BOOL=${BUILD_MIDDLEWARE_ZENOH}"
+            "-DBUILD_TEST_UNIT:BOOL=${BUILD_TEST_UNIT}"
+            "-DBUILD_TEST_EXAMPLES:BOOL=${BUILD_TEST_EXAMPLES}"
 
         BUILD_ALWAYS TRUE
 
@@ -100,45 +125,45 @@ add_package(shm_tools tools/shm_tools)
  
 ## Library compilations
 
-if(BUILD_FASTDDS)
+if(BUILD_MIDDLEWARE_FASTDDS)
     add_package(advrf_fastdds_lib plugins/advrf_fastdds_lib)
 endif()
 
-if(BUILD_CYCLONEDDS)
+if(BUILD_MIDDLEWARE_CYCLONEDDS)
     add_package(advrf_cyclonedds_lib plugins/advrf_cyclonedds_lib)
 endif()
 
-if(BUILD_ZENOH)
+if(BUILD_MIDDLEWARE_ZENOH)
     add_package(advrf_zenoh_lib plugins/advrf_zenoh_lib)
 endif()
 
-if(BUILD_ZMQ)
+if(BUILD_MIDDLEWARE_ZMQ)
     add_package(advrf_zmq_lib plugins/advrf_zmq_lib)
 endif()
 
 ## DDS interfaces and common compilations
 
-if(BUILD_FASTDDS 
-    OR BUILD_CYCLONEDDS 
-    OR BUILD_ZENOH)
+if(BUILD_MIDDLEWARE_FASTDDS 
+    OR BUILD_MIDDLEWARE_CYCLONEDDS 
+    OR BUILD_MIDDLEWARE_ZENOH)
     add_package(advrf_interfaces_dds interfaces/advrf_interfaces_dds)
     add_package(advrf_dds_common plugins/advrf_dds_common)
 endif()
 
 ## Plugin compilations
 
-if(BUILD_FASTDDS)
+if(BUILD_MIDDLEWARE_FASTDDS)
     add_package(advrf_fastdds_plugin plugins/advrf_fastdds_plugin)
 endif()
 
-if(BUILD_CYCLONEDDS)
+if(BUILD_MIDDLEWARE_CYCLONEDDS)
     add_package(advrf_cyclonedds_plugin plugins/advrf_cyclonedds_plugin)
 endif()
 
-if(BUILD_ZENOH)
+if(BUILD_MIDDLEWARE_ZENOH)
     add_package(advrf_zenoh_plugin plugins/advrf_zenoh_plugin)
 endif()
 
-if(BUILD_ZMQ)
+if(BUILD_MIDDLEWARE_ZMQ)
     add_package(advrf_zmq_plugin plugins/advrf_zmq_plugin)
 endif()
