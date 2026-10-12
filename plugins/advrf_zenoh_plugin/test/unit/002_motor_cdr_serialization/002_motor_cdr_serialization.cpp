@@ -6,7 +6,7 @@
 #include <fastcdr/Cdr.h>
 #include <fastcdr/FastBuffer.h>
 
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
+#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 
 #include "advrf_zenoh_plugin/serialization/ros2cdr.hpp"
 

@@ -13,6 +13,8 @@ target_link_libraries(002_ros2_pub
         fastcdr
         advrf_interfaces_dds::cdr
         advrf_zenoh_plugin
+        ecat_master::ecat_core
+        ecat_master::ecat_master_pb
 )
 
 install(

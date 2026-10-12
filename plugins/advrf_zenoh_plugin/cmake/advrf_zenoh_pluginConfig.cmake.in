@@ -4,7 +4,6 @@ include(CMakeFindDependencyMacro)
 
 find_dependency(advrf_zenoh_lib)
 find_dependency(advrf_middleware_core)
-find_dependency(advrf_interfaces_protobuf)
 
 include("${CMAKE_CURRENT_LIST_DIR}/advrf_zenoh_pluginTargets.cmake")
 

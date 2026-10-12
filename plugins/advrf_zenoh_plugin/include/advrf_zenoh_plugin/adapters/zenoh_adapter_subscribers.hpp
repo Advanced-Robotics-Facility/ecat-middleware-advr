@@ -6,7 +6,7 @@
 
 #include <zenoh.hxx>
 
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
+#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/adapters/adapter_subscribers.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
 

@@ -9,6 +9,8 @@ function(plugin_test TEST_NAME TEST_SOURCE)
         PRIVATE
             advrf_middleware_core
             advrf_zenoh_plugin
+            ecat_master::ecat_core
+            ecat_master::ecat_master_pb 
     )
 
     add_test(

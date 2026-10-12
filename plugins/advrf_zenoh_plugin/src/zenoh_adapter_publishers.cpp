@@ -56,6 +56,8 @@ bool ZenohAdapterPublishers::init(const advrf::middleware::config::ConfigTopics&
     joint_ids.insert(joint_ids.end(), gripper_ids.begin(), gripper_ids.end());
 
     bool success = true;
+
+    std::cout << topics.rx.jointState() << std::endl;
     success &= register_topic(
         {advrf::middleware::shm::ChannelRx::Motor, 
         advrf::middleware::shm::ChannelRx::Gripper, 

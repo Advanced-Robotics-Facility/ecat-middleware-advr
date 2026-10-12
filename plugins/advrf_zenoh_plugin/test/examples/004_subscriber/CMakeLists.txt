@@ -10,7 +10,8 @@ target_compile_features(004_subscriber
 target_link_libraries(004_subscriber
     PRIVATE
         advrf_config
-        advrf_interfaces_protobuf
+        ecat_master::ecat_core
+        ecat_master::ecat_master_pb
         advrf_middleware_core
         zenohcxx::zenohc
 )

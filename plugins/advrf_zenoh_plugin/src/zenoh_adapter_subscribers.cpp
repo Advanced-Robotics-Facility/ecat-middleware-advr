@@ -23,18 +23,18 @@ ZenohAdapterSubscribers::ZenohAdapterSubscribers(
             deserialization::Ros2CommandType::Gripper},
         {topics.tx.pumpCmd(), Pdo::TX_HYQ_HPU, advrf::middleware::shm::ChannelTx::Pump,
             deserialization::Ros2CommandType::Pump},
-        {topics.tx.powerBoardCmd(), Pdo::TX_POW_F28M36, advrf::middleware::shm::ChannelTx::PowerBoard,
-            deserialization::Ros2CommandType::PowerBoard},
-        {topics.tx.forceTorqueCmd(), Pdo::TX_FT6, advrf::middleware::shm::ChannelTx::ForceTorque,
-            deserialization::Ros2CommandType::ForceTorque},
+        // {topics.tx.powerBoardCmd(), Pdo::TX_POW_F28M36, advrf::middleware::shm::ChannelTx::PowerBoard,
+        //     deserialization::Ros2CommandType::PowerBoard},
+        // {topics.tx.forceTorqueCmd(), Pdo::TX_FT6, advrf::middleware::shm::ChannelTx::ForceTorque,
+        //     deserialization::Ros2CommandType::ForceTorque},
 #else
         {topics.tx.jointCmd(), Pdo::TX_CIA402, advrf::middleware::shm::ChannelTx::Motor},
         {topics.tx.motorCmd(), Pdo::TX_MOTOR, advrf::middleware::shm::ChannelTx::Motor},
         {topics.tx.valveCmd(), Pdo::TX_HYQ_KNEE, advrf::middleware::shm::ChannelTx::Valve},
         {topics.tx.gripperCmd(), Pdo::TX_GRIPPER, advrf::middleware::shm::ChannelTx::Gripper},
         {topics.tx.pumpCmd(), Pdo::TX_HYQ_HPU, advrf::middleware::shm::ChannelTx::Pump},
-        {topics.tx.powerBoardCmd(), Pdo::TX_POW_F28M36, advrf::middleware::shm::ChannelTx::PowerBoard},
-        {topics.tx.forceTorqueCmd(), Pdo::TX_FT6, advrf::middleware::shm::ChannelTx::ForceTorque},
+        // {topics.tx.powerBoardCmd(), Pdo::TX_POW_F28M36, advrf::middleware::shm::ChannelTx::PowerBoard},
+        // {topics.tx.forceTorqueCmd(), Pdo::TX_FT6, advrf::middleware::shm::ChannelTx::ForceTorque},
 #endif
     }
 {}

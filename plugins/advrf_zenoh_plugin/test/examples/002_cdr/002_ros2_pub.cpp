@@ -11,7 +11,7 @@
 #include <ecat_master_future/shm/proto_helper.hpp>
 #include "advrf_zenoh_plugin/serialization/ros2cdr.hpp"
 
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
+#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 
 namespace {
 volatile std::sig_atomic_t running = 1;

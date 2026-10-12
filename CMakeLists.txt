@@ -25,9 +25,10 @@ option(BUILD_MIDDLEWARE_FASTDDS "Build the FastDDS backend" OFF)
 option(BUILD_MIDDLEWARE_CYCLONEDDS "Build the CycloneDDS backend" ON)
 option(BUILD_MIDDLEWARE_ZENOH "Build the Zenoh backend" OFF)
 option(BUILD_MIDDLEWARE_ZMQ "Build the ZMQ backend" OFF)
-option(BUILD_TEST_UNIT "Build tests" ON)
-option(BUILD_TEST_EXAMPLES "Build examples" ON)
-option(BUILD_TOOLS "Build tools" ON)
+option(BUILD_TEST_UNIT "Build tests" OFF)
+option(BUILD_TEST_EXAMPLES "Build examples" OFF)
+option(BUILD_TOOLS "Build tools" OFF)
+option(ROS2_SUPPORT "ROS2 Support" OFF)
 
 # Path containing robot configurations
 set(CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/config/advrf_config/configs")
@@ -88,6 +89,7 @@ function(add_package name relative_source)
             "-DBUILD_MIDDLEWARE_ZENOH:BOOL=${BUILD_MIDDLEWARE_ZENOH}"
             "-DBUILD_TEST_UNIT:BOOL=${BUILD_TEST_UNIT}"
             "-DBUILD_TEST_EXAMPLES:BOOL=${BUILD_TEST_EXAMPLES}"
+            "-DZENOH_ROS2_SUPPORT:BOOL=${ROS2_SUPPORT}"
 
         BUILD_ALWAYS TRUE
 

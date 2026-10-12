@@ -13,7 +13,7 @@
 #include <ecat_master_future/shm/shared_memory.hpp>
 #include <ecat_master_future/shm/proto_helper.hpp>
 
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
+#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 
 namespace {
     volatile std::sig_atomic_t running = 1;

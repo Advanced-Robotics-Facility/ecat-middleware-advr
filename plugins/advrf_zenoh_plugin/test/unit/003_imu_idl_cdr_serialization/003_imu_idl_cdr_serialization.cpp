@@ -7,7 +7,7 @@
 
 #include <advrf_interfaces/msg/Imu.hpp>
 #include <advrf_interfaces/msg/ImuCdrAux.hpp>
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
+#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 
 #include "advrf_zenoh_plugin/serialization/ros2cdr.hpp"
 
