@@ -14,7 +14,7 @@ bool ImuPublisher::process(const iit::advrf::Ec_slave_pdo& pdo) {
     }
 
     advrf::dds_common::convert::dds::from_protobuf(pdo, message().header());
-    message().header().frame_id() = resolve_name(pdo.header().str_id(), id_to_name_);
+    message().header().frame_id() = resolve_name(pdo.header().index(), id_to_name_);
     return true;
 }
 
@@ -37,7 +37,7 @@ bool JointStatePublisher::process(const iit::advrf::Ec_slave_pdo& pdo) {
             return false; // Exit early if the PDO type is not handled
     }
     
-    message().name().push_back(resolve_name(pdo.header().str_id(), id_to_name_));
+    message().name().push_back(resolve_name(pdo.header().index(), id_to_name_));
     advrf::dds_common::convert::dds::from_protobuf(pdo, message().header());
     return true;
 }
@@ -58,7 +58,7 @@ bool MotorsPublisher::process(const iit::advrf::Ec_slave_pdo& pdo) {
             return false; // Exit early if the PDO type is not handled
     }
     
-    message().name().push_back(resolve_name(pdo.header().str_id(), id_to_name_));
+    message().name().push_back(resolve_name(pdo.header().index(), id_to_name_));
     advrf::dds_common::convert::dds::from_protobuf(pdo, message().header());
     return true;
 }
@@ -74,7 +74,7 @@ bool PowerBoardPublisher::process(const iit::advrf::Ec_slave_pdo& pdo) {
     }
     
     advrf::dds_common::convert::dds::from_protobuf(pdo, message().header());
-    message().header().frame_id() = resolve_name(pdo.header().str_id(), id_to_name_);
+    message().header().frame_id() = resolve_name(pdo.header().index(), id_to_name_);
     return true;
 }
 
@@ -89,7 +89,7 @@ bool PumpPublisher::process(const iit::advrf::Ec_slave_pdo& pdo) {
     }
     
     advrf::dds_common::convert::dds::from_protobuf(pdo, message().header());
-    message().header().frame_id() = resolve_name(pdo.header().str_id(), id_to_name_);
+    message().header().frame_id() = resolve_name(pdo.header().index(), id_to_name_);
     return true;
 }
 
@@ -104,7 +104,7 @@ bool ForceTorquePublisher::process(const iit::advrf::Ec_slave_pdo& pdo) {
     }
     
     advrf::dds_common::convert::dds::from_protobuf(pdo, message().header());
-    message().header().frame_id() = resolve_name(pdo.header().str_id(), id_to_name_);
+    message().header().frame_id() = resolve_name(pdo.header().index(), id_to_name_);
     return true;
 }
 
@@ -118,7 +118,7 @@ bool ValvePublisher::process(const iit::advrf::Ec_slave_pdo& pdo) {
             return false; // Exit early if the PDO type is not handled
     }
     
-    message().name().push_back(resolve_name(pdo.header().str_id(), id_to_name_));
+    message().name().push_back(resolve_name(pdo.header().index(), id_to_name_));
     advrf::dds_common::convert::dds::from_protobuf(pdo, message().header());
     return true;
 }
@@ -133,7 +133,7 @@ bool GripperPublisher::process(const iit::advrf::Ec_slave_pdo& pdo) {
             return false; // Exit early if the PDO type is not handled
     }
     
-    message().name().push_back(resolve_name(pdo.header().str_id(), id_to_name_));
+    message().name().push_back(resolve_name(pdo.header().index(), id_to_name_));
     advrf::dds_common::convert::dds::from_protobuf(pdo, message().header());
     return true;
 }

@@ -10,8 +10,8 @@
 
 #include <shm_utils.hpp>
 #include <shm_types.hpp>
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
-#include <advrf_interfaces_protobuf/repl_cmd.pb.h>
+#include <protobuf/ecat_pdo.pb.h>
+#include <protobuf/repl_cmd.pb.h>
 
 namespace {
 volatile std::sig_atomic_t keep_running = 1;

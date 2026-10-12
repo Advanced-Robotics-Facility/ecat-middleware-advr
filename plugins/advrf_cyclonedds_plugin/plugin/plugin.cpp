@@ -70,7 +70,10 @@ int main(int argc, char **argv) {
 
   // ecat discover
   advrf::middleware::ecat::EcatDiscover ecat_discover;
-  ecat_discover.start(SHM_NRT_RX_PDO);
+  if (!ecat_discover.start(SHM_NRT_RX_PDO)) {
+    LOG_ERROR("Failed to connect to EtherCAT PDO shared memory.");
+    return 1;
+  }
   auto ecat_map = ecat_discover.discover(advrf::middleware::config::extract_pdo_ids(config_robot));
 
   // service

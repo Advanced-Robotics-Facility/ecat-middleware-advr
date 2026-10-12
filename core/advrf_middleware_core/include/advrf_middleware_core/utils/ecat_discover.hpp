@@ -5,7 +5,7 @@
 #include "advrf_middleware_core/utils/channel.hpp"
 #include "advrf_middleware_core/utils/pdo_utils.hpp"
 
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
+#include <protobuf/ecat_pdo.pb.h>
 
 namespace advrf::middleware::ecat {
 
@@ -40,7 +40,16 @@ public:
    * @return True if the connection succeeds.
    */
   bool start(const std::string &shm_name) {
-    // return shm_.connect(shm_name, ShmAttachMode::Open);
+    if (shm_name != SHM_NRT_RX_PDO) {
+      LOG_ERROR("Unsupported EtherCAT RX shared memory '{}'", shm_name);
+      return false;
+    }
+
+    if (!client_transport().initialize_rx(false, Proto_type::PROTOBUFF)) {
+      LOG_ERROR("Failed to open ready EtherCAT RX shared memory '{}'", shm_name);
+      return false;
+    }
+
     return true;
   }
 
@@ -55,6 +64,11 @@ public:
   EcatMap discover(const std::set<uint32_t> &ecat_ids) {
     EcatMap ecat_map;
 
+    if (!is_ok()) {
+      LOG_ERROR("Cannot discover EtherCAT devices without RX shared memory");
+      return ecat_map;
+    }
+
     while (ecat_map.size() < ecat_ids.size()) {
       discover_once(ecat_ids, ecat_map);
       LOG_INFO("Pdo discovery in progress, found {}/{} PDOs", ecat_map.size(), ecat_ids.size());
@@ -65,16 +79,12 @@ public:
   }
 
   /// Return whether the shared-memory connection is usable.
-  bool is_ok() const { 
-    // return shm_.is_ok(); 
-    return true; 
-  
+  bool is_ok() const {
+    return client_transport().rx_is_ok();
   }
 
   /// Close the shared-memory connection.
-  void close() { 
-    // shm_.close(); 
-  }
+  void close() {}
 
 private:
 
@@ -88,36 +98,37 @@ private:
         continue;
       }
 
-      std::vector<Pdo> pdos;
-      // shm_.peek_all(*device, pdos);
+      Pdo pdo;
 
-      // FIXME
-      // controller_transport().peek_rx_queue(*device, pdos);
-
-      for (const auto &pdo : pdos) {
-        const auto &str_id = pdo.header().str_id();
-        const int parsed_id = advrf::middleware::pdo::get_ecat_id(str_id);
-
-        if (parsed_id < 0) {
-          LOG_ERROR("Format error for PDO frame with ID {}", str_id);
-          continue;
+      client_transport().peek_rx_queue(*device, pdo, [&](const Pdo& received) {
+        if (!received.has_header() || !received.header().has_index()) {
+          LOG_ERROR("Received PDO without EtherCAT index during discovery");
+          return;
         }
+
+        const auto parsed_id = received.header().index();
+        if (parsed_id < 0)
+          return;
 
         const auto id = static_cast<uint32_t>(parsed_id);
-
         if (ecat_ids.find(id) == ecat_ids.end() ||
             ecat_map.find(id) != ecat_map.end()) {
-          continue;
+          return;
         }
+
+        const std::string name =
+            received.header().has_str_id() && !received.header().str_id().empty()
+                ? received.header().str_id()
+                : "ecat_" + std::to_string(id);
 
         ecat_map.emplace(id, EcatMetadata{
                                 .ecat_id = id,
-                                .name = str_id,
-                                .type = pdo.type(),
+                                .name = name,
+                                .type = received.type(),
                                 .channel = channel,
                                 .device = *device,
                             });
-      }
+      });
     }
   }
 

@@ -17,7 +17,7 @@
 #include "advrf_middleware_core/utils/log.hpp"
 #include "advrf_middleware_core/utils/pdo_utils.hpp"
 
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
+#include <protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/utils/log.hpp>
 
 namespace advrf::middleware::adapters::message {
@@ -94,36 +94,34 @@ public:
     bool accept_all_ids = true;
   };
 
-  AdapterPublishers() {}
+  AdapterPublishers() = default;
   ~AdapterPublishers() override = default;
-
-  // ShmRxReader &shm() noexcept { return shm_; }
-  // const ShmRxReader &shm() const noexcept { return shm_; }
-  // ShmClientTransport &shm() noexcept { return shm_; }
-  // const ShmClientTransport &shm() const noexcept { return shm_; }
-
-
 
   /// Drain shared-memory PDOs and dispatch them to registered publishers.
   void spin_once() override {
+    if (!is_ok())
+      return;
+
     fill_cache();
     dispatch();
   }
 
   /// Connect to the non-real-time RX PDO shared-memory channel.
   bool start() override {
-    // return shm_.connect(SHM_NRT_RX_PDO, ShmAttachMode::Open);
+    if (!client_transport().initialize_rx(false, Proto_type::PROTOBUFF)) {
+      LOG_ERROR("Failed to open ready EtherCAT RX shared memory '{}'",
+                SHM_NRT_RX_PDO);
+      return false;
+    }
+
     return true;
   }
 
-  bool is_ok() const override { 
-    // return shm_.is_ok(); 
-    return true;
+  bool is_ok() const override {
+    return client_transport().rx_is_ok();
   }
-  void close() override { 
-    // shm_.close(); 
-    // return true;
-  }
+
+  void close() override {}
 
 protected:
 
@@ -198,57 +196,51 @@ private:
   }
 
   /// Drain PDOs from shared memory and update the per-channel cache.
-  void fill_cache() {
-    for (const auto channel : advrf::middleware::shm::CHANNELS_ARRAY) {
-      const auto device = advrf::middleware::shm::device_for(channel);
+  void fill_cache()
+  {
+      for (auto channel : advrf::middleware::shm::CHANNELS_ARRAY) {
+          auto device = advrf::middleware::shm::device_for(channel);
+          if (!device)
+              continue;
 
-      if (!device) {
-        LOG_ERROR("No device mapped for ChannelRx {}",
-                  static_cast<int>(channel));
-        continue;
+          auto& cache = channel_cache(channel);
+
+          for (auto id : cache.active_ids)
+              cache.entries[id].updated_this_cycle = false;
+
+          iit::advrf::Ec_slave_pdo pdo;
+
+          client_transport().drain_rx_queue(
+              *device,
+              pdo,
+              [&](const iit::advrf::Ec_slave_pdo& received) {
+                  if (!received.has_header() ||
+                      !received.header().has_index()) {
+                      LOG_ERROR("Received PDO without EtherCAT index");
+                      return;
+                  }
+
+                  const auto id =
+                      static_cast<std::uint32_t>(
+                          received.header().index());
+
+                  if (id >= MaxEcatIds) {
+                      LOG_ERROR("ECAT ID {} exceeds maximum supported ID {}",
+                                id, MaxEcatIds - 1);
+                      return;
+                  }
+
+                  auto& entry = cache.entries[id];
+
+                  if (!entry.valid)
+                      cache.active_ids.push_back(id);
+
+                  entry.valid = true;
+                  entry.updated_this_cycle = true;
+                  entry.ecat_id = id;
+                  entry.pdo = received;
+              });
       }
-
-      auto &cache = channel_cache(channel);
-      std::vector<advrf::middleware::pdo::Pdo> pdos;
-      // shm_.drain(*device, pdos);
-
-      client_transport().drain_rx_queues([&](std::uint32_t slave_id) {
-        advrf::middleware::pdo::Pdo pdo;
-        advrf::middleware::pdo::EcatId ecat_id = static_cast<advrf::middleware::pdo::EcatId>(slave_id);
-
-        // [FIXME]
-        // if (client_transport().extract_rx_pdo(pdo, ecat_id)) {
-        //   pdos.push_back(std::move(pdo));
-        // }
-      });
-
-      for(const auto &received : pdos) {
-        const int parsed_id = advrf::middleware::pdo::get_ecat_id(received.header().str_id());
-
-        if (parsed_id < 0) {
-          LOG_ERROR("Format error for PDO frame with ID {}",
-                    received.header().str_id());
-          return;
-        }
-
-        const auto id = static_cast<advrf::middleware::pdo::EcatId>(parsed_id);
-
-        if (id >= MaxEcatIds) {
-          LOG_ERROR("ECAT ID {} exceeds maximum supported ID {}", id,
-                    MaxEcatIds - 1);
-          return;
-        }
-
-        auto &entry = cache.entries[id];
-
-        if (!entry.valid)
-          cache.active_ids.push_back(id);
-
-        entry.valid = true;
-        entry.ecat_id = id;
-        entry.pdo = received;
-      }
-    }
   }
 
   /// Deliver cached PDOs to each registered publisher.
@@ -274,6 +266,11 @@ private:
   static void dispatch_cache(const ChannelCache &cache,
                              Subscription &subscription) {
     for (advrf::middleware::pdo::EcatId id : cache.active_ids) { 
+      const auto &entry = cache.entries[id];
+
+      if (!entry.updated_this_cycle)
+        continue;
+
       if (!subscription.accept_all_ids && !subscription.ids_allowed.test(id))
         continue;
 
@@ -281,7 +278,6 @@ private:
         continue;
 
       subscription.ids_seen.set(id);
-      const auto &entry = cache.entries[id];
       subscription.publisher->consume(entry.pdo);
     }
   }

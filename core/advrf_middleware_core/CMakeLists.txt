@@ -9,7 +9,6 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 find_package(advrf_config CONFIG REQUIRED)
-find_package(advrf_interfaces_protobuf REQUIRED)
 find_package(ecat_master REQUIRED COMPONENTS ecat_core)
 find_package(spdlog REQUIRED)
 find_package(yaml-cpp REQUIRED)
@@ -33,7 +32,7 @@ target_include_directories(advrf_middleware_core
 
 target_link_libraries(advrf_middleware_core
     PUBLIC
-        # advrf_interfaces_protobuf
+        ecat_master::ecat_master_pb
         ecat_master::ecat_core
         spdlog::spdlog
         yaml-cpp::yaml-cpp
@@ -76,7 +75,6 @@ install(
 #         advrf_config
 #         advrf_middleware_core
 #         ecat_master::ecat_core
-#         advrf_interfaces_protobuf
 #         yaml-cpp::yaml-cpp
 
 # )

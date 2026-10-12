@@ -7,8 +7,8 @@
 #include "advrf_middleware_core/utils/channel.hpp"
 #include "advrf_middleware_core/utils/log.hpp"
 
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
-#include <advrf_interfaces_protobuf/repl_cmd.pb.h>
+#include <protobuf/ecat_pdo.pb.h>
+#include <protobuf/repl_cmd.pb.h>
 
 namespace advrf::middleware::adapters::message {
 

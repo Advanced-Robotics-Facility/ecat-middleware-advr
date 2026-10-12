@@ -93,7 +93,10 @@ int main(int argc, char **argv)
     
     auto config = advrf::middleware::config::ConfigTopics({config_robot->ns, config_robot->robot_name});
     advrf::middleware::ecat::EcatDiscover pdo_discover;
-    pdo_discover.start(SHM_NRT_RX_PDO);
+    if (!pdo_discover.start(SHM_NRT_RX_PDO)) {
+        LOG_ERROR("Failed to connect to EtherCAT PDO shared memory.");
+        return 1;
+    }
     auto pdo_map = pdo_discover.discover(advrf::middleware::config::extract_pdo_ids(*config_robot));
     
     // publishers

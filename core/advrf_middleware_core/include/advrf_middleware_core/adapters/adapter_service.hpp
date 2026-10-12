@@ -6,8 +6,8 @@
 #include "advrf_middleware_core/adapters/adapter_base.hpp"
 #include "advrf_middleware_core/utils/log.hpp"
 
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
-#include <advrf_interfaces_protobuf/repl_cmd.pb.h>
+#include <protobuf/ecat_pdo.pb.h>
+#include <protobuf/repl_cmd.pb.h>
 #include <advrf_middleware_core/utils/log.hpp>
 
 namespace advrf::middleware::adapters::service

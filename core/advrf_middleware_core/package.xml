@@ -12,7 +12,6 @@
 
   <depend>ecat_master</depend>
   <depend>advrf_config</depend>
-  <depend>advrf_interfaces_protobuf</depend>
   <depend>yaml-cpp</depend>
 
   <export>
