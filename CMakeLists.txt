@@ -120,7 +120,6 @@ endfunction()
 ## Common base
 
 add_package(advrf_config config/advrf_config)
-add_package(advrf_interfaces_protobuf interfaces/advrf_interfaces_protobuf)
 add_package(advrf_middleware_core core/advrf_middleware_core)
 
 if(BUILD_TOOLS)
