@@ -97,7 +97,7 @@ install(
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
-option(BUILD_TEST_EXAMPLESS "Build testing examples" ON)
+option(BUILD_TEST_EXAMPLES "Build testing examples" ON)
 option(BUILD_TEST_UNIT "Build unit tests" ON)
 
 if(BUILD_TEST_UNIT)
@@ -105,7 +105,7 @@ if(BUILD_TEST_UNIT)
     add_subdirectory(test/unit)    
 endif()
 
-if(BUILD_TEST_EXAMPLESS)
+if(BUILD_TEST_EXAMPLES)
     add_subdirectory(test/examples)    
 endif()
 

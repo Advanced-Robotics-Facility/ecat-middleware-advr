@@ -143,11 +143,11 @@ int main(int argc, char **argv)
         period_from_rate(options.rate_subscribers)
     });
 
-    plugin_exec.register_adapter({
-        "dds_adapter_service",
-        dds_adapter_service,
-        period_from_rate(options.rate_service)
-    });
+    // plugin_exec.register_adapter({
+    //     "dds_adapter_service",
+    //     dds_adapter_service,
+    //     period_from_rate(options.rate_service)
+    // });
 
     LOG_INFO("Publisher rate: {} Hz", options.rate_publishers);
     LOG_INFO("Service rate: {} Hz", options.rate_service);

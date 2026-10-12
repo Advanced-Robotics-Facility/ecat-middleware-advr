@@ -76,7 +76,7 @@ public:
     bool start() override
     {
         if (!client_transport().initialize_service()) {
-            LOG_ERROR("Failed to open ready EtherCAT service shared memory '{}'", SHM_REPL_NAME);
+            LOG_ERROR("Failed to open ready EtherCAT service shared memory '{}'", SHM_SRV_NAME);
             return false;
         }
         return true;
