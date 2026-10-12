@@ -2,8 +2,8 @@
 
 #include "shm_tools/bridge_inspector.hpp"
 
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
-#include <advrf_interfaces_protobuf/repl_cmd.pb.h>
+#include <protobuf/ecat_pdo.pb.h>
+#include <protobuf/repl_cmd.pb.h>
 #include <shm_types.hpp>
 
 namespace advrf::middleware::tools::shm {
@@ -57,11 +57,6 @@ protected:
     register_queue<iit::advrf::Ec_slave_pdo>(
         "gripper", bridge_->payload.queue_for(DeviceTypeTx::GRIPPER));
 
-    register_queue<iit::advrf::Ec_slave_pdo>(
-        "power_board", bridge_->payload.queue_for(DeviceTypeTx::POWERBOARD));
-
-    register_queue<iit::advrf::Ec_slave_pdo>(
-        "force_torque", bridge_->payload.queue_for(DeviceTypeTx::FORCETORQUE));
   }
 };
 

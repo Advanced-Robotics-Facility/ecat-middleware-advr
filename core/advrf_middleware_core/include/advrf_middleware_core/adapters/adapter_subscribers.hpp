@@ -25,12 +25,15 @@ public:
 
   /// Connect to the shared-memory transmit (TX) PDO channel.
   bool start() override {
-    // return shm_.connect(SHM_TX_PDO, ShmAttachMode::Open);
+    if (!client_transport().initialize_tx(Proto_type::PROTOBUFF)) {
+      LOG_ERROR("Failed to open ready EtherCAT TX shared memory '{}'", SHM_TX_PDO);
+      return false;
+    }
     return true;
   }
 
-  bool is_ok() const override { return true; }
-  void close() override { /* shm_.close(); */ }
+  bool is_ok() const override { return client_transport().tx_is_ok(); }
+  void close() override {}
 
 protected:
   /**
@@ -49,13 +52,9 @@ protected:
       return false;
     }
 
-    // FIXME return shm_.push(*device, msg);
-    // client_transport().push_tx_queue(*device, msg);
-    return true;
+    return client_transport().push_tx_queue(*device, msg);
   }
 
-private:
-  // ShmTxWriter shm_;
 };
 
 }

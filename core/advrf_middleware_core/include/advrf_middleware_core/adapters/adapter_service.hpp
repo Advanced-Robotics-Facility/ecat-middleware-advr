@@ -1,5 +1,10 @@
 #pragma once
 
+#include <chrono>
+#include <mutex>
+#include <string>
+#include <thread>
+
 #include <shm_types.hpp>
 #include <shm_utils.hpp>
 
@@ -41,27 +46,23 @@ public:
         // Only one outstanding SHM request at a time.
         std::scoped_lock lock{request_mutex_};
 
-        // if (!shm_.is_ok())
-        //     return make_nack("ecat master not connected");
+        if (!is_ok())
+            return make_nack("ecat master not connected");
 
-        //  FIXME
-        // if (!client_transport().push_request(request))
-        // {
-        //     LOG_ERROR("Push to request queue failed");
-        //     return make_nack("shm request queue full");
-        // }
+        if (!client_transport().push_request(request)) {
+            LOG_ERROR("Push to request queue failed");
+            return make_nack("shm request queue full");
+        }
 
         LOG_DEBUG("Pushed request to SHM, waiting for reply...");
         const auto deadline = std::chrono::steady_clock::now() + ReplyTimeout;
         while (std::chrono::steady_clock::now() < deadline)
         {
             iit::advrf::Cmd_reply reply;
-            // FIXME
-            // if (client_transport().try_pop_reply(reply))
-            // {
-            //     if (matches(request, reply))
-            //         return reply;
-            // }
+            if (!is_ok())
+                return make_nack("ecat master disconnected");
+            if (client_transport().try_pop_reply(reply) && matches(request, reply))
+                return reply;
             std::this_thread::sleep_for(PollPeriod);
         }
 
@@ -71,43 +72,18 @@ public:
     }
 
 
-    // ShmServiceClient& shm() noexcept
-    // {
-    //     return shm_;
-    // }
-
-
-    // const ShmServiceClient& shm() const noexcept
-    // {
-    //     return shm_;
-    // }
-
     /// Connect to the shared-memory service channel.
     bool start() override
     {
-        // return shm_.connect_and_wait(
-        //     SHM_SERVICE,
-        //     ShmAttachMode::Open);
+        if (!client_transport().initialize_service()) {
+            LOG_ERROR("Failed to open ready EtherCAT service shared memory '{}'", SHM_REPL_NAME);
+            return false;
+        }
         return true;
     }
 
-
-    bool is_ok() const override
-    {
-        // return shm_.is_ok();
-        return true;
-    }
-
-    void close() override
-    {
-        // shm_.close();
-
-    }
-
-
-protected:
-    // ShmServiceClient shm_;
-
+    bool is_ok() const override { return client_transport().service_is_ok(); }
+    void close() override {}
 
 private:
     /// Maximum time to wait for a matching command reply.

@@ -76,16 +76,17 @@ protected:
 
          [name, &queue](MessageMap &messages, bool history) {
            if (history) {
-            std::vector<Proto> protos; 
-            ShmProtoHelper::peek_all(queue, protos);
-            for (auto &msg : protos) {
-                messages[name].push_back(std::make_unique<Proto>(std::move(msg)));
-            }
+            ShmProtoHelper helper;
+            Proto msg;
+            helper.peek_all(queue, msg, [&](const Proto& received) {
+              messages[name].push_back(std::make_unique<Proto>(received));
+            });
             return;
            }
 
            auto msg = std::make_unique<Proto>();
-           if (ShmProtoHelper::peek_latest(queue, *msg)) {
+           ShmProtoHelper helper;
+           if (helper.peek_latest(queue, *msg)) {
              messages[name].push_back(std::move(msg));
            }
          },

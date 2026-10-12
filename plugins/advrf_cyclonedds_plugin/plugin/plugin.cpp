@@ -14,6 +14,7 @@
 using advrf::cyclonedds_plugin::DDSAdapterPublishers;
 using advrf::cyclonedds_plugin::DDSAdapterService;
 using advrf::cyclonedds_plugin::DDSAdapterSubscribers;
+
 namespace {
 struct Options {
   uint32_t rate_publishers = 1000; // Hz
@@ -77,10 +78,10 @@ int main(int argc, char **argv) {
   auto ecat_map = ecat_discover.discover(advrf::middleware::config::extract_pdo_ids(config_robot));
 
   // service
-  // auto dds_participant_service =
-  //     dds::domain::DomainParticipant(config_robot.domain_id);
-  // auto dds_adapter_service = std::make_shared<DDSAdapterService>(
-  //     config_topic, config_robot, dds_participant_service);
+  auto dds_participant_service =
+      dds::domain::DomainParticipant(config_robot.domain_id);
+  auto dds_adapter_service = std::make_shared<DDSAdapterService>(
+      config_topic, config_robot, dds_participant_service);
 
   // publishers
   auto dds_participant_pub =
@@ -95,14 +96,16 @@ int main(int argc, char **argv) {
   }
 
   // subscribers
-  // auto dds_participant_sub = dds::domain::DomainParticipant(config_robot.domain_id);
-  // auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>();
-  // if (!dds_adapter_subscribers->init(config_topic, config_robot, ecat_map, dds_participant_sub, {})) {
-  //   LOG_ERROR("Failed to initialize one or more DDS subscribers.");
-  //   return 1;
-  // }
+  auto dds_participant_sub = dds::domain::DomainParticipant(config_robot.domain_id);
+  auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>();
+  if (!dds_adapter_subscribers->init(config_topic, config_robot, ecat_map, dds_participant_sub, {})) {
+    LOG_ERROR("Failed to initialize one or more DDS subscribers.");
+    return 1;
+  }
 
   advrf::middleware::plugin::PluginExec plugin_exec;
+
+  // FIXME: wait fix from master side
   // plugin_exec.register_adapter({"dds_adapter_service", 
   //                                       dds_adapter_service,
   //                                       period_from_rate(options.rate_service)});
@@ -111,9 +114,9 @@ int main(int argc, char **argv) {
                                         dds_adapter_publishers,
                                         period_from_rate(options.rate_publishers)});
 
-  // plugin_exec.register_adapter({"dds_adapter_subscribers",
-  //                                       dds_adapter_subscribers,
-  //                                       period_from_rate(options.rate_subscribers)});
+  plugin_exec.register_adapter({"dds_adapter_subscribers",
+                                        dds_adapter_subscribers,
+                                        period_from_rate(options.rate_subscribers)});
 
   plugin_exec.start();
 
