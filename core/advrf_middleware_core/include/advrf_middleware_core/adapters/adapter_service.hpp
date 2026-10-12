@@ -41,25 +41,27 @@ public:
         // Only one outstanding SHM request at a time.
         std::scoped_lock lock{request_mutex_};
 
-        if (!shm_.is_ok())
-            return make_nack("ecat master not connected");
+        // if (!shm_.is_ok())
+        //     return make_nack("ecat master not connected");
 
-        if (!shm_.push_request(request))
-        {
-            LOG_ERROR("Push to request queue failed");
-            return make_nack("shm request queue full");
-        }
+        //  FIXME
+        // if (!client_transport().push_request(request))
+        // {
+        //     LOG_ERROR("Push to request queue failed");
+        //     return make_nack("shm request queue full");
+        // }
 
         LOG_DEBUG("Pushed request to SHM, waiting for reply...");
         const auto deadline = std::chrono::steady_clock::now() + ReplyTimeout;
         while (std::chrono::steady_clock::now() < deadline)
         {
             iit::advrf::Cmd_reply reply;
-            if (shm_.try_pop_reply(reply))
-            {
-                if (matches(request, reply))
-                    return reply;
-            }
+            // FIXME
+            // if (client_transport().try_pop_reply(reply))
+            // {
+            //     if (matches(request, reply))
+            //         return reply;
+            // }
             std::this_thread::sleep_for(PollPeriod);
         }
 
@@ -69,39 +71,42 @@ public:
     }
 
 
-    ShmServiceClient& shm() noexcept
-    {
-        return shm_;
-    }
+    // ShmServiceClient& shm() noexcept
+    // {
+    //     return shm_;
+    // }
 
 
-    const ShmServiceClient& shm() const noexcept
-    {
-        return shm_;
-    }
+    // const ShmServiceClient& shm() const noexcept
+    // {
+    //     return shm_;
+    // }
 
     /// Connect to the shared-memory service channel.
     bool start() override
     {
-        return shm_.connect_and_wait(
-            SHM_SERVICE,
-            ShmAttachMode::Open);
+        // return shm_.connect_and_wait(
+        //     SHM_SERVICE,
+        //     ShmAttachMode::Open);
+        return true;
     }
 
 
     bool is_ok() const override
     {
-        return shm_.is_ok();
+        // return shm_.is_ok();
+        return true;
     }
 
     void close() override
     {
-        shm_.close();
+        // shm_.close();
+
     }
 
 
 protected:
-    ShmServiceClient shm_;
+    // ShmServiceClient shm_;
 
 
 private:

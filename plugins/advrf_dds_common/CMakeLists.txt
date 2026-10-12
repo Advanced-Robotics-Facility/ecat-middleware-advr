@@ -13,7 +13,9 @@ option(BUILD_MIDDLEWARE_CYCLONEDDS "Build CycloneDDS backend" OFF)
 option(BUILD_MIDDLEWARE_ZENOH "Build the CDR-only backend used by Zenoh" OFF)
 
 find_package(advrf_interfaces_dds REQUIRED)
-find_package(advrf_interfaces_protobuf REQUIRED)
+find_package(ecat_master REQUIRED COMPONENTS ecat_core)
+
+# find_package(advrf_interfaces_protobuf REQUIRED)
 
 set(ADVRF_DDS_COMMON_TARGETS "")
 
@@ -39,7 +41,8 @@ function(advrf_dds_common_add_backend backend)
     target_link_libraries("${target}"
         PUBLIC
             "${interface_target}"
-            advrf_interfaces_protobuf
+            # advrf_interfaces_protobuf
+            ecat_master::ecat_master_pb
     )
 
     install(

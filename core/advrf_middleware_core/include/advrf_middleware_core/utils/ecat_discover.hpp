@@ -40,7 +40,8 @@ public:
    * @return True if the connection succeeds.
    */
   bool start(const std::string &shm_name) {
-    return shm_.connect(shm_name, ShmAttachMode::Open);
+    // return shm_.connect(shm_name, ShmAttachMode::Open);
+    return true;
   }
 
   /**
@@ -64,10 +65,16 @@ public:
   }
 
   /// Return whether the shared-memory connection is usable.
-  bool is_ok() const { return shm_.is_ok(); }
+  bool is_ok() const { 
+    // return shm_.is_ok(); 
+    return true; 
+  
+  }
 
   /// Close the shared-memory connection.
-  void close() { shm_.close(); }
+  void close() { 
+    // shm_.close(); 
+  }
 
 private:
 
@@ -82,7 +89,10 @@ private:
       }
 
       std::vector<Pdo> pdos;
-      shm_.peek_all(*device, pdos);
+      // shm_.peek_all(*device, pdos);
+
+      // FIXME
+      // controller_transport().peek_rx_queue(*device, pdos);
 
       for (const auto &pdo : pdos) {
         const auto &str_id = pdo.header().str_id();
@@ -111,7 +121,6 @@ private:
     }
   }
 
-  ShmRxReader shm_;
 };
 
 /**

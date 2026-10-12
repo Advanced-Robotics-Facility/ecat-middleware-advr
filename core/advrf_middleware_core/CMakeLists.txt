@@ -14,6 +14,8 @@ find_package(ecat_master REQUIRED COMPONENTS ecat_core)
 find_package(spdlog REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
+# find_package(ecat_master REQUIRED COMPONENTS ecat_master_pb)
+
 add_library(advrf_middleware_core SHARED
     src/core.cpp
 )
@@ -60,29 +62,28 @@ install(
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
-add_executable(ecat_master_shm_mock
-        src/producer.cpp
-)
+# add_executable(ecat_master_shm_mock
+#         src/producer.cpp
+# )
 
-target_compile_features(ecat_master_shm_mock
-    PRIVATE
-        cxx_std_17
-)
+# target_compile_features(ecat_master_shm_mock
+#     PRIVATE
+#         cxx_std_17
+# )
 
-target_link_libraries(ecat_master_shm_mock
-    PRIVATE
-        advrf_config
-        advrf_middleware_core
-        ecat_master::ecat_core
-        advrf_interfaces_protobuf
-        yaml-cpp::yaml-cpp
+# target_link_libraries(ecat_master_shm_mock
+#     PRIVATE
+#         advrf_config
+#         advrf_middleware_core
+#         ecat_master::ecat_core
+#         advrf_interfaces_protobuf
+#         yaml-cpp::yaml-cpp
 
-)
-
-install(
-    TARGETS ecat_master_shm_mock
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
+# )
+# install(
+#     TARGETS ecat_master_shm_mock
+#     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+# )
 
 configure_package_config_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/advrf_middleware_coreConfig.cmake.in

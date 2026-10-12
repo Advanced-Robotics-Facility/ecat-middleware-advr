@@ -25,11 +25,12 @@ public:
 
   /// Connect to the shared-memory transmit (TX) PDO channel.
   bool start() override {
-    return shm_.connect(SHM_TX_PDO, ShmAttachMode::Open);
+    // return shm_.connect(SHM_TX_PDO, ShmAttachMode::Open);
+    return true;
   }
 
-  bool is_ok() const override { return shm_.is_ok(); }
-  void close() override { shm_.close(); }
+  bool is_ok() const override { return true; }
+  void close() override { /* shm_.close(); */ }
 
 protected:
   /**
@@ -47,11 +48,14 @@ protected:
       LOG_ERROR("No SHM device mapped for ChannelTx {}", static_cast<int>(channel));
       return false;
     }
-    return shm_.push(*device, msg);
+
+    // FIXME return shm_.push(*device, msg);
+    // client_transport().push_tx_queue(*device, msg);
+    return true;
   }
 
 private:
-  ShmTxWriter shm_;
+  // ShmTxWriter shm_;
 };
 
 }

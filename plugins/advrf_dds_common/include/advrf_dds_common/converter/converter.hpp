@@ -3,17 +3,20 @@
 #include <utility>
 #include <vector>
 
-// protobuf service
-#include <advrf_interfaces_protobuf/repl_cmd.pb.h>
-// protobuf messages
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
-// DDS service
-#include <advrf_interfaces/srv/ReplCmd.hpp>
-// DDS messages
+// protobuf 
+#include <ecat_master_pb/protobuf/time.pb.h>
+#include <ecat_master_pb/protobuf/repl_cmd.pb.h>
+#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
+
+// #include <protobuf/repl_cmd.pb.h>
+// #include <protobuf/ecat_pdo.pb.h>
+
+// DDS 
 #include <builtin_interfaces/msg/Time.hpp>
 #include <std_msgs/msg/Header.hpp>
 #include <advrf_interfaces/msg/Imu.hpp>
 #include <sensor_msgs/msg/JointState.hpp>
+#include <advrf_interfaces/srv/ReplCmd.hpp>
 #include <advrf_interfaces/msg/Motor.hpp>
 #include <advrf_interfaces/msg/PowerBoard.hpp>
 #include <advrf_interfaces/msg/Pump.hpp>
@@ -22,6 +25,8 @@
 #include <advrf_interfaces/msg/Gripper.hpp>
 #include <advrf_interfaces/msg/ReplCmdContent.hpp>
 #include <advrf_interfaces/msg/MotorTxPdo.hpp>
+
+using namespace iit::advr;
 
 namespace advrf::dds_common::convert::protobuf {
     template<typename DDS_TYPE, typename PROTOBUF_TYPE>

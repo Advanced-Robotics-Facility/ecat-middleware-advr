@@ -27,6 +27,7 @@ option(BUILD_MIDDLEWARE_ZENOH "Build the Zenoh backend" OFF)
 option(BUILD_MIDDLEWARE_ZMQ "Build the ZMQ backend" OFF)
 option(BUILD_TEST_UNIT "Build tests" ON)
 option(BUILD_TEST_EXAMPLES "Build examples" ON)
+option(BUILD_TOOLS "Build tools" ON)
 
 # Path containing robot configurations
 set(CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/config/advrf_config/configs")
@@ -121,8 +122,11 @@ endfunction()
 add_package(advrf_config config/advrf_config)
 add_package(advrf_interfaces_protobuf interfaces/advrf_interfaces_protobuf)
 add_package(advrf_middleware_core core/advrf_middleware_core)
-add_package(shm_tools tools/shm_tools)
- 
+
+if(BUILD_TOOLS)
+    add_package(shm_tools tools/shm_tools)
+endif()
+
 ## Library compilations
 
 if(BUILD_MIDDLEWARE_FASTDDS)

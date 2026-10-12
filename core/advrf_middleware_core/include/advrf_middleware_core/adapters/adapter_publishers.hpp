@@ -97,8 +97,12 @@ public:
   AdapterPublishers() {}
   ~AdapterPublishers() override = default;
 
-  ShmRxReader &shm() noexcept { return shm_; }
-  const ShmRxReader &shm() const noexcept { return shm_; }
+  // ShmRxReader &shm() noexcept { return shm_; }
+  // const ShmRxReader &shm() const noexcept { return shm_; }
+  // ShmClientTransport &shm() noexcept { return shm_; }
+  // const ShmClientTransport &shm() const noexcept { return shm_; }
+
+
 
   /// Drain shared-memory PDOs and dispatch them to registered publishers.
   void spin_once() override {
@@ -108,14 +112,20 @@ public:
 
   /// Connect to the non-real-time RX PDO shared-memory channel.
   bool start() override {
-    return shm_.connect(SHM_NRT_RX_PDO, ShmAttachMode::Open);
+    // return shm_.connect(SHM_NRT_RX_PDO, ShmAttachMode::Open);
+    return true;
   }
 
-  bool is_ok() const override { return shm_.is_ok(); }
-  void close() override { shm_.close(); }
+  bool is_ok() const override { 
+    // return shm_.is_ok(); 
+    return true;
+  }
+  void close() override { 
+    // shm_.close(); 
+    // return true;
+  }
 
 protected:
-  ShmRxReader shm_;
 
   /**
    * @brief Register a publisher and its channel/ID filters.
@@ -200,7 +210,17 @@ private:
 
       auto &cache = channel_cache(channel);
       std::vector<advrf::middleware::pdo::Pdo> pdos;
-      shm_.drain(*device, pdos);
+      // shm_.drain(*device, pdos);
+
+      client_transport().drain_rx_queues([&](std::uint32_t slave_id) {
+        advrf::middleware::pdo::Pdo pdo;
+        advrf::middleware::pdo::EcatId ecat_id = static_cast<advrf::middleware::pdo::EcatId>(slave_id);
+
+        // [FIXME]
+        // if (client_transport().extract_rx_pdo(pdo, ecat_id)) {
+        //   pdos.push_back(std::move(pdo));
+        // }
+      });
 
       for(const auto &received : pdos) {
         const int parsed_id = advrf::middleware::pdo::get_ecat_id(received.header().str_id());
