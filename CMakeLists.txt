@@ -22,11 +22,11 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
     Debug Release RelWithDebInfo MinSizeRel)
 
 option(BUILD_MIDDLEWARE_FASTDDS "Build the FastDDS backend" OFF)
-option(BUILD_MIDDLEWARE_CYCLONEDDS "Build the CycloneDDS backend" ON)
+option(BUILD_MIDDLEWARE_CYCLONEDDS "Build the CycloneDDS backend" OFF)
 option(BUILD_MIDDLEWARE_ZENOH "Build the Zenoh backend" OFF)
-option(BUILD_MIDDLEWARE_ZMQ "Build the ZMQ backend" OFF)
-option(BUILD_TEST_UNIT "Build tests" ON)
-option(BUILD_TEST_EXAMPLES "Build examples" ON)
+option(BUILD_MIDDLEWARE_ZMQ "Build the ZMQ backend" ON)
+option(BUILD_TEST_UNIT "Build tests" OFF)
+option(BUILD_TEST_EXAMPLES "Build examples" OFF)
 
 # Path containing robot configurations
 set(CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/config/advrf_config/configs")
@@ -118,10 +118,10 @@ endfunction()
 
 ## Common base
 
-add_package(advrf_config config/advrf_config)
-add_package(advrf_interfaces_protobuf interfaces/advrf_interfaces_protobuf)
-add_package(advrf_middleware_core core/advrf_middleware_core)
-add_package(shm_tools tools/shm_tools)
+#add_package(advrf_config config/advrf_config)
+#add_package(advrf_interfaces_protobuf interfaces/advrf_interfaces_protobuf)
+#add_package(advrf_middleware_core core/advrf_middleware_core)
+#add_package(shm_tools tools/shm_tools)
  
 ## Library compilations
 
