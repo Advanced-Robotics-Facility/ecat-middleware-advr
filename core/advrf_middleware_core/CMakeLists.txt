@@ -33,7 +33,7 @@ target_include_directories(advrf_middleware_core
 
 target_link_libraries(advrf_middleware_core
     PUBLIC
-        advrf_interfaces_protobuf
+        # advrf_interfaces_protobuf
         ecat_master::ecat_core
         spdlog::spdlog
         yaml-cpp::yaml-cpp
