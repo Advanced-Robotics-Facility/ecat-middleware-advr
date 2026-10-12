@@ -4,7 +4,6 @@
 #include <vector>
 
 // protobuf 
-#include <ecat_master_pb/protobuf/time.pb.h>
 #include <ecat_master_pb/protobuf/repl_cmd.pb.h>
 #include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 
@@ -25,8 +24,6 @@
 #include <advrf_interfaces/msg/Gripper.hpp>
 #include <advrf_interfaces/msg/ReplCmdContent.hpp>
 #include <advrf_interfaces/msg/MotorTxPdo.hpp>
-
-using namespace iit::advr;
 
 namespace advrf::dds_common::convert::protobuf {
     template<typename DDS_TYPE, typename PROTOBUF_TYPE>

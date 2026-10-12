@@ -42,6 +42,7 @@ function(advrf_dds_common_add_backend backend)
         PUBLIC
             "${interface_target}"
             # advrf_interfaces_protobuf
+            ecat_master::ecat_core
             ecat_master::ecat_master_pb
     )
 
