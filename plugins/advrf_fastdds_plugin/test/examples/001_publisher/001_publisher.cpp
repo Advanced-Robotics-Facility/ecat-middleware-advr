@@ -2,6 +2,7 @@
 #include <thread>
 #include <csignal>
 #include <filesystem>
+#include <memory>
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
@@ -34,12 +35,6 @@ int main(int argc, char** argv)
     auto ecat_map = ecat_discover.discover(advrf::middleware::config::extract_pdo_ids(*config_robot));
 
     advrf::middleware::clock::init();
-    advrf::fastdds_plugin::DDSAdapterPublishers dds_adapter;
-    if(!dds_adapter.shm().connect(SHM_NRT_RX_PDO, ShmAttachMode::Open)) {
-        LOG_ERROR("Failed to connect to shared memory");
-        return 1;
-    }
-
     auto config = advrf::middleware::config::ConfigTopics{{config_robot->ns, config_robot->robot_name}};
 
     auto* domain_participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
@@ -51,19 +46,32 @@ int main(int argc, char** argv)
         return 1;
     }
     
+    auto delete_participant = [](eprosima::fastdds::dds::DomainParticipant* participant) {
+        participant->delete_contained_entities();
+        eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
+    };
+    std::unique_ptr<eprosima::fastdds::dds::DomainParticipant, decltype(delete_participant)>
+        participant_owner(domain_participant, delete_participant);
+
+    // DDS adapter resources must be released before the participant.
+    advrf::fastdds_plugin::DDSAdapterPublishers dds_adapter;
     if (!dds_adapter.init(config, *config_robot, ecat_map,domain_participant)) {
         LOG_ERROR("Failed to bind to target DDS channels.");
         return 1;
     }
 
-    while (keep_running && dds_adapter.shm().is_ok()) {
+    if (!dds_adapter.start()) {
+        LOG_ERROR("Failed to start DDS publishers adapter.");
+        return 1;
+    }
+
+    while (keep_running && dds_adapter.is_ok()) {
         dds_adapter.spin_once();
         std::this_thread::sleep_for(std::chrono::microseconds(100));
     }
 
     LOG_INFO("Disconnected from shared memory pipeline. Shutting down.");
-    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()
-    ->delete_participant(domain_participant);
+    dds_adapter.close();
 
     return 0;
 }

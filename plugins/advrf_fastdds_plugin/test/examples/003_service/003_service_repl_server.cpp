@@ -2,6 +2,7 @@
 #include <thread>
 #include <csignal>
 #include <filesystem>
+#include <memory>
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
@@ -47,20 +48,26 @@ int main(int argc, char** argv)
         return 1;
     }
 
+    auto delete_participant = [](eprosima::fastdds::dds::DomainParticipant* participant) {
+        participant->delete_contained_entities();
+        eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
+    };
+    std::unique_ptr<eprosima::fastdds::dds::DomainParticipant, decltype(delete_participant)>
+        participant_owner(participant, delete_participant);
+
     advrf::fastdds_plugin::DDSAdapterService dds_adapter_service(config, *config_robot, participant);
-    if(!dds_adapter_service.shm().connect(SHM_SERVICE, ShmAttachMode::Open))
+    if(!dds_adapter_service.start())
     {
-        LOG_ERROR("Failed to connect to shared memory");
+        LOG_ERROR("Failed to start DDS service adapter.");
         return 1;
     }
 
-    while (keep_running) {
+    while (keep_running && dds_adapter_service.is_ok()) {
         dds_adapter_service.spin_once();
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-    dds_adapter_service.shm().close();
-    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(participant);
+    dds_adapter_service.close();
 
     return 0;
 }
