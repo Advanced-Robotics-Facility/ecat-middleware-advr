@@ -5,7 +5,7 @@
 #include "advrf_middleware_core/utils/channel.hpp"
 #include "advrf_middleware_core/utils/pdo_utils.hpp"
 
-#include <protobuf/ecat_pdo.pb.h>
+#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 
 namespace advrf::middleware::ecat {
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "advrf_middleware_core/utils/clock_utils.hpp"
-#include <protobuf/ecat_pdo.pb.h>
+#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 #include "advrf_middleware_core/utils/log.hpp"
 
 #include <cstring>

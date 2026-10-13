@@ -11,7 +11,7 @@
 #include "advrf_middleware_core/adapters/adapter_base.hpp"
 #include "advrf_middleware_core/utils/log.hpp"
 
-#include <protobuf/ecat_pdo.pb.h>
+#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 #include <protobuf/repl_cmd.pb.h>
 #include <advrf_middleware_core/utils/log.hpp>
 

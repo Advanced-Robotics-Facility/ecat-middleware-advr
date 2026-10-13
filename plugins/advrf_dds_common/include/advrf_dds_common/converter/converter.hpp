@@ -8,7 +8,7 @@
 #include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 
 // #include <protobuf/repl_cmd.pb.h>
-// #include <protobuf/ecat_pdo.pb.h>
+// #include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 
 // DDS 
 #include <builtin_interfaces/msg/Time.hpp>
