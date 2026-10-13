@@ -42,13 +42,12 @@ int main(int argc, char** argv)
             }
         };
 
-        /*
+    
         std::thread subscriber_thread{
             [&subscriber] {
                 subscriber.run();
             }
         };
-        */
 
         // Wait until Ctrl+C or SIGTERM.
         while (!stop_requested) {
@@ -63,11 +62,11 @@ int main(int argc, char** argv)
             publisher_thread.join();
         }
 
-        /*
+        
         if (subscriber_thread.joinable()) {
             subscriber_thread.join();
         }
-        */
+        
     } catch (const std::exception& error) {
         std::cerr << "Fatal error: " << error.what() << '\n';
         return 1;
