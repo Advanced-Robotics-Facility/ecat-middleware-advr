@@ -1,39 +1,37 @@
-#include "advrf_zenoh_plugin/serialization/ros2cdr.hpp"
-
 #include <string>
 
 #include <advrf_dds_common/converter/converter.hpp>
-
 #include <advrf_interfaces/msg/ForceTorque.hpp>
 #include <advrf_interfaces/msg/ForceTorqueCdrAux.hpp>
+#include <advrf_interfaces/msg/ForceTorqueTxPdo.hpp>
+#include <advrf_interfaces/msg/ForceTorqueTxPdoCdrAux.hpp>
 #include <advrf_interfaces/msg/Gripper.hpp>
 #include <advrf_interfaces/msg/GripperCdrAux.hpp>
+#include <advrf_interfaces/msg/GripperTxPdo.hpp>
+#include <advrf_interfaces/msg/GripperTxPdoCdrAux.hpp>
 #include <advrf_interfaces/msg/Imu.hpp>
 #include <advrf_interfaces/msg/ImuCdrAux.hpp>
 #include <advrf_interfaces/msg/Motor.hpp>
 #include <advrf_interfaces/msg/MotorCdrAux.hpp>
-#include <advrf_interfaces/msg/PowerBoard.hpp>
-#include <advrf_interfaces/msg/PowerBoardCdrAux.hpp>
-#include <advrf_interfaces/msg/Pump.hpp>
-#include <advrf_interfaces/msg/PumpCdrAux.hpp>
-#include <advrf_interfaces/msg/Valve.hpp>
-#include <advrf_interfaces/msg/ValveCdrAux.hpp>
-#include <advrf_interfaces/msg/ForceTorqueTxPdo.hpp>
-#include <advrf_interfaces/msg/ForceTorqueTxPdoCdrAux.hpp>
-#include <advrf_interfaces/msg/GripperTxPdo.hpp>
-#include <advrf_interfaces/msg/GripperTxPdoCdrAux.hpp>
 #include <advrf_interfaces/msg/MotorTxPdo.hpp>
 #include <advrf_interfaces/msg/MotorTxPdoCdrAux.hpp>
+#include <advrf_interfaces/msg/PowerBoard.hpp>
+#include <advrf_interfaces/msg/PowerBoardCdrAux.hpp>
 #include <advrf_interfaces/msg/PowerBoardTxPdo.hpp>
 #include <advrf_interfaces/msg/PowerBoardTxPdoCdrAux.hpp>
+#include <advrf_interfaces/msg/Pump.hpp>
+#include <advrf_interfaces/msg/PumpCdrAux.hpp>
 #include <advrf_interfaces/msg/PumpTxPdo.hpp>
 #include <advrf_interfaces/msg/PumpTxPdoCdrAux.hpp>
+#include <advrf_interfaces/msg/Valve.hpp>
+#include <advrf_interfaces/msg/ValveCdrAux.hpp>
 #include <advrf_interfaces/msg/ValveTxPdo.hpp>
 #include <advrf_interfaces/msg/ValveTxPdoCdrAux.hpp>
 #include <sensor_msgs/msg/JointState.hpp>
 #include <sensor_msgs/msg/JointStateCdrAux.hpp>
 
 #include "advrf_zenoh_plugin/serialization/cdr_utils.hpp"
+#include "advrf_zenoh_plugin/serialization/ros2cdr.hpp"
 
 namespace advrf::zenoh_plugin::serialization
 {

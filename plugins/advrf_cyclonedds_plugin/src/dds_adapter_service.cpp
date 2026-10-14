@@ -1,16 +1,17 @@
-#include "advrf_cyclonedds_plugin/adapters/dds_adapter_service.hpp"
-#include "advrf_dds_common/converter/converter.hpp"
-
 #include <dds/dds.hpp>
 #include <sys/types.h>
 
+#include <advrf_dds_common/converter/converter.hpp>
 #include <advrf_middleware_core/utils/log.hpp>
+
+#include "advrf_cyclonedds_plugin/adapters/dds_adapter_service.hpp"
 
 namespace advrf::cyclonedds_plugin {
 
 DDSAdapterService::DDSAdapterService(const advrf::middleware::config::ConfigTopics& config_topics,
                                      const advrf::middleware::config::RobotConfig& robot_config,
-                                    dds::domain::DomainParticipant& participant)
+                                    dds::domain::DomainParticipant& participant,
+                                     const advrf::dds_common::DdsConfig& dds_config)
     : server_(participant, config_topics.service.request(), config_topics.service.reply())
 {
     server_.set_callback([this](const RequestDDS& req) {
@@ -19,7 +20,7 @@ DDSAdapterService::DDSAdapterService(const advrf::middleware::config::ConfigTopi
     });
 
     ros_connectables_.emplace_back(server_);
-    init_ros_graph_bridge(robot_config, participant);
+    init_ros_graph_bridge(robot_config, participant, dds_config.declare_to_ros);
 }
 
 ResponseDDS DDSAdapterService::process_request_dds(const RequestDDS& request)
@@ -36,9 +37,10 @@ ResponseDDS DDSAdapterService::process_request_dds(const RequestDDS& request)
 
 void DDSAdapterService::init_ros_graph_bridge(
     const advrf::middleware::config::RobotConfig& robot_config,
-    dds::domain::DomainParticipant& dp)
+    dds::domain::DomainParticipant& dp,
+    bool declare_to_ros)
 {
-    if (!robot_config.declare_to_ros) {
+    if (!declare_to_ros) {
         return;
     }
 

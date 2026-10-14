@@ -1,7 +1,5 @@
 #pragma once
 
-#include "shm_tools/inspector_types.hpp"
-
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
@@ -13,11 +11,12 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-
 #include <google/protobuf/message.h>
 
 #include <shm_types.hpp>
 #include <shm_utils.hpp>
+
+#include "shm_tools/inspector_types.hpp"
 
 namespace advrf::middleware::tools::shm {
 

@@ -1,17 +1,17 @@
-#include <iostream>
 #include <chrono>
-#include <thread>
 #include <cmath>
 #include <csignal>
-#include <string>
 #include <filesystem>
+#include <iostream>
+#include <string>
+#include <thread>
 
-#include "advrf_middleware_core/config/robot_config.hpp"
-
-#include <shm_utils.hpp>
-#include <shm_types.hpp>
 #include <protobuf/ecat_pdo.pb.h>
 #include <protobuf/repl_cmd.pb.h>
+#include <shm_types.hpp>
+#include <shm_utils.hpp>
+
+#include "advrf_middleware_core/config/robot_config.hpp"
 
 namespace {
 volatile std::sig_atomic_t keep_running = 1;
@@ -225,6 +225,7 @@ iit::advrf::Ec_slave_pdo make_ft_pdo(double t, uint64_t sample_index, int force_
 }
 
 #include "advrf_middleware_core/utils/ecat_discover.hpp"
+
 void add_metadata_info(const std::string& type, advrf::middleware::ecat::EcatMetadata& metadata) {
     if (type == "motor") {
         metadata.type = iit::advrf::Ec_slave_pdo::RX_MOTOR;

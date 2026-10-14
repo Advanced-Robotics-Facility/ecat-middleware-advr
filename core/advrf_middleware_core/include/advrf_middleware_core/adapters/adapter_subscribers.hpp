@@ -1,14 +1,13 @@
 #pragma once
 
+#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
+#include <protobuf/repl_cmd.pb.h>
 #include <shm_types.hpp>
 #include <shm_utils.hpp>
 
 #include "advrf_middleware_core/adapters/adapter_base.hpp"
 #include "advrf_middleware_core/utils/channel.hpp"
 #include "advrf_middleware_core/utils/log.hpp"
-
-#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
-#include <protobuf/repl_cmd.pb.h>
 
 namespace advrf::middleware::adapters::message {
 

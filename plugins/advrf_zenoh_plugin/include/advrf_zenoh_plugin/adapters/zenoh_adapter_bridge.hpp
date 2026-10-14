@@ -3,15 +3,14 @@
 #include <optional>
 #include <string>
 #include <vector>
-
 #include <zenoh.hxx>
 
-#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/adapters/adapter_publishers.hpp>
 #include <advrf_middleware_core/utils/log.hpp>
+#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 
-#include "advrf_zenoh_plugin/publisher/zenoh_publisher.hpp"
 #include "advrf_zenoh_plugin/config/wire_format.hpp"
+#include "advrf_zenoh_plugin/publisher/zenoh_publisher.hpp"
 #include "advrf_zenoh_plugin/serialization/serializer.hpp"
 
 namespace advrf::zenoh_plugin

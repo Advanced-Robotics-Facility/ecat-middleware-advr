@@ -1,18 +1,18 @@
 #include <chrono>
-#include <thread>
 #include <filesystem>
-
-#include <advrf_middleware_core/utils/log.hpp>
-#include <advrf_middleware_core/config/robot_config.hpp>
-#include "advrf_fastdds_plugin/service/service_client.hpp"
-#include "advrf_middleware_core/config/config_topics.hpp"
-
+#include <thread>
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
 
 #include <advrf_interfaces/srv/ReplCmd.hpp>
 #include <advrf_interfaces/srv/ReplCmdPubSubTypes.hpp>
+#include <advrf_middleware_core/config/config_topics.hpp>
+#include <advrf_middleware_core/utils/log.hpp>
+
+#include "advrf_fastdds_plugin/config/plugin_config.hpp"
+#include "advrf_fastdds_plugin/service/service_client.hpp"
+
 using RequestDDS = advrf_interfaces::srv::dds_::ReplCmd_Request_;
 using RequestPubSubType = advrf_interfaces::srv::dds_::ReplCmd_Request_PubSubType;
 using ResponseDDS = advrf_interfaces::srv::dds_::ReplCmd_Response_;
@@ -31,11 +31,10 @@ int main()
         return 1;
     }
 
-    auto config_robot = advrf::middleware::config::load_robot_config(
-      ADVRF_CONFIG_SHARE / "middleware" / "config.yaml",
-      ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
-    if (!config_robot) return 1;
-
+    auto plugin_config = advrf::fastdds_plugin::parse_plugin_config(
+        advrf::middleware::config::ConfigFile::load(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml"));
+    advrf::fastdds_plugin::validate(plugin_config);
+    const auto* config_robot = &plugin_config.common.robot;
     advrf::middleware::config::ConfigTopics config_topics({config_robot->ns, config_robot->robot_name});
 
     advrf::fastdds_plugin::ServiceClient<RequestDDS, RequestPubSubType, ResponseDDS, ResponsePubSubType> client(

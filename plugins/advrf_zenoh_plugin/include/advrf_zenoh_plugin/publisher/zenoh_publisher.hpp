@@ -4,7 +4,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
 #include <zenoh.hxx>
 
 #include <advrf_middleware_core/utils/log.hpp>

@@ -1,12 +1,12 @@
-#include <dds/dds.hpp>
 #include <filesystem>
+#include <dds/dds.hpp>
 
 #include <advrf_interfaces/srv/ReplCmd.hpp>
+#include <advrf_middleware_core/config/config_topics.hpp>
 #include <advrf_middleware_core/utils/log.hpp>
-#include <advrf_middleware_core/config/robot_config.hpp>
 
+#include "advrf_cyclonedds_plugin/config/plugin_config.hpp"
 #include "advrf_cyclonedds_plugin/service/service_client.hpp"
-#include "advrf_middleware_core/config/config_topics.hpp"
 
 using RequestDDS = advrf_interfaces::srv::dds_::ReplCmd_Request_;
 using ResponseDDS = advrf_interfaces::srv::dds_::ReplCmd_Response_;
@@ -14,13 +14,11 @@ using ResponseDDS = advrf_interfaces::srv::dds_::ReplCmd_Response_;
 int main()
 {
     advrf::log::Log::init();
-    auto config_robot = advrf::middleware::config::load_robot_config(
-        ADVRF_CONFIG_SHARE / "middleware" / "config.yaml",
-        ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
-    if (!config_robot)
-        return 1;
-
-    auto dds_participant = dds::domain::DomainParticipant{config_robot->domain_id};
+    auto plugin_config = advrf::cyclonedds_plugin::parse_plugin_config(
+        advrf::middleware::config::ConfigFile::load(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml"));
+    advrf::cyclonedds_plugin::validate(plugin_config);
+    const auto* config_robot = &plugin_config.common.robot;
+    auto dds_participant = dds::domain::DomainParticipant{plugin_config.dds.domain_id};
     auto config = advrf::middleware::config::ConfigTopics{{config_robot->ns, config_robot->robot_name}};
     advrf::cyclonedds_plugin::ServiceClient<RequestDDS, ResponseDDS> client(
         dds_participant, config.service.request(), 

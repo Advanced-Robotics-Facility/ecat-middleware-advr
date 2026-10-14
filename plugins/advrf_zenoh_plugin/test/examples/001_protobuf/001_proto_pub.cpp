@@ -6,13 +6,11 @@
 #include <string>
 #include <thread>
 #include <vector>
-
 #include <zenoh.hxx>
 
 #include <ecat_master_future/shm/config.hpp>
-#include <ecat_master_future/shm/shared_memory.hpp>
 #include <ecat_master_future/shm/proto_helper.hpp>
-
+#include <ecat_master_future/shm/shared_memory.hpp>
 #include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 
 namespace {

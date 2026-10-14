@@ -1,10 +1,10 @@
 #pragma once
 
-#include "shm_tools/bridge_inspector.hpp"
-
 #include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 #include <protobuf/repl_cmd.pb.h>
 #include <shm_types.hpp>
+
+#include "shm_tools/bridge_inspector.hpp"
 
 namespace advrf::middleware::tools::shm {
 

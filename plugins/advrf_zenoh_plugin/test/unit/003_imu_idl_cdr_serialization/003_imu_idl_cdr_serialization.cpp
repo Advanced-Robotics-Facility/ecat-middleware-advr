@@ -1,7 +1,6 @@
 #include <cassert>
 #include <cstdint>
 #include <vector>
-
 #include <fastcdr/Cdr.h>
 #include <fastcdr/FastBuffer.h>
 

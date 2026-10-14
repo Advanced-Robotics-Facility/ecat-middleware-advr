@@ -3,11 +3,10 @@
 #include <iostream>
 #include <string>
 #include <thread>
-
-#include <zenoh.hxx>
-
 #include <fastcdr/Cdr.h>
 #include <fastcdr/FastBuffer.h>
+#include <zenoh.hxx>
+
 #include <advrf_interfaces/msg/Imu.hpp>
 #include <advrf_interfaces/msg/ImuCdrAux.hpp>
 

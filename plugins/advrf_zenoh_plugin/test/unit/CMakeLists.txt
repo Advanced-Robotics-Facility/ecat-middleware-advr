@@ -5,6 +5,13 @@ function(plugin_test TEST_NAME TEST_SOURCE)
         ${TEST_SOURCE}
     )
 
+    # Existing tests use assert() for setup and checks; keep them active in Release.
+    if(MSVC)
+        target_compile_options(${TEST_NAME} PRIVATE /UNDEBUG)
+    else()
+        target_compile_options(${TEST_NAME} PRIVATE -UNDEBUG)
+    endif()
+
     target_link_libraries(${TEST_NAME}
         PRIVATE
             advrf_middleware_core
@@ -52,3 +59,7 @@ if(ZENOH_ROS2_SUPPORT)
         advrf_interfaces_dds::cdr
     )
 endif()
+
+plugin_test(006_config 006_config/006_config.cpp)
+
+target_link_libraries(006_config PRIVATE advrf_middleware_core_test_support)

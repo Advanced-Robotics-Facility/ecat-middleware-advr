@@ -39,6 +39,18 @@ target_link_libraries(advrf_middleware_core
         
 )
 
+# Shared test headers are available to separately built plugin test packages.
+add_library(advrf_middleware_core_test_support INTERFACE)
+target_link_libraries(advrf_middleware_core_test_support INTERFACE advrf_middleware_core)
+target_include_directories(advrf_middleware_core_test_support INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+install(TARGETS advrf_middleware_core_test_support
+    EXPORT advrf_middleware_coreTargets
+)
+install(DIRECTORY test/include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
 install(
     TARGETS advrf_middleware_core
     EXPORT advrf_middleware_coreTargets

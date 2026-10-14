@@ -2,11 +2,13 @@
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 
+#include <advrf_dds_common/config/dds_config.hpp>
 #include <advrf_middleware_core/adapters/adapter_publishers.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
 #include <advrf_middleware_core/config/robot_config.hpp>
 #include <advrf_middleware_core/utils/ecat_discover.hpp>
-#include <advrf_fastdds_plugin/ros_metadata/ros_graph_bridge.hpp>  
+
+#include "advrf_fastdds_plugin/ros_metadata/ros_graph_bridge.hpp"
 
 namespace advrf::fastdds_plugin {
 
@@ -20,7 +22,8 @@ public:
         const advrf::middleware::config::ConfigTopics& config_topics,
         const advrf::middleware::config::RobotConfig& robot_config,
         const advrf::middleware::ecat::EcatDiscover::EcatMap& ecat_map,
-        eprosima::fastdds::dds::DomainParticipant* dp
+        eprosima::fastdds::dds::DomainParticipant* dp,
+        const advrf::dds_common::DdsConfig& dds_config = {}
     );
 
 private:
@@ -35,16 +38,19 @@ private:
     {
         auto& publisher = register_publisher<Publisher>(channels, ids);
         publisher.set_names(names);
-        publisher.init(topic, dp);
+        if (!publisher.init(topic, dp, writer_policy_))
+            throw std::runtime_error("Failed to initialize DDS publisher: " + std::string(topic));
         ros_connectables_.emplace_back(publisher);
         return publisher;
     }
 
     void init_ros_graph_bridge(
         const advrf::middleware::config::RobotConfig& robot_config,
-        eprosima::fastdds::dds::DomainParticipant* dp
+        eprosima::fastdds::dds::DomainParticipant* dp,
+        bool declare_to_ros
     );
 
+    advrf::dds_common::EndpointPolicy writer_policy_;
     std::unique_ptr<FastRosGraphBridge> ros_graph_bridge_;
     std::vector<std::reference_wrapper<IConnectRosGraphBridge>> ros_connectables_;
 };

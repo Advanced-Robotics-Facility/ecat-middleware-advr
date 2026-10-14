@@ -35,3 +35,6 @@ new_test(
     002_motor_tx_conversion
     002_motor_tx_conversion/002_motor_tx_conversion.cpp
 )
+new_test(003_config 003_config/003_config.cpp)
+
+target_link_libraries(003_config PRIVATE advrf_middleware_core_test_support)

@@ -1,9 +1,8 @@
-#include <zmq.hpp>
-
-#include <string_view>
-#include <iostream>
-#include <thread>
 #include <chrono>
+#include <iostream>
+#include <string_view>
+#include <thread>
+#include <zmq.hpp>
 
 int main(int argc, char** argv) {
     using namespace std::chrono_literals;

@@ -1,18 +1,19 @@
-#include "advrf_cyclonedds_plugin/adapters/dds_adapter_publishers.hpp"
-#include "advrf_cyclonedds_plugin/adapters/dds_pdo_publisher.hpp"
-
 #include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+#include "advrf_cyclonedds_plugin/adapters/dds_adapter_publishers.hpp"
+#include "advrf_cyclonedds_plugin/adapters/dds_pdo_publisher.hpp"
+
 namespace advrf::cyclonedds_plugin {
 
 void DDSAdapterPublishers::init_ros_graph_bridge(
     const advrf::middleware::config::RobotConfig& robot_config,
-    dds::domain::DomainParticipant& dp)
+    dds::domain::DomainParticipant& dp,
+    bool declare_to_ros)
 {
-    if (!robot_config.declare_to_ros) {
+    if (!declare_to_ros) {
         return;
     }
 
@@ -36,8 +37,11 @@ bool DDSAdapterPublishers::init(
     const advrf::middleware::config::ConfigTopics& config_topics,
     const advrf::middleware::config::RobotConfig& robot_config,
     const advrf::middleware::ecat::EcatDiscover::EcatMap& ecat_map,
-    dds::domain::DomainParticipant& dp)
+    dds::domain::DomainParticipant& dp,
+    const advrf::dds_common::DdsConfig& dds_config)
 {
+    writer_policy_ = dds_config.state;
+
 
     const auto filter = [&](advrf::middleware::shm::ChannelRx channel) {
         std::vector<advrf::middleware::pdo::EcatId> ids;
@@ -221,7 +225,7 @@ bool DDSAdapterPublishers::init(
     }
 
 
-    init_ros_graph_bridge(robot_config, dp);
+    init_ros_graph_bridge(robot_config, dp, dds_config.declare_to_ros);
 
     return true;
 }

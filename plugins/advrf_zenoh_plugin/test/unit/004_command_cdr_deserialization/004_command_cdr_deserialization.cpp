@@ -2,12 +2,12 @@
 #include <cstdint>
 #include <vector>
 
-#include <advrf_interfaces/msg/MotorTxPdo.hpp>
-#include <advrf_interfaces/msg/MotorTxPdoCdrAux.hpp>
 #include <advrf_interfaces/msg/ForceTorqueTxPdo.hpp>
 #include <advrf_interfaces/msg/ForceTorqueTxPdoCdrAux.hpp>
 #include <advrf_interfaces/msg/GripperTxPdo.hpp>
 #include <advrf_interfaces/msg/GripperTxPdoCdrAux.hpp>
+#include <advrf_interfaces/msg/MotorTxPdo.hpp>
+#include <advrf_interfaces/msg/MotorTxPdoCdrAux.hpp>
 #include <advrf_interfaces/msg/PowerBoardTxPdo.hpp>
 #include <advrf_interfaces/msg/PowerBoardTxPdoCdrAux.hpp>
 #include <advrf_interfaces/msg/PumpTxPdo.hpp>

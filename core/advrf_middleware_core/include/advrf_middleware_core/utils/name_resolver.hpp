@@ -1,7 +1,7 @@
 #pragma once
+#include <cstdint>
 #include <string>
 #include <unordered_map>
-#include <cstdint>
 
 /** Resolve a configured device name from its EtherCAT numeric ID. */
 inline std::string resolve_name(

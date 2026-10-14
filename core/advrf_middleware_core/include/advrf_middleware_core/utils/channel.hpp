@@ -1,11 +1,10 @@
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <map>
-#include <array>
 #include <optional>
 
-// from ecat_master
 #include <shm_types.hpp>
 
 namespace advrf::middleware::shm {

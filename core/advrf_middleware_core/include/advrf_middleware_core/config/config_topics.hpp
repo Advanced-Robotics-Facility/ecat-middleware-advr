@@ -60,6 +60,7 @@ private:
 
         for (const auto& ns : namespace_)
         {
+            if (ns.empty()) continue;
             topic += '/';
             topic += ns;
         }

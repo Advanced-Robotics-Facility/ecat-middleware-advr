@@ -7,13 +7,12 @@
 #include <thread>
 #include <utility>
 #include <vector>
-
 #include <zenoh.hxx>
 
-#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/config/config_topics.hpp>
 #include <advrf_middleware_core/config/robot_config.hpp>
 #include <advrf_middleware_core/utils/ecat_discover.hpp>
+#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 
 namespace
 {

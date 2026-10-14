@@ -1,22 +1,24 @@
-#include <dds/dds.hpp>
 #include <chrono>
-#include <thread>
 #include <filesystem>
+#include <thread>
+#include <dds/dds.hpp>
 
-#include <advrf_middleware_core/config/robot_config.hpp>
-#include "advrf_cyclonedds_plugin/publisher/dds_publisher.hpp"
-#include "advrf_middleware_core/config/config_topics.hpp"
 #include <advrf_interfaces/msg/MotorTxPdo.hpp>
+#include <advrf_middleware_core/config/config_topics.hpp>
+
+#include "advrf_cyclonedds_plugin/config/plugin_config.hpp"
+#include "advrf_cyclonedds_plugin/publisher/dds_publisher.hpp"
 
 int main(int argc, char** argv)
 {
     advrf::log::Log::init();
-    auto config_robot = advrf::middleware::config::load_robot_config(
-        ADVRF_CONFIG_SHARE / "middleware" / "config.yaml",
-        ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
+    auto plugin_config = advrf::cyclonedds_plugin::parse_plugin_config(
+        advrf::middleware::config::ConfigFile::load(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml"));
+    advrf::cyclonedds_plugin::validate(plugin_config);
+    const auto* config_robot = &plugin_config.common.robot;
 
     advrf::middleware::config::ConfigTopics topics({config_robot->ns, config_robot->robot_name});
-    dds::domain::DomainParticipant participant(config_robot->domain_id);
+    dds::domain::DomainParticipant participant(plugin_config.dds.domain_id);
 
     using MotorMsg = advrf_interfaces::msg::dds_::MotorTxPdo_;
     using MotorVectorMsg = advrf_interfaces::msg::dds_::MotorTxPdoVector_;

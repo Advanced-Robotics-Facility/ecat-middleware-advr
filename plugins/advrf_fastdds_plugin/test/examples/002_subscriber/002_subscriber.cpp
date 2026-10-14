@@ -1,17 +1,16 @@
 #include <chrono>
-#include <thread>
 #include <csignal>
 #include <filesystem>
-
+#include <thread>
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
 
-#include <advrf_middleware_core/config/config_topics.hpp>
-#include <advrf_middleware_core/config/robot_config.hpp>
 #include <advrf_interfaces/msg/MotorTxPdo.hpp>
 #include <advrf_interfaces/msg/MotorTxPdoPubSubTypes.hpp>
+#include <advrf_middleware_core/config/config_topics.hpp>
 
+#include "advrf_fastdds_plugin/config/plugin_config.hpp"
 #include "advrf_fastdds_plugin/publisher/dds_publisher.hpp"
 
 using MotorVectorXtTxMsg = advrf_interfaces::msg::dds_::MotorTxPdoVector_;
@@ -32,15 +31,13 @@ int main(int argc, char** argv)
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);
 
-    auto config_robot = advrf::middleware::config::load_robot_config(
-      ADVRF_CONFIG_SHARE / "middleware" / "config.yaml",
-      ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
-    
-    if (!config_robot) return 1;
-
+    auto plugin_config = advrf::fastdds_plugin::parse_plugin_config(
+        advrf::middleware::config::ConfigFile::load(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml"));
+    advrf::fastdds_plugin::validate(plugin_config);
+    const auto* config_robot = &plugin_config.common.robot;
     advrf::middleware::config::ConfigTopics config_topics({config_robot->ns, config_robot->robot_name});
     auto* participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
-        config_robot->domain_id,
+        plugin_config.dds.domain_id,
         eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT
     );
     

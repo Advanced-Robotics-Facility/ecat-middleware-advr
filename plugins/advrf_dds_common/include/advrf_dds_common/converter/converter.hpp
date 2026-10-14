@@ -3,27 +3,24 @@
 #include <utility>
 #include <vector>
 
-// protobuf 
-#include <ecat_master_pb/protobuf/repl_cmd.pb.h>
+#include <advrf_interfaces/msg/ForceTorque.hpp>
+#include <advrf_interfaces/msg/Gripper.hpp>
+#include <advrf_interfaces/msg/Imu.hpp>
+#include <advrf_interfaces/msg/Motor.hpp>
+#include <advrf_interfaces/msg/MotorTxPdo.hpp>
+#include <advrf_interfaces/msg/PowerBoard.hpp>
+#include <advrf_interfaces/msg/Pump.hpp>
+#include <advrf_interfaces/msg/ReplCmdContent.hpp>
+#include <advrf_interfaces/msg/Valve.hpp>
+#include <advrf_interfaces/srv/ReplCmd.hpp>
+#include <builtin_interfaces/msg/Time.hpp>
 #include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
+#include <ecat_master_pb/protobuf/repl_cmd.pb.h>
+#include <sensor_msgs/msg/JointState.hpp>
+#include <std_msgs/msg/Header.hpp>
 
 // #include <protobuf/repl_cmd.pb.h>
 // #include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
-
-// DDS 
-#include <builtin_interfaces/msg/Time.hpp>
-#include <std_msgs/msg/Header.hpp>
-#include <advrf_interfaces/msg/Imu.hpp>
-#include <sensor_msgs/msg/JointState.hpp>
-#include <advrf_interfaces/srv/ReplCmd.hpp>
-#include <advrf_interfaces/msg/Motor.hpp>
-#include <advrf_interfaces/msg/PowerBoard.hpp>
-#include <advrf_interfaces/msg/Pump.hpp>
-#include <advrf_interfaces/msg/ForceTorque.hpp>
-#include <advrf_interfaces/msg/Valve.hpp>
-#include <advrf_interfaces/msg/Gripper.hpp>
-#include <advrf_interfaces/msg/ReplCmdContent.hpp>
-#include <advrf_interfaces/msg/MotorTxPdo.hpp>
 
 namespace advrf::dds_common::convert::protobuf {
     template<typename DDS_TYPE, typename PROTOBUF_TYPE>

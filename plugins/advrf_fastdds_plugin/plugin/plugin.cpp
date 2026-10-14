@@ -1,163 +1,76 @@
-#include <chrono>
 #include <iostream>
-#include <string>
-#include <csignal>
-#include <filesystem>
-
+#include <memory>
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
 
 #include <advrf_middleware_core/plugin/plugin_exec.hpp>
-#include <advrf_middleware_core/config/robot_config.hpp>
-#include <advrf_middleware_core/utils/log.hpp>
 
 #include "advrf_fastdds_plugin/adapters/dds_adapter_publishers.hpp"
-#include "advrf_fastdds_plugin/adapters/dds_adapter_subscribers.hpp"
 #include "advrf_fastdds_plugin/adapters/dds_adapter_service.hpp"
+#include "advrf_fastdds_plugin/adapters/dds_adapter_subscribers.hpp"
+#include "advrf_fastdds_plugin/config/plugin_config.hpp"
 
-using advrf::fastdds_plugin::DDSAdapterPublishers;
-using advrf::fastdds_plugin::DDSAdapterService;
-using advrf::fastdds_plugin::DDSAdapterSubscribers;
-namespace
-{
-
-volatile std::sig_atomic_t keep_running = 1;
-void on_signal(int) { keep_running = 0; }
-
-struct Options
-{
-    uint32_t rate_publishers = 1000; // Hz
-    uint32_t rate_service    = 10;   // Hz
-    uint32_t rate_subscribers = 100; // Hz
-};
-
-Options parse_args(int argc, char **argv)
-{
-    Options opt;
-
-    for (int i = 1; i < argc; ++i)
-    {
-        const std::string arg = argv[i];
-
-        if (arg == "--rate_publishers" && i + 1 < argc)
-        {
-            opt.rate_publishers = std::stoul(argv[++i]);
-        }
-        else if (arg == "--rate_service" && i + 1 < argc)
-        {
-            opt.rate_service = std::stoul(argv[++i]);
-        }
-        else if (arg == "--rate_subscribers" && i + 1 < argc)
-        {
-            opt.rate_subscribers = std::stoul(argv[++i]);
-        }
-        else if (arg == "--help" || arg == "-h")
-        {
-            std::cout <<
-                "Usage:\n"
-                "  advrf_fastdds_plugin [OPTIONS]\n\n"
-                "Options:\n"
-                "  --rate_publishers <Hz>   Publisher frequency (default: 1000)\n"
-                "  --rate_service <Hz>      Service frequency (default: 10)\n"
-                "  --rate_subscribers <Hz>  Subscribers frequency (default: 100)\n";
-            std::exit(0);
-        }
-    }
-    return opt;
-}
-
-std::chrono::microseconds period_from_rate(uint32_t hz)
-{
-    if (hz == 0)
-        throw std::runtime_error("Rate must be > 0");
-
-    return std::chrono::microseconds(1'000'000 / hz);
-}
-} // namespace
-
-int main(int argc, char **argv)
-{
+int main(int argc, char** argv) {
     advrf::log::Log::init();
-    std::signal(SIGINT, on_signal);
-    std::signal(SIGTERM, on_signal);
+    using namespace advrf::middleware::config;
+    using namespace advrf::fastdds_plugin;
+    try {
+        const auto options = parse_common_options(argc, argv);
+        if (options.help) {
+            std::cout << "Usage: fastdds_plugin [OPTIONS]\n" << common_options_help();
+            return 0;
+        }
+        const auto path = options.config_path.empty()
+            ? ADVRF_CONFIG_SHARE / "middleware" / "config.yaml" : options.config_path;
+        const auto file = ConfigFile::load(path);
+        auto config = parse_plugin_config(file);
+        options.runtime.apply(config.common.runtime);
+        advrf::fastdds_plugin::validate(config);
+        const auto& robot = config.common.robot;
+        const auto& runtime = config.common.runtime;
+        ConfigTopics topics({robot.ns, robot.robot_name});
 
-    const auto options = parse_args(argc, argv);
+        advrf::middleware::ecat::EcatDiscover discover;
+        if (!discover.start(SHM_NRT_RX_PDO)) {
+            LOG_ERROR("Failed to connect to EtherCAT PDO shared memory.");
+            return 1;
+        }
+        const auto ecat_map = discover.discover(extract_pdo_ids(robot));
+        // Participant owners precede adapters so DDS entities are destroyed first.
+        auto make_participant = [&]() {
+            auto* participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()
+                ->create_participant(config.dds.domain_id, eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT);
+            if (!participant) throw std::runtime_error("Failed to create DDS participant");
+            auto cleanup = [](eprosima::fastdds::dds::DomainParticipant* dp) {
+                dp->delete_contained_entities();
+                eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(dp);
+            };
+            return std::unique_ptr<eprosima::fastdds::dds::DomainParticipant, decltype(cleanup)>(participant, cleanup);
+        };
+        auto participant_pub = make_participant();
+        auto participant_sub = make_participant();
+        auto participant_service = make_participant();
+        auto publishers = std::make_shared<DDSAdapterPublishers>();
+        if (!publishers->init(topics, robot, ecat_map, participant_pub.get(), config.dds))
+            throw std::runtime_error("Failed to initialize DDS publishers");
+        auto subscribers = std::make_shared<DDSAdapterSubscribers>();
+        if (!subscribers->init(topics, robot, ecat_map, participant_sub.get(), config.dds))
+            throw std::runtime_error("Failed to initialize DDS subscribers");
+        auto service = std::make_shared<DDSAdapterService>(topics, robot, participant_service.get(), config.dds);
 
-
-
-    auto config_robot = advrf::middleware::config::load_robot_config(
-      ADVRF_CONFIG_SHARE / "middleware" / "config.yaml",
-      ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
-
-    
-    auto config = advrf::middleware::config::ConfigTopics({config_robot->ns, config_robot->robot_name});
-    advrf::middleware::ecat::EcatDiscover pdo_discover;
-    if (!pdo_discover.start(SHM_NRT_RX_PDO)) {
-        LOG_ERROR("Failed to connect to EtherCAT PDO shared memory.");
+        advrf::middleware::plugin::PluginExec exec;
+        exec.register_adapter({"dds_adapter_publishers", publishers, period_from_rate(runtime.rate_publishers)});
+        exec.register_adapter({"dds_adapter_subscribers", subscribers, period_from_rate(runtime.rate_subscribers)});
+        // Service execution remains disabled pending the master-side fix.
+        // exec.register_adapter({"dds_adapter_service", service, period_from_rate(runtime.rate_service)});
+        LOG_INFO("Configuration: {}; DDS domain: {}; publishers: {} Hz; subscribers: {} Hz; service: {} Hz",
+                 file.path.string(), config.dds.domain_id, runtime.rate_publishers,
+                 runtime.rate_subscribers, runtime.rate_service);
+        exec.start();
+        return 0;
+    } catch (const std::exception& e) {
+        LOG_ERROR("{}", e.what());
         return 1;
     }
-    auto pdo_map = pdo_discover.discover(advrf::middleware::config::extract_pdo_ids(*config_robot));
-    
-    // publishers
-    auto* dds_participant_pub = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
-        config_robot->domain_id,
-        eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT
-    );
-    auto dds_adapter_publishers = std::make_shared<DDSAdapterPublishers>();
-    if (!dds_adapter_publishers->init(config, *config_robot, pdo_map, dds_participant_pub)) {
-        LOG_ERROR("Failed to bind to target DDS channels.");
-        return 1;
-    }
-    
-
-    // subscribers
-    auto* dds_participant_sub = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
-        config_robot->domain_id,
-        eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT
-    );
-    auto dds_adapter_subscribers = std::make_shared<DDSAdapterSubscribers>();
-    if (!dds_adapter_subscribers->init(config, *config_robot, pdo_map, dds_participant_sub)) {
-        LOG_ERROR("Failed to initialize one or more DDS subscribers.");
-        return 1;
-    }
-
-    // service
-     auto* dds_participant_service = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
-        config_robot->domain_id,
-        eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT
-    );
-    auto dds_adapter_service = std::make_shared<DDSAdapterService>(config, *config_robot, dds_participant_service);
-
-    advrf::middleware::plugin::PluginExec plugin_exec;
-    plugin_exec.register_adapter({
-        "dds_adapter_publishers",
-        dds_adapter_publishers,
-        period_from_rate(options.rate_publishers)
-    });
-    LOG_INFO("Publishers registered");
-
-    plugin_exec.register_adapter({
-        "dds_adapter_subscribers",
-        dds_adapter_subscribers,
-        period_from_rate(options.rate_subscribers)
-    });
-
-    // plugin_exec.register_adapter({
-    //     "dds_adapter_service",
-    //     dds_adapter_service,
-    //     period_from_rate(options.rate_service)
-    // });
-
-    LOG_INFO("Publisher rate: {} Hz", options.rate_publishers);
-    LOG_INFO("Service rate: {} Hz", options.rate_service);
-    LOG_INFO("Subscribers rate: {} Hz", options.rate_subscribers);
-
-    plugin_exec.start();
-
-    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(dds_participant_pub);
-    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(dds_participant_sub);
-    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->delete_participant(dds_participant_service);
-
-    return 0;
 }

@@ -1,9 +1,5 @@
 #pragma once
 
-#include "shm_tools/bridge_inspector.hpp"
-#include "shm_tools/inspector_tui.hpp"
-#include "shm_tools/inspector_types.hpp"
-
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
@@ -13,6 +9,10 @@
 #include <thread>
 #include <utility>
 #include <vector>
+
+#include "shm_tools/bridge_inspector.hpp"
+#include "shm_tools/inspector_tui.hpp"
+#include "shm_tools/inspector_types.hpp"
 
 namespace advrf::middleware::tools::shm {
 

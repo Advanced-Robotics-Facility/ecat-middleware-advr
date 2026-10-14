@@ -3,17 +3,18 @@
 #include <memory>
 #include <string>
 #include <vector>
-
 #include <zenoh.hxx>
 
-#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 #include <advrf_middleware_core/adapters/adapter_subscribers.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
+#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 
-#include "advrf_zenoh_plugin/subscriber/zenoh_subscriber.hpp"
 #include "advrf_zenoh_plugin/config/wire_format.hpp"
+#include "advrf_zenoh_plugin/subscriber/zenoh_subscriber.hpp"
+
 #ifdef ZENOH_ROS2_SUPPORT
 #include "advrf_zenoh_plugin/serialization/ros2cdr.hpp"
+
 #endif
 
 namespace advrf::zenoh_plugin

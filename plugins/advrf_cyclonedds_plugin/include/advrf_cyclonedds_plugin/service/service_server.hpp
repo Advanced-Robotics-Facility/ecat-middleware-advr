@@ -2,14 +2,13 @@
 
 #include <chrono>
 #include <functional>
+#include <optional>
 #include <string>
 #include <thread>
 #include <unordered_map>
 #include <utility>
-#include <optional>
-
-#include <dds/dds.hpp>
 #include <dds/dds.h>
+#include <dds/dds.hpp>
 
 namespace advrf::cyclonedds_plugin {
 

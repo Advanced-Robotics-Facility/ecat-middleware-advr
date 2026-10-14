@@ -1,16 +1,17 @@
 #pragma once
 
-#include "advrf_middleware_core/utils/clock_utils.hpp"
-#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
-#include "advrf_middleware_core/utils/log.hpp"
-
-#include <cstring>
 #include <cstdint>
+#include <cstring>
+#include <ctime>
+#include <iostream>
 #include <set>
 #include <string>
 #include <utility>
-#include <iostream>
-#include <ctime>
+
+#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
+
+#include "advrf_middleware_core/utils/clock_utils.hpp"
+#include "advrf_middleware_core/utils/log.hpp"
 
 namespace advrf::middleware::pdo {
 

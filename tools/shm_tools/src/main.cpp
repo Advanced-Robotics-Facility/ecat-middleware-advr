@@ -1,12 +1,12 @@
-#include "shm_tools/inspector_app.hpp"
-#include "shm_tools/read_bridges.hpp"
-
 #include <cstdlib>
 #include <exception>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 #include <vector>
+
+#include "shm_tools/inspector_app.hpp"
+#include "shm_tools/read_bridges.hpp"
 
 namespace advrf::middleware::tools::shm {
 

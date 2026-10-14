@@ -1,17 +1,16 @@
-#include <cstdint>
 #include <csignal>
+#include <cstdint>
 #include <iostream>
 #include <string>
 #include <thread>
-
 #include <zenoh.hxx>
 
 #include <ecat_master_future/shm/config.hpp>
-#include <ecat_master_future/shm/shared_memory.hpp>
 #include <ecat_master_future/shm/proto_helper.hpp>
-#include "advrf_zenoh_plugin/serialization/ros2cdr.hpp"
-
+#include <ecat_master_future/shm/shared_memory.hpp>
 #include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
+
+#include "advrf_zenoh_plugin/serialization/ros2cdr.hpp"
 
 namespace {
 volatile std::sig_atomic_t running = 1;

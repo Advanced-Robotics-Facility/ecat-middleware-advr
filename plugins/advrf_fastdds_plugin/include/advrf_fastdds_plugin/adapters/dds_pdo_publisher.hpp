@@ -2,21 +2,21 @@
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 
-#include <advrf_fastdds_plugin/publisher/dds_publisher.hpp>
 #include <advrf_dds_common/converter/converter.hpp>
-
-#include <advrf_middleware_core/adapters/adapter_publishers.hpp>
-#include <advrf_middleware_core/utils/log.hpp>
-#include "advrf_fastdds_plugin/ros_metadata/ros_graph_bridge.hpp"
-
+#include <advrf_interfaces/msg/ForceTorquePubSubTypes.hpp>
+#include <advrf_interfaces/msg/GripperPubSubTypes.hpp>
 #include <advrf_interfaces/msg/ImuPubSubTypes.hpp>
-#include <sensor_msgs/msg/JointStatePubSubTypes.hpp>
 #include <advrf_interfaces/msg/MotorPubSubTypes.hpp>
 #include <advrf_interfaces/msg/PowerBoardPubSubTypes.hpp>
 #include <advrf_interfaces/msg/PumpPubSubTypes.hpp>
-#include <advrf_interfaces/msg/ForceTorquePubSubTypes.hpp>
 #include <advrf_interfaces/msg/ValvePubSubTypes.hpp>
-#include <advrf_interfaces/msg/GripperPubSubTypes.hpp>
+#include <advrf_middleware_core/adapters/adapter_publishers.hpp>
+#include <advrf_middleware_core/utils/log.hpp>
+#include <sensor_msgs/msg/JointStatePubSubTypes.hpp>
+
+#include "advrf_fastdds_plugin/publisher/dds_publisher.hpp"
+#include "advrf_fastdds_plugin/ros_metadata/ros_graph_bridge.hpp"
+
 namespace advrf::fastdds_plugin {
 
 template <typename Msg, typename MsgPubSubType>
@@ -32,10 +32,11 @@ public:
     ~DDSPdoPublisher() override = default;
 
     bool init(const std::string& topic_name,
-              eprosima::fastdds::dds::DomainParticipant* participant)
+              eprosima::fastdds::dds::DomainParticipant* participant,
+              const advrf::dds_common::EndpointPolicy& policy = {})
     {
         topic_name_ = topic_name;
-        return this->init_dds(topic_name_, participant);
+        return this->init_dds(topic_name_, participant, policy);
     }
 
     const std::string& topic_name() const

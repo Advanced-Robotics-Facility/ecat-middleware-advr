@@ -1,5 +1,6 @@
-#include "zenoh.hxx"
 #include <iostream>
+#include <zenoh.hxx>
+
 using namespace zenoh;
 
 int main(int argc, char **argv) {

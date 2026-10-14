@@ -2,16 +2,14 @@
 #include <csignal>
 #include <filesystem>
 #include <thread>
-
 #include <dds/dds.hpp>
 
-#include <advrf_middleware_core/config/robot_config.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
-
 #include <advrf_middleware_core/utils/log.hpp>
 #include <advrf_middleware_core/utils/pdo_utils.hpp>
 
 #include "advrf_cyclonedds_plugin/adapters/dds_adapter_publishers.hpp"
+#include "advrf_cyclonedds_plugin/config/plugin_config.hpp"
 
 using advrf::cyclonedds_plugin::DDSAdapterPublishers;
 
@@ -31,24 +29,16 @@ int main(int argc, char** argv)
 
     std::signal(SIGINT, on_signal);
     std::signal(SIGTERM, on_signal);
-    auto config_robot = advrf::middleware::config::load_robot_config(
-      ADVRF_CONFIG_SHARE / "middleware" / "config.yaml",
-      ADVRF_CONFIG_SHARE / "middleware" / "config.yaml");
-    
-    if (!config_robot)
-        return 1;
 
+    auto plugin_config = advrf::cyclonedds_plugin::parse_plugin_config(advrf::middleware::config::ConfigFile::load(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml"));
+    advrf::cyclonedds_plugin::validate(plugin_config);
+    const auto* config_robot = &plugin_config.common.robot;
 
     advrf::middleware::clock::init();
-
     auto config_topics = advrf::middleware::config::ConfigTopics{
             {config_robot->ns, config_robot->robot_name}
-        };
-
-    auto domain_participant =
-        dds::domain::DomainParticipant{
-            config_robot->domain_id
-        };
+    };
+    auto domain_participant = dds::domain::DomainParticipant{plugin_config.dds.domain_id};
 
     advrf::middleware::ecat::EcatDiscover ecat_discover;
     ecat_discover.start(SHM_NRT_RX_PDO);
@@ -59,12 +49,11 @@ int main(int argc, char** argv)
             config_topics,
             *config_robot,
             ecat_map,
-            domain_participant))
+            domain_participant, plugin_config.dds))
     {
         LOG_ERROR("Failed to bind to target DDS channels.");
         return 1;
     }
-
 
     if (!dds_adapter.start())
     {
@@ -72,20 +61,12 @@ int main(int argc, char** argv)
         return 1;
     }
 
-
     LOG_INFO("DDS publishers adapter started");
-
     while (keep_running && dds_adapter.is_ok())
     {
         dds_adapter.spin_once();
-
-        std::this_thread::sleep_for(
-            std::chrono::microseconds{100});
+        std::this_thread::sleep_for(std::chrono::microseconds{100});
     }
-
-
-    LOG_INFO(
-        "Disconnected from shared memory pipeline. Shutting down.");
-
+    LOG_INFO("Disconnected from shared memory pipeline. Shutting down.");
     return 0;
 }

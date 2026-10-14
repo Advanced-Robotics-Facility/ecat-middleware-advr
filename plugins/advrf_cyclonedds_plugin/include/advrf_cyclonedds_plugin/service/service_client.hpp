@@ -4,9 +4,8 @@
 #include <optional>
 #include <string>
 #include <thread>
-
-#include <dds/dds.hpp>
 #include <dds/dds.h>
+#include <dds/dds.hpp>
 
 namespace advrf::cyclonedds_plugin {
 

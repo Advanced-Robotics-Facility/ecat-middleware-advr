@@ -1,6 +1,6 @@
-#include "advrf_zenoh_plugin/adapters/zenoh_adapter_subscribers.hpp"
-
 #include <advrf_middleware_core/utils/log.hpp>
+
+#include "advrf_zenoh_plugin/adapters/zenoh_adapter_subscribers.hpp"
 
 namespace advrf::zenoh_plugin
 {

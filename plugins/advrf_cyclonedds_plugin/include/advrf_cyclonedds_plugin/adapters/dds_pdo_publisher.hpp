@@ -1,9 +1,9 @@
 #pragma once
 
-#include <advrf_middleware_core/adapters/adapter_publishers.hpp>
-#include "advrf_cyclonedds_plugin/publisher/dds_publisher.hpp"
 #include <advrf_dds_common/converter/converter.hpp>
+#include <advrf_middleware_core/adapters/adapter_publishers.hpp>
 
+#include "advrf_cyclonedds_plugin/publisher/dds_publisher.hpp"
 #include "advrf_cyclonedds_plugin/ros_metadata/ros_graph_bridge.hpp"
 
 namespace advrf::cyclonedds_plugin {
@@ -34,10 +34,11 @@ public:
      * @return True if DDS initialization succeeds.
      */
     bool init(const std::string& topic_name,
-              dds::domain::DomainParticipant& participant)
+              dds::domain::DomainParticipant& participant,
+              const advrf::dds_common::EndpointPolicy& policy = {})
     {
         topic_name_ = topic_name;
-        return this->init_dds(topic_name_, participant);
+        return this->init_dds(topic_name_, participant, {}, policy);
     }
 
     /// Return the DDS topic name configured during @ref init.
@@ -106,14 +107,14 @@ private:
 };
 
 
+#include <advrf_interfaces/msg/ForceTorque.hpp>
+#include <advrf_interfaces/msg/Gripper.hpp>
 #include <advrf_interfaces/msg/Imu.hpp>
-#include <sensor_msgs/msg/JointState.hpp>
 #include <advrf_interfaces/msg/Motor.hpp>
 #include <advrf_interfaces/msg/PowerBoard.hpp>
 #include <advrf_interfaces/msg/Pump.hpp>
-#include <advrf_interfaces/msg/ForceTorque.hpp>
 #include <advrf_interfaces/msg/Valve.hpp>
-#include <advrf_interfaces/msg/Gripper.hpp>
+#include <sensor_msgs/msg/JointState.hpp>
 
 using ImuMsg = ::advrf_interfaces::msg::dds_::Imu_;
 using JointStateMsg = ::sensor_msgs::msg::dds_::JointState_;

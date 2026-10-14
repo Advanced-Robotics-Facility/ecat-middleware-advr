@@ -2,18 +2,18 @@
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 
-#include <advrf_interfaces/msg/ReplCmdContent.hpp>
-#include <advrf_interfaces/msg/ReplCmdContentPubSubTypes.hpp>
-
-#include "advrf_fastdds_plugin/subscriber/dds_subscriber.hpp"
-#include "advrf_fastdds_plugin/ros_metadata/ros_graph_bridge.hpp"
-
-#include <advrf_middleware_core/config/robot_config.hpp>
-#include <advrf_middleware_core/config/config_topics.hpp>
-#include <advrf_middleware_core/adapters/adapter_subscribers.hpp>
-#include <advrf_middleware_core/utils/ecat_discover.hpp>
+#include <advrf_dds_common/config/dds_config.hpp>
 #include <advrf_dds_common/converter/converter.hpp>
 #include <advrf_dds_common/qos/reader_policy.hpp>
+#include <advrf_interfaces/msg/ReplCmdContent.hpp>
+#include <advrf_interfaces/msg/ReplCmdContentPubSubTypes.hpp>
+#include <advrf_middleware_core/adapters/adapter_subscribers.hpp>
+#include <advrf_middleware_core/config/config_topics.hpp>
+#include <advrf_middleware_core/config/robot_config.hpp>
+#include <advrf_middleware_core/utils/ecat_discover.hpp>
+
+#include "advrf_fastdds_plugin/ros_metadata/ros_graph_bridge.hpp"
+#include "advrf_fastdds_plugin/subscriber/dds_subscriber.hpp"
 
 namespace advrf::fastdds_plugin {
 
@@ -42,7 +42,7 @@ public:
               const advrf::middleware::config::RobotConfig& robot_config,
               const advrf::middleware::ecat::EcatDiscover::EcatMap& ecat_map,
               eprosima::fastdds::dds::DomainParticipant* participant,
-              advrf::dds_common::ReaderPolicy reader_policy = {});
+              const advrf::dds_common::DdsConfig& dds_config = {});
 
     void spin_once() override;
 
@@ -110,7 +110,8 @@ protected:
 
     void init_ros_graph_bridge(
         const advrf::middleware::config::RobotConfig& robot_config,
-        eprosima::fastdds::dds::DomainParticipant* participant
+        eprosima::fastdds::dds::DomainParticipant* participant,
+        bool declare_to_ros
     );
 
 private:

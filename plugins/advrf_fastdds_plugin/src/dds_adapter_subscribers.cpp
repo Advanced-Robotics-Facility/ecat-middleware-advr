@@ -1,6 +1,7 @@
-#include "advrf_fastdds_plugin/adapters/dds_adapter_subscribers.hpp"
 #include <advrf_interfaces/msg/MotorTxPdo.hpp>
 #include <advrf_interfaces/msg/MotorTxPdoPubSubTypes.hpp>
+
+#include "advrf_fastdds_plugin/adapters/dds_adapter_subscribers.hpp"
 
 namespace advrf::fastdds_plugin {
 
@@ -8,10 +9,10 @@ bool DDSAdapterSubscribers::init(const advrf::middleware::config::ConfigTopics& 
                                   const advrf::middleware::config::RobotConfig& robot_config,
                                   const advrf::middleware::ecat::EcatDiscover::EcatMap& ecat_map,
                                   eprosima::fastdds::dds::DomainParticipant* participant,
-                                  advrf::dds_common::ReaderPolicy reader_policy)
+                                  const advrf::dds_common::DdsConfig& dds_config)
     {
 
-    reader_policy_ = std::move(reader_policy);
+    reader_policy_ = dds_config.command;
      register_subscriber<
             advrf_interfaces::msg::dds_::MotorTxPdoVector_,
             advrf_interfaces::msg::dds_::MotorTxPdoVector_PubSubType
@@ -30,15 +31,16 @@ bool DDSAdapterSubscribers::init(const advrf::middleware::config::ConfigTopics& 
             return result;
         });
 
-        init_ros_graph_bridge(robot_config, participant);
+        init_ros_graph_bridge(robot_config, participant, dds_config.declare_to_ros);
         return true;
     }
 
 
 void DDSAdapterSubscribers::init_ros_graph_bridge(
     const advrf::middleware::config::RobotConfig &robot_config,
-    eprosima::fastdds::dds::DomainParticipant *participant) {
-    if (!robot_config.declare_to_ros) {
+    eprosima::fastdds::dds::DomainParticipant *participant,
+    bool declare_to_ros) {
+    if (!declare_to_ros) {
         return;
     }
 

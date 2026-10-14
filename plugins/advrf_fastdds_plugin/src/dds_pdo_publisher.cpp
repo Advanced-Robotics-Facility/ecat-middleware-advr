@@ -1,5 +1,6 @@
+#include <advrf_middleware_core/utils/name_resolver.hpp>
+
 #include "advrf_fastdds_plugin/adapters/dds_pdo_publisher.hpp"
-#include "advrf_middleware_core/utils/name_resolver.hpp"
 
 namespace advrf::fastdds_plugin {
 

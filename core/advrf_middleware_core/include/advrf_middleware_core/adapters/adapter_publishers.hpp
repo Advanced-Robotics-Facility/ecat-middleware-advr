@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 #include <shm_types.hpp>
 #include <shm_utils.hpp>
 
@@ -16,9 +17,6 @@
 #include "advrf_middleware_core/utils/channel.hpp"
 #include "advrf_middleware_core/utils/log.hpp"
 #include "advrf_middleware_core/utils/pdo_utils.hpp"
-
-#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
-#include <advrf_middleware_core/utils/log.hpp>
 
 namespace advrf::middleware::adapters::message {
 

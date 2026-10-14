@@ -3,7 +3,6 @@
 #include <iostream>
 #include <string>
 #include <thread>
-
 #include <zenoh.hxx>
 
 #include <ecat_master_pb/protobuf/ecat_pdo.pb.h>

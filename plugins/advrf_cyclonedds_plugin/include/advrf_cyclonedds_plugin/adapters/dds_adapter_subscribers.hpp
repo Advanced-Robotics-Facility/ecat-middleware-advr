@@ -1,17 +1,15 @@
 #pragma once
 
-#include <dds/dds.hpp>
-
 #include <functional>
 #include <memory>
 #include <string>
 #include <vector>
+#include <dds/dds.hpp>
 
-#include <advrf_interfaces/msg/ReplCmdContent.hpp>
-
+#include <advrf_dds_common/config/dds_config.hpp>
 #include <advrf_dds_common/converter/converter.hpp>
 #include <advrf_dds_common/qos/reader_policy.hpp>
-
+#include <advrf_interfaces/msg/ReplCmdContent.hpp>
 #include <advrf_middleware_core/adapters/adapter_subscribers.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
 #include <advrf_middleware_core/config/robot_config.hpp>
@@ -58,7 +56,7 @@ public:
      * @param robot_config Robot DDS configuration.
      * @param ecat_map Metadata from EtherCAT PDO discovery.
      * @param participant DDS participant used to create readers.
-     * @param reader_policy QoS policy applied to every reader.
+     * @param dds_config DDS command QoS and ROS graph configuration.
      * @return True if every required subscriber is initialized.
      */
     bool init(
@@ -66,7 +64,7 @@ public:
         const advrf::middleware::config::RobotConfig& robot_config,
         const advrf::middleware::ecat::EcatDiscover::EcatMap &ecat_map,
         dds::domain::DomainParticipant& participant,
-        advrf::dds_common::ReaderPolicy reader_policy = {}
+        const advrf::dds_common::DdsConfig& dds_config = {}
     );
 
     /// Process all available samples from registered DDS readers.
@@ -159,7 +157,8 @@ private:
     /// Initialize optional ROS 2 graph-discovery integration.
     void init_ros_graph_bridge(
         const advrf::middleware::config::RobotConfig& robot_config,
-        dds::domain::DomainParticipant& participant
+        dds::domain::DomainParticipant& participant,
+        bool declare_to_ros
     );
 
     advrf::dds_common::ReaderPolicy reader_policy_;
