@@ -13,6 +13,8 @@
   <depend>ecat_master</depend>
   <depend>advrf_config</depend>
   <depend>yaml-cpp</depend>
+  <depend>libzmq3-dev</depend>
+  <depend>cppzmq-dev</depend>
 
   <export>
     <build_type>cmake</build_type>

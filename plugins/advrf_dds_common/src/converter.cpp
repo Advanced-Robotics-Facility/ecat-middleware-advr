@@ -260,21 +260,35 @@ void advrf::dds_common::convert::protobuf::from_dds(
 void advrf::dds_common::convert::protobuf::from_dds(const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
                                  iit::advrf::Ec_slave_pdo::Type type,
                                  iit::advrf::Ec_slave_pdo& pb) {
-    switch (type) 
+    // Discovery reports RX types; the master requires the corresponding TX
+    // discriminator as well as header.index for shared-memory routing.
+    pb.Clear();
+    if (msgdds.ecat_id() < 0) {
+        std::cerr << "Invalid motor EtherCAT ID: " << msgdds.ecat_id() << std::endl;
+        return;
+    }
+    switch (type)
     {
-        case iit::advrf::Ec_slave_pdo::Type::Ec_slave_pdo_Type_TX_MOTOR:
+        case iit::advrf::Ec_slave_pdo::RX_MOTOR:
+        case iit::advrf::Ec_slave_pdo::TX_MOTOR:
             from_dds(msgdds, *pb.mutable_motor_tx_pdo());
+            pb.set_type(iit::advrf::Ec_slave_pdo::TX_MOTOR);
             break;
-        case iit::advrf::Ec_slave_pdo::Type::Ec_slave_pdo_Type_RX_XT_MOTOR:
+        case iit::advrf::Ec_slave_pdo::RX_XT_MOTOR:
+        case iit::advrf::Ec_slave_pdo::TX_XT_MOTOR:
             from_dds(msgdds, *pb.mutable_motor_xt_tx_pdo());
+            pb.set_type(iit::advrf::Ec_slave_pdo::TX_XT_MOTOR);
             break;
-        case iit::advrf::Ec_slave_pdo::Type::Ec_slave_pdo_Type_RX_CIA402:
+        case iit::advrf::Ec_slave_pdo::RX_CIA402:
+        case iit::advrf::Ec_slave_pdo::TX_CIA402:
             from_dds(msgdds, *pb.mutable_cia402_tx_pdo());
+            pb.set_type(iit::advrf::Ec_slave_pdo::TX_CIA402);
             break;
         default:
             std::cerr << "Unsupported Ec_slave_pdo::Type: " << static_cast<int>(type) << std::endl;
-            break;
+            return;
     }
+    pb.mutable_header()->set_index(msgdds.ecat_id());
 }
 
 

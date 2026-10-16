@@ -1,0 +1,28 @@
+#pragma once
+
+module advrf_interfaces {
+  module msg {
+    module dds_ {
+      @final
+      struct MotorControlRequest_ {
+        string client_id;
+        uint64 request_id;
+        int32 motor_id;
+        // 0 SHUTDOWN, 1 START, 2 STOP, 3 SET_GAINS.
+        uint8 command;
+        uint32 control_mode;
+        float gains[5];
+      };
+
+      @final
+      struct MotorControlReply_ {
+        string client_id;
+        uint64 request_id;
+        int32 motor_id;
+        boolean success;
+        boolean outcome_unknown;
+        string message;
+      };
+    };
+  };
+};

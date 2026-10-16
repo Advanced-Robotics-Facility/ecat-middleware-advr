@@ -26,6 +26,9 @@ bool DDSAdapterSubscribers::init(
             auto& pdo = result.emplace_back();
             const auto type = resolve_type(ecat_map, element.ecat_id());
             advrf::dds_common::convert::protobuf::from_dds(element, type, pdo);
+            if (pdo.type() == iit::advrf::Ec_slave_pdo::_UNSPECIFIED) {
+                result.pop_back();
+            }
           }
 
           return result;

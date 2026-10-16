@@ -111,6 +111,11 @@ struct TopicsService : public TopicNamespace
 {
     using TopicNamespace::TopicNamespace;
 
+    std::string motorControlRosRequest() const { return rq("motor_controlRequest"); }
+    std::string motorControlRosReply() const { return rr("motor_controlReply"); }
+    std::string motorControlRequest() const { return rq("motor_control/request"); }
+    std::string motorControlReply() const { return rr("motor_control/reply"); }
+
     std::string request() const { return rq("replCmd/request"); }
     std::string reply()   const { return rr("replCmd/reply"); }
 };
