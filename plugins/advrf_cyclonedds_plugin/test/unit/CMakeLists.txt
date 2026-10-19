@@ -30,8 +30,3 @@ target_link_libraries(004_config_qos PRIVATE advrf_cyclonedds_plugin)
 add_test(NAME 004_config_qos COMMAND $<TARGET_FILE:004_config_qos>)
 
 target_link_libraries(004_config_qos PRIVATE advrf_middleware_core_test_support)
-
-plugin_test(005_motor_control 005_motor_control/005_motor_control.cpp)
-find_library(MOTOR_TEST_ZMQ_LIBRARY NAMES zmq REQUIRED)
-target_link_libraries(005_motor_control PRIVATE ${MOTOR_TEST_ZMQ_LIBRARY})
-set_tests_properties(005_motor_control PROPERTIES TIMEOUT 25)

@@ -62,8 +62,7 @@ int main(int argc, char** argv) {
         advrf::middleware::plugin::PluginExec exec;
         exec.register_adapter({"dds_adapter_publishers", publishers, period_from_rate(runtime.rate_publishers)});
         exec.register_adapter({"dds_adapter_subscribers", subscribers, period_from_rate(runtime.rate_subscribers)});
-        // Service execution remains disabled pending the master-side fix.
-        // exec.register_adapter({"dds_adapter_service", service, period_from_rate(runtime.rate_service)});
+        exec.register_adapter({"dds_adapter_service", service, period_from_rate(runtime.rate_service)});
         LOG_INFO("Configuration: {}; DDS domain: {}; publishers: {} Hz; subscribers: {} Hz; service: {} Hz",
                  file.path.string(), config.dds.domain_id, runtime.rate_publishers,
                  runtime.rate_subscribers, runtime.rate_service);

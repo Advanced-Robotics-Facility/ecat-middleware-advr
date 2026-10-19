@@ -28,6 +28,13 @@ dds:
         require(legacy.domain_id == 23 && legacy.state.history_depth == 3 && legacy.command.history_depth == 3, "legacy flat QoS");
         const auto defaults = parse_dds_config(YAML::Load("{}"));
         require(defaults.state.reliability == Reliability::BestEffort && defaults.command.history_depth == 1, "defaults");
+        using advrf::middleware::adapters::service::ServiceTransport;
+        require(defaults.service.transport == ServiceTransport::Shm, "default SHM service");
+        const auto zmq = parse_dds_config(YAML::Load("dds: {service: {transport: zmq, command_uri: 'tcp://127.0.0.1:7777', timeout_ms: 250}}"));
+        require(zmq.service.transport == ServiceTransport::Zmq && zmq.service.timeout_ms == 250 &&
+                zmq.service.command_uri == "tcp://127.0.0.1:7777", "ZMQ service selection");
+        expect_error([] { parse_dds_config(YAML::Load("dds: {service: {transport: invalid}}")); }, "dds.service.transport");
+        expect_error([] { parse_dds_config(YAML::Load("dds: {service: {timeout_ms: 0}}")); }, "dds.service");
         expect_error([] { parse_dds_config(YAML::Load("dds: {qos: {state: {depth: 0}}}")); }, "dds.qos.state.depth");
         expect_error([] { parse_dds_config(YAML::Load("dds: {qos: {command: {depth: 2147483648}}}")); }, "dds.qos.command.depth");
         expect_error([] { parse_dds_config(YAML::Load("dds: {qos: {state: {history: keep_all}}}")); }, "dds.qos.state.history");

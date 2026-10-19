@@ -18,7 +18,7 @@ find_library(ADVRF_ZMQ_LIBRARY NAMES zmq REQUIRED)
 
 add_library(advrf_middleware_core SHARED
     src/core.cpp
-    src/motor_control.cpp
+    src/adapter_service.cpp
 )
 
 target_compile_features(advrf_middleware_core

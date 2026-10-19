@@ -315,6 +315,7 @@ void advrf::dds_common::convert::dds::from_protobuf(const iit::advrf::Ec_slave_p
 void advrf::dds_common::convert::dds::from_protobuf(const iit::advrf::Cmd_reply& pb, advrf_interfaces::srv::dds_::ReplCmd_Response_& dds_response)
     {
    dds_response.type() = static_cast<uint8_t>(pb.type());
+   dds_response.success() = pb.type() == iit::advrf::Cmd_reply::ACK;
    dds_response.msg() = pb.msg();
    dds_response.header().frame_id() = pb.header().str_id();
    dds_response.header().stamp().sec() = pb.header().stamp().sec();

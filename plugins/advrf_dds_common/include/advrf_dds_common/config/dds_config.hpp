@@ -1,6 +1,7 @@
 #pragma once
 
 #include <advrf_middleware_core/config/runtime_config.hpp>
+#include <advrf_middleware_core/adapters/adapter_service.hpp>
 
 #include "advrf_dds_common/qos/reader_policy.hpp"
 
@@ -11,6 +12,7 @@ using EndpointPolicy = ReaderPolicy;
 struct DdsConfig {
     uint32_t domain_id = 0;
     bool declare_to_ros = false;
+    advrf::middleware::adapters::service::ServiceConfig service;
     EndpointPolicy state;
     EndpointPolicy command;
 };
@@ -35,10 +37,21 @@ inline EndpointPolicy parse_endpoint_policy(const YAML::Node& node, const std::s
 inline DdsConfig parse_dds_config(const YAML::Node& root) {
     using namespace advrf::middleware::config;
     const auto node = section(root, "dds");
-    check_keys(node, {"domain", "domain_id", "declare_to_ros", "qos", "robot_name", "namespace"}, "dds");
+    check_keys(node, {"domain", "domain_id", "declare_to_ros", "qos", "robot_name", "namespace", "service"}, "dds");
     DdsConfig cfg;
     cfg.domain_id = unsigned_value(node, node["domain_id"] ? "domain_id" : "domain", 0, "dds");
     cfg.declare_to_ros = value<bool>(node, "declare_to_ros", false, "dds");
+    const auto service = section(node, "service", "dds");
+    check_keys(service, {"transport", "command_uri", "timeout_ms"}, "dds.service");
+    const auto transport = value<std::string>(service, "transport", "shm", "dds.service");
+    using advrf::middleware::adapters::service::ServiceTransport;
+    if (transport == "shm") cfg.service.transport = ServiceTransport::Shm;
+    else if (transport == "zmq") cfg.service.transport = ServiceTransport::Zmq;
+    else throw ConfigError("dds.service.transport: expected shm or zmq");
+    cfg.service.command_uri = value<std::string>(service, "command_uri", cfg.service.command_uri, "dds.service");
+    cfg.service.timeout_ms = unsigned_value(service, "timeout_ms", 1000, "dds.service");
+    if (cfg.service.command_uri.empty() || cfg.service.timeout_ms == 0 || cfg.service.timeout_ms > 60000)
+        throw ConfigError("dds.service: provide URI and timeout between 1 and 60000 ms");
     const auto qos = section(node, "qos", "dds");
     if (qos["state"] || qos["command"]) {
         check_keys(qos, {"state", "command"}, "dds.qos");

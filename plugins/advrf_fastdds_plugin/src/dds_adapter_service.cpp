@@ -9,7 +9,8 @@ DDSAdapterService::DDSAdapterService(const advrf::middleware::config::ConfigTopi
                                      const advrf::middleware::config::RobotConfig& robot_config,
                                      eprosima::fastdds::dds::DomainParticipant* participant,
                                      const advrf::dds_common::DdsConfig& dds_config)
-    : server_(participant, config_topics.service.request(), config_topics.service.reply())
+    : AdapterServiceServer(dds_config.service),
+      server_(participant, config_topics.service.request(), config_topics.service.reply())
 {
     server_.set_callback([this](const RequestDDS& req) {
         return process_request_dds(req);

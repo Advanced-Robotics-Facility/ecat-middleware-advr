@@ -12,10 +12,10 @@ DDSAdapterService::DDSAdapterService(const advrf::middleware::config::ConfigTopi
                                      const advrf::middleware::config::RobotConfig& robot_config,
                                     dds::domain::DomainParticipant& participant,
                                      const advrf::dds_common::DdsConfig& dds_config)
-    : server_(participant, config_topics.service.request(), config_topics.service.reply())
+    : AdapterServiceServer(dds_config.service),
+      server_(participant, config_topics.service.request(), config_topics.service.reply())
 {
     server_.set_callback([this](const RequestDDS& req) {
-        std::cerr << "Received request with ID: " << req.request_id() << std::endl;
         return process_request_dds(req);
     });
 

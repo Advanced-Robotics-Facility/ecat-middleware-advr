@@ -60,6 +60,7 @@ bool MotorsPublisher::process(const iit::advrf::Ec_slave_pdo& pdo) {
     
     message().name().push_back(resolve_name(pdo.header().index(), id_to_name_));
     advrf::dds_common::convert::dds::from_protobuf(pdo, message().header());
+
     return true;
 }
 

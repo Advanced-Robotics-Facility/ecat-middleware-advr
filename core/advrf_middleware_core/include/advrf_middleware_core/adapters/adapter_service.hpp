@@ -1,119 +1,132 @@
 #pragma once
 
+#include <unistd.h>
 #include <chrono>
+#include <thread>
+#include <shm_utils.hpp>
 #include <mutex>
 #include <string>
-#include <thread>
-
-#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
-#include <protobuf/repl_cmd.pb.h>
-#include <shm_types.hpp>
-#include <shm_utils.hpp>
+#include <utility>
 
 #include "advrf_middleware_core/adapters/adapter_base.hpp"
-#include "advrf_middleware_core/utils/log.hpp"
+#include <protobuf/repl_cmd.pb.h>
 
 namespace advrf::middleware::adapters::service
 {
 
-/**
- * @brief Synchronous service adapter for EtherCAT-master commands.
- *
- * For each request, the adapter sends a command through shared memory and
- * waits for the matching reply. Requests are serialized: only one can be
- * pending at a time.
- */
+struct ServiceResult
+{
+    bool success = false;
+    bool outcome_unknown = false;
+    std::string message;
+    iit::advrf::Cmd_reply reply;
+};
+
+enum class ServiceTransport { Shm, Zmq };
+
+struct ServiceConfig
+{
+    ServiceTransport transport = ServiceTransport::Shm;
+    std::string command_uri = "tcp://127.0.0.1:5555";
+    uint32_t timeout_ms = 1000;
+};
+
+/// Synchronous REPL service with an explicitly selected SHM or ZeroMQ transport.
+/// A missing reply does not imply that the command was not executed.
 class AdapterServiceServer : public advrf::middleware::adapters::AdapterBase
 {
 public:
-    AdapterServiceServer() = default;
+    explicit AdapterServiceServer(ServiceConfig config = {});
     ~AdapterServiceServer() override = default;
 
-    /**
-     * @brief Send a command and wait for its reply.
-     *
-     * @param request Command to forward to the EtherCAT master.
-     * @return The matching reply, or a NACK if shared memory is unavailable,
-     *         full, or no reply arrives before @c ReplyTimeout.
-     *
-     * @note This function blocks for up to @c ReplyTimeout.
-     */
-    iit::advrf::Cmd_reply process_request(
-        const iit::advrf::Repl_cmd& request)
+    ServiceResult process_request_result(const iit::advrf::Repl_cmd& request)
     {
-        // Only one outstanding SHM request at a time.
         std::scoped_lock lock{request_mutex_};
+        if (!ready())
+            return {false, false, "REPL service is not started"};
+        if (config_.transport == ServiceTransport::Zmq)
+            return execute_zmq(request);
 
-        if (!is_ok())
-            return make_nack("ecat master not connected");
-
-        if (!client_transport().push_request(request)) {
-            LOG_ERROR("Push to request queue failed");
-            return make_nack("shm request queue full");
-        }
-
-        LOG_DEBUG("Pushed request to SHM, waiting for reply...");
-        const auto deadline = std::chrono::steady_clock::now() + ReplyTimeout;
+        // All adapters share the same SHM request/reply queues.
+        std::scoped_lock shm_lock{shm_request_mutex_};
+        auto forwarded = request;
+        forwarded.mutable_request_id()->set_guid(static_cast<uint32_t>(::getpid()));
+        forwarded.mutable_request_id()->set_seq(++shm_sequence_);
+        if (!client_transport().push_request(forwarded))
+            return {false, false, "SHM request queue full"};
+        const auto deadline = std::chrono::steady_clock::now() +
+                              std::chrono::milliseconds(config_.timeout_ms);
         while (std::chrono::steady_clock::now() < deadline)
         {
+            if (!ready())
+                return {false, true, "SHM disconnected; command outcome unknown; no automatic retry"};
             iit::advrf::Cmd_reply reply;
-            if (!is_ok())
-                return make_nack("ecat master disconnected");
-            if (client_transport().try_pop_reply(reply) && matches(request, reply))
-                return reply;
-            std::this_thread::sleep_for(PollPeriod);
+            if (client_transport().try_pop_reply(reply) &&
+                reply.request_id().guid() == forwarded.request_id().guid() &&
+                reply.request_id().seq() == forwarded.request_id().seq() &&
+                reply.cmd_type() == request.type() &&
+                (reply.type() == iit::advrf::Cmd_reply::ACK ||
+                 reply.type() == iit::advrf::Cmd_reply::NACK))
+            {
+                *reply.mutable_request_id() = request.request_id();
+                return {reply.type() == iit::advrf::Cmd_reply::ACK, false, reply.msg(), reply};
+            }
+            std::this_thread::sleep_for(std::chrono::microseconds(200));
         }
-
-        LOG_ERROR("Timeout waiting for reply from SHM");
-        return make_nack(
-            "Timeout waiting for reply from shm");
+        return {false, true, "SHM reply timeout; command outcome unknown; no automatic retry"};
     }
 
+    iit::advrf::Cmd_reply process_request(const iit::advrf::Repl_cmd& request)
+    {
+        const auto result = process_request_result(request);
+        if (result.reply.type() == iit::advrf::Cmd_reply::ACK ||
+            result.reply.type() == iit::advrf::Cmd_reply::NACK)
+            return result.reply;
+        return make_nack(request, result.message);
+    }
 
-    /// Connect to the shared-memory service channel.
+    void spin_once() override {}
+
+    /// Local readiness only; does not send a command to the master.
     bool start() override
     {
-        if (!client_transport().initialize_service()) {
-            LOG_ERROR("Failed to open ready EtherCAT service shared memory '{}'", SHM_SRV_NAME);
-            return false;
-        }
-        return true;
+        std::scoped_lock lock{request_mutex_};
+        started_ = config_.transport == ServiceTransport::Zmq ||
+                   client_transport().initialize_service();
+        return started_;
     }
-
-    bool is_ok() const override { return client_transport().service_is_ok(); }
-    void close() override {}
+    bool is_ok() const override
+    {
+        std::scoped_lock lock{request_mutex_};
+        return ready();
+    }
+    void close() override
+    {
+        std::scoped_lock lock{request_mutex_};
+        started_ = false;
+    }
 
 private:
-    /// Maximum time to wait for a matching command reply.
-    static constexpr auto ReplyTimeout = std::chrono::milliseconds{1000};
-
-    /// Delay between consecutive reply-queue polls.
-    static constexpr auto PollPeriod = std::chrono::microseconds{200};
-
-    /// Check that a reply belongs to the given request.
-    static bool matches(const iit::advrf::Repl_cmd& request,
-                        const iit::advrf::Cmd_reply& reply)
+    bool ready() const
     {
-        return
-            reply.request_id().guid() ==
-                request.request_id().guid() &&
-            reply.request_id().seq() ==
-                request.request_id().seq();
+        return started_ && (config_.transport == ServiceTransport::Zmq ||
+                            client_transport().service_is_ok());
     }
-
-    /// Create a negative acknowledgement containing @p message.
-    static iit::advrf::Cmd_reply make_nack(const std::string& message)
+    static iit::advrf::Cmd_reply make_nack(const iit::advrf::Repl_cmd& request,
+                                          const std::string& message)
     {
         iit::advrf::Cmd_reply reply;
-
         reply.set_type(iit::advrf::Cmd_reply::NACK);
+        reply.set_cmd_type(request.type());
         reply.set_msg(message);
-
+        *reply.mutable_request_id() = request.request_id();
         return reply;
     }
-    
-    /// Serializes request/reply transactions.
-    std::mutex request_mutex_;
+    ServiceConfig config_;
+    ServiceResult execute_zmq(const iit::advrf::Repl_cmd& request) const;
+    inline static std::mutex shm_request_mutex_;
+    inline static uint32_t shm_sequence_ = 0;
+    mutable std::mutex request_mutex_;
+    bool started_ = false;
 };
-
-} 
+} // namespace advrf::middleware::adapters::service
