@@ -16,7 +16,6 @@ include(CMakePackageConfigHelpers)
 find_package(advrf_zenoh_lib REQUIRED)
 find_package(advrf_middleware_core REQUIRED)
 find_package(yaml-cpp REQUIRED)
-find_package(advrf_config CONFIG REQUIRED)
 find_package(ecat_master REQUIRED COMPONENTS ecat_core)
 
 option(ZENOH_ROS2_SUPPORT

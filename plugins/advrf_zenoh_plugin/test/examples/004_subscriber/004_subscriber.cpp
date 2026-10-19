@@ -125,8 +125,8 @@ int main()
 {
     try
     {
-        const auto id_map_path = ADVRF_CONFIG_SHARE / "middleware" / "config.yaml";
-        const auto ecat_config_path = ADVRF_CONFIG_SHARE / "middleware" / "config.yaml";
+        const auto id_map_path = advrf::middleware::config::middleware_config_path();
+        const auto ecat_config_path = advrf::middleware::config::middleware_config_path();
         const auto robot = advrf::middleware::config::load_robot_config(id_map_path.string(), ecat_config_path.string());
         if (!robot)
             return 1;

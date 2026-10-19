@@ -8,7 +8,6 @@ project(advrf_middleware_core
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-find_package(advrf_config CONFIG REQUIRED)
 find_package(ecat_master REQUIRED COMPONENTS ecat_core)
 find_package(spdlog REQUIRED)
 find_package(yaml-cpp REQUIRED)

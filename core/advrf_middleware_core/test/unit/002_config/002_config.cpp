@@ -1,4 +1,5 @@
 #include <fstream>
+#include <vector>
 #include <iostream>
 
 #include "advrf_middleware_core/config/config_topics.hpp"
@@ -51,6 +52,30 @@ runtime: {publishers_hz: 500, subscribers_hz: 200, service_hz: 20}
             ("advrf-config-test-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
         std::filesystem::create_directory(dir);
         struct Cleanup { std::filesystem::path path; ~Cleanup() { std::filesystem::remove_all(path); } } cleanup{dir};
+        const auto* previous_env = std::getenv("EC_CFG");
+        const std::optional<std::string> previous = previous_env ? std::optional<std::string>(previous_env) : std::nullopt;
+        struct RestoreEnv {
+            std::optional<std::string> value;
+            ~RestoreEnv() { if (value) setenv("EC_CFG", value->c_str(), 1); else unsetenv("EC_CFG"); }
+        } restore{previous};
+        unsetenv("EC_CFG");
+        expect_error([] { middleware_config_path(); }, "EC_CFG");
+        setenv("EC_CFG", "", 1);
+        expect_error([] { middleware_config_path(); }, "EC_CFG");
+        setenv("EC_CFG", (dir / "missing.yaml").c_str(), 1);
+        expect_error([] { middleware_config_path(); }, "EC_CFG");
+        const auto ec_cfg = dir / "ec_cfg.yaml";
+        setenv("EC_CFG", ec_cfg.c_str(), 1);
+        for (const auto& folder : std::vector<std::string>{"${PWD}/middleware/", "$PWD/middleware/", "middleware/", (dir / "middleware").string()}) {
+            std::ofstream(ec_cfg) << "robot: {robot_middleware_folder: '" << folder << "'}\n";
+            require(middleware_config_path() == dir / "middleware/config.yaml", "runtime middleware folder");
+        }
+        const auto link = dir / "alias.yaml";
+        std::filesystem::create_symlink(ec_cfg, link);
+        setenv("EC_CFG", link.c_str(), 1);
+        require(middleware_config_path() == dir / "middleware/config.yaml", "symlink target directory");
+        std::ofstream(ec_cfg) << "robot: {}\n";
+        expect_error([] { middleware_config_path(); }, "robot.robot_middleware_folder");
         const auto path = dir / "config.yaml";
         std::ofstream(path) << "version: 1\nrobot: {name: kyon, namespace: advrf, joint_map: {1: knee}}\n";
         const auto loaded = ConfigFile::load(path);

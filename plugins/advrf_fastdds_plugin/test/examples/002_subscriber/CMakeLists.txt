@@ -12,7 +12,7 @@ target_link_libraries(002_subscriber
         advrf_fastdds_plugin
         advrf_interfaces_dds::fastdds
         advrf_middleware_core
-        advrf_config
+
         yaml-cpp::yaml-cpp
 )
 

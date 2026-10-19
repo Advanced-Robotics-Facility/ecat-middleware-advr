@@ -266,7 +266,7 @@ int main(int argc, char** argv)
     std::signal(SIGINT, on_signal);
     std::signal(SIGTERM, on_signal);
 
-    auto config_dummy = build_ecat_map(ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_dummy_shm.yaml");
+    auto config_dummy = build_ecat_map(advrf::middleware::config::robot_config_directory() / "robot_ecat" / "ecat_dummy_shm.yaml");
 
     auto shm_rx = SharedMemory<SharedProtoPubBridge>::create_or_recover(SHM_NRT_RX_PDO);
     if (!shm_rx) {

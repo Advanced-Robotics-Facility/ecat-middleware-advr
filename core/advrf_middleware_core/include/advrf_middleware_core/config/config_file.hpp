@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <initializer_list>
 #include <stdexcept>
@@ -79,5 +80,35 @@ struct ConfigFile {
         return target.is_absolute() ? target : (path.parent_path() / target).lexically_normal();
     }
 };
+
+// Resolve the robot configuration at startup, independently of the build prefix.
+inline std::filesystem::path robot_config_directory() {
+    const auto* env = std::getenv("EC_CFG");
+    if (!env || !*env)
+        throw ConfigError("EC_CFG: set the environment variable to the robot ec_cfg.yaml file");
+    try {
+        return std::filesystem::canonical(env).parent_path();
+    } catch (const std::exception& e) {
+        throw ConfigError(std::string("EC_CFG: ") + env + ": " + e.what());
+    }
+}
+
+inline std::filesystem::path middleware_config_path() {
+    const auto directory = robot_config_directory();
+    const auto file = ConfigFile::load(std::filesystem::canonical(std::getenv("EC_CFG")));
+    const auto robot = section(file.root, "robot");
+    auto folder = value<std::string>(robot, "robot_middleware_folder", "", "robot");
+    if (folder.empty())
+        throw ConfigError(file.path.string() + ": robot.robot_middleware_folder: required");
+    // ${PWD} in robot configurations denotes the directory containing ec_cfg.yaml.
+    for (const auto* token : {"${PWD}", "$PWD"}) {
+        std::size_t offset = 0;
+        while ((offset = folder.find(token, offset)) != std::string::npos) {
+            folder.replace(offset, std::string(token).size(), directory.string());
+            offset += directory.string().size();
+        }
+    }
+    return (file.resolve(folder) / "config.yaml").lexically_normal();
+}
 
 } // namespace advrf::middleware::config

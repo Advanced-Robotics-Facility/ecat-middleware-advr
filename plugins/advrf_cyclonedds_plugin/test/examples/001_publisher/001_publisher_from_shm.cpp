@@ -30,7 +30,7 @@ int main(int argc, char** argv)
     std::signal(SIGINT, on_signal);
     std::signal(SIGTERM, on_signal);
 
-    auto plugin_config = advrf::cyclonedds_plugin::parse_plugin_config(advrf::middleware::config::ConfigFile::load(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml"));
+    auto plugin_config = advrf::cyclonedds_plugin::parse_plugin_config(advrf::middleware::config::ConfigFile::load(advrf::middleware::config::middleware_config_path()));
     advrf::cyclonedds_plugin::validate(plugin_config);
     const auto* config_robot = &plugin_config.common.robot;
 

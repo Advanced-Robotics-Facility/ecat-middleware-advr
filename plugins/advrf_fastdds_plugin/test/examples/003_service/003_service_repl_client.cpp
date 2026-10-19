@@ -32,7 +32,7 @@ int main()
     }
 
     auto plugin_config = advrf::fastdds_plugin::parse_plugin_config(
-        advrf::middleware::config::ConfigFile::load(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml"));
+        advrf::middleware::config::ConfigFile::load(advrf::middleware::config::middleware_config_path()));
     advrf::fastdds_plugin::validate(plugin_config);
     const auto* config_robot = &plugin_config.common.robot;
     advrf::middleware::config::ConfigTopics config_topics({config_robot->ns, config_robot->robot_name});

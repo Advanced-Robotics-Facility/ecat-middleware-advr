@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
             return 0;
         }
         const auto path = options.common.config_path.empty()
-            ? ADVRF_CONFIG_SHARE / "middleware" / "config.yaml" : options.common.config_path;
+            ? advrf::middleware::config::middleware_config_path() : options.common.config_path;
         const auto file = ConfigFile::load(path);
         auto config = advrf::zenoh_plugin::parse_plugin_config(file);
         options.common.runtime.apply(config.common.runtime);

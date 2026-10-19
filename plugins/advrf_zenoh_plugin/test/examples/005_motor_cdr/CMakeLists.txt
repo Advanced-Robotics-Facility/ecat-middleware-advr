@@ -9,7 +9,7 @@ target_compile_features(005_motor_cdr_viewer
 
 target_link_libraries(005_motor_cdr_viewer
     PRIVATE
-        advrf_config
+
         advrf_middleware_core
         advrf_zenoh_plugin
         ecat_master::ecat_core

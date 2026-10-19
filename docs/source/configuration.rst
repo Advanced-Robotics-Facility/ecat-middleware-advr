@@ -82,12 +82,16 @@ flags remain aliases. Only supplied flags override the YAML values:
    zenoh_plugin --config ./middleware/config.yaml --wire-format protobuf
 
 The common precedence is defaults, YAML, then explicit CLI overrides, followed
-by validation. The default YAML path remains
-``ADVRF_CONFIG_SHARE/middleware/config.yaml``. Zenoh also accepts
+by validation. The default YAML path is resolved at startup from ``EC_CFG``. This variable
+points to the robot ``ec_cfg.yaml``; ``robot.robot_middleware_folder`` in that
+file selects the folder containing ``config.yaml``. Relative paths and
+``${PWD}`` / ``$PWD`` resolve against the directory of the actual configuration
+file, following symbolic links. ``--config`` overrides this lookup. Changing
+robots requires no recompilation. Zenoh also accepts
 ``--zenoh-config PATH``: an explicit CLI path overrides the YAML reference and
 resolves against the working directory. If neither CLI nor YAML selects a
 session file, ``ZENOH_CONFIG`` is used when present, otherwise Zenoh defaults.
-No additional environment override mechanism is introduced.
+
 
 Legacy files remain readable: ``dds.robot_name``, ``dds.namespace``,
 ``dds.domain``, and top-level ``joint_map`` are accepted. A new ``robot`` block

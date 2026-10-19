@@ -28,7 +28,7 @@ int main(int argc, char** argv)
     std::signal(SIGTERM, on_signal);
 
     auto plugin_config = advrf::cyclonedds_plugin::parse_plugin_config(
-        advrf::middleware::config::ConfigFile::load(ADVRF_CONFIG_SHARE / "middleware" / "config.yaml"));
+        advrf::middleware::config::ConfigFile::load(advrf::middleware::config::middleware_config_path()));
     advrf::cyclonedds_plugin::validate(plugin_config);
     const auto* config_robot = &plugin_config.common.robot;
     auto dds_participant = dds::domain::DomainParticipant{plugin_config.dds.domain_id};

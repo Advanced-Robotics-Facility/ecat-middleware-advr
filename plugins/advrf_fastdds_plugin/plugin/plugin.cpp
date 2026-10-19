@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
             return 0;
         }
         const auto path = options.config_path.empty()
-            ? ADVRF_CONFIG_SHARE / "middleware" / "config.yaml" : options.config_path;
+            ? advrf::middleware::config::middleware_config_path() : options.config_path;
         const auto file = ConfigFile::load(path);
         auto config = parse_plugin_config(file);
         options.runtime.apply(config.common.runtime);
