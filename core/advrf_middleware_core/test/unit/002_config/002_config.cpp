@@ -76,6 +76,23 @@ runtime: {publishers_hz: 500, subscribers_hz: 200, service_hz: 20}
         require(middleware_config_path() == dir / "middleware/config.yaml", "symlink target directory");
         std::ofstream(ec_cfg) << "robot: {}\n";
         expect_error([] { middleware_config_path(); }, "robot.robot_middleware_folder");
+        const auto map_file = dir / "robot_id_map.yaml";
+        std::ofstream(map_file) << "joint_map: {7: external_joint}\n";
+        std::ofstream(ec_cfg) << "robot: {robot_id_map_path: '${PWD}/robot_id_map.yaml'}\n";
+        auto external = parse_common_config({root, dir / "middleware/config.yaml"});
+        require(external.robot.robot_name == "kyon" && external.robot.ns == "advrf", "middleware identity retained");
+        require(external.robot.map_ecat_id.size() == 1 && external.robot.map_ecat_id.at(7) == "external_joint",
+                "EC_CFG map replaces middleware map");
+        const auto no_map = YAML::Load("robot: {name: pegasus, namespace: advrf}");
+        require(parse_common_config({no_map, dir / "middleware/config.yaml"}).robot.map_ecat_id.at(7) == "external_joint",
+                "middleware joint_map is optional with EC_CFG");
+        std::ofstream(map_file) << "joint_map: {-1: invalid}\n";
+        expect_error([&] { parse_common_config({root, dir / "middleware/config.yaml"}); }, "joint_map");
+        std::filesystem::remove(map_file);
+        expect_error([&] { parse_common_config({root, dir / "middleware/config.yaml"}); }, "robot_id_map.yaml");
+        std::ofstream(ec_cfg) << "robot: {}\n";
+        expect_error([&] { parse_common_config({root, dir / "middleware/config.yaml"}); }, "robot.robot_id_map_path");
+        unsetenv("EC_CFG");
         const auto path = dir / "config.yaml";
         std::ofstream(path) << "version: 1\nrobot: {name: kyon, namespace: advrf, joint_map: {1: knee}}\n";
         const auto loaded = ConfigFile::load(path);

@@ -93,13 +93,13 @@ inline std::filesystem::path robot_config_directory() {
     }
 }
 
-inline std::filesystem::path middleware_config_path() {
+inline std::filesystem::path robot_config_reference(const std::string& key) {
     const auto directory = robot_config_directory();
     const auto file = ConfigFile::load(std::filesystem::canonical(std::getenv("EC_CFG")));
     const auto robot = section(file.root, "robot");
-    auto folder = value<std::string>(robot, "robot_middleware_folder", "", "robot");
+    auto folder = value<std::string>(robot, key, "", "robot");
     if (folder.empty())
-        throw ConfigError(file.path.string() + ": robot.robot_middleware_folder: required");
+        throw ConfigError(file.path.string() + ": robot." + key + ": required");
     // ${PWD} in robot configurations denotes the directory containing ec_cfg.yaml.
     for (const auto* token : {"${PWD}", "$PWD"}) {
         std::size_t offset = 0;
@@ -108,7 +108,15 @@ inline std::filesystem::path middleware_config_path() {
             offset += directory.string().size();
         }
     }
-    return (file.resolve(folder) / "config.yaml").lexically_normal();
+    return file.resolve(folder).lexically_normal();
+}
+
+inline std::filesystem::path middleware_config_path() {
+    return robot_config_reference("robot_middleware_folder") / "config.yaml";
+}
+
+inline std::filesystem::path robot_id_map_path() {
+    return robot_config_reference("robot_id_map_path");
 }
 
 } // namespace advrf::middleware::config

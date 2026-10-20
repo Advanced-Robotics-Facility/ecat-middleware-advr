@@ -41,7 +41,7 @@ struct CommonConfig {
     RuntimeConfig runtime;
 };
 inline CommonConfig parse_common_config(const ConfigFile& file) {
-    return {parse_robot_config(file.root), parse_runtime_config(file.root)};
+    return {parse_runtime_robot_config(file.root), parse_runtime_config(file.root)};
 }
 inline void validate(const CommonConfig& cfg) { validate(cfg.robot); validate(cfg.runtime); }
 

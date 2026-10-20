@@ -111,3 +111,13 @@ loaders return ``nullopt`` on failure; new startup paths report errors through
 
 Service execution remains disabled pending the existing master-side fix.
 ``service_hz`` is parsed and validated but does not enable the service adapter.
+
+Joint map selected by EC_CFG
+----------------------------
+
+When ``EC_CFG`` is set, ``robot.robot_id_map_path`` selects the YAML containing
+``joint_map``. This replaces the inline middleware map completely, while robot
+name and namespace still come from the middleware configuration. Relative paths
+and ``${PWD}`` resolve against the actual ``ec_cfg.yaml`` directory, including
+symbolic links. Invalid or missing map files fail configuration loading. Without
+``EC_CFG``, standalone configuration files retain inline joint map support.

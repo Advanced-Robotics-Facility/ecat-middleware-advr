@@ -67,6 +67,18 @@ inline RobotConfig parse_robot_config(const YAML::Node& root) {
     return cfg;
 }
 
+// EC_CFG selects the authoritative joint map; standalone YAML remains supported.
+inline RobotConfig parse_runtime_robot_config(const YAML::Node& root) {
+    const auto* env = std::getenv("EC_CFG");
+    if (!env) return parse_robot_config(root);
+    RobotConfig cfg;
+    merge_robot_identity(cfg, root);
+    const auto file = ConfigFile::load(robot_id_map_path());
+    merge_robot_id_map(cfg, file.root);
+    validate(cfg);
+    return cfg;
+}
+
 inline void load_from_ecat_config(RobotConfig& cfg, const std::string& path) {
     auto next = cfg;
     merge_robot_identity(next, ConfigFile::load(path).root);
@@ -80,7 +92,7 @@ inline void load_from_robot_id_map(RobotConfig& cfg, const std::string& path) {
 inline std::optional<RobotConfig> load_robot_config(const std::string& map_path,
                                                    const std::string& identity_path) {
     try {
-        if (map_path == identity_path) return parse_robot_config(ConfigFile::load(map_path).root);
+        if (map_path == identity_path) return parse_runtime_robot_config(ConfigFile::load(map_path).root);
         RobotConfig cfg;
         load_from_robot_id_map(cfg, map_path);
         load_from_ecat_config(cfg, identity_path);

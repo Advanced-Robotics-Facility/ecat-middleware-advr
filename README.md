@@ -19,3 +19,10 @@ absolute folders are also supported. The middleware loads `config.yaml` from
 this folder. Missing `EC_CFG`, unreadable files, or missing folder settings
 produce an error. Plugins accept `--config <PATH>` to override this lookup.
 Changing `EC_CFG` before starting a process requires no recompilation.
+
+When `EC_CFG` is set, `robot.robot_id_map_path` in that file selects the
+YAML containing `joint_map`. This map replaces the middleware's `robot.joint_map`
+completely; the middleware still supplies `robot.name` and `robot.namespace`.
+The same relative-path and `${PWD}` rules apply. An invalid or missing referenced
+map is an error. Without `EC_CFG`, standalone `--config` files retain their
+inline joint map support.
