@@ -74,7 +74,14 @@ void advrf::dds_common::convert::protobuf::from_dds(
     pb.set_board_id(msgdds.board_id());
     pb.set_value(msgdds.value());
 
-    from_dds(msgdds.gains(), *pb.mutable_gains());
+    // ROS/DDS always carries a Gains structure. For START, type 0 explicitly
+    // means "not supplied": preserve protobuf optional presence so the master
+    // calls start(mode) and reads the existing drive gains instead of replacing them.
+    if (pb.type() == iit::advrf::Ctrl_cmd::CTRL_CMD_START && msgdds.gains().type() == 0) {
+        pb.clear_gains();
+    } else {
+        from_dds(msgdds.gains(), *pb.mutable_gains());
+    }
 }
 
 void advrf::dds_common::convert::protobuf::from_dds(
