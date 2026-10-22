@@ -9,8 +9,8 @@ export EC_CFG=/home/hpousseur-iit.local/ws/ws_v3.x/src/ecat-middleware-advr/conf
 The selected file must contain:
 
 ```yaml
-robot:
-  robot_middleware_folder: '${PWD}/middleware/'
+middleware:
+  folder: '${PWD}/middleware/'
 ```
 
 `${PWD}` (or `$PWD`) denotes the directory of the actual `ec_cfg.yaml` file,
@@ -19,6 +19,8 @@ absolute folders are also supported. The middleware loads `config.yaml` from
 this folder. Missing `EC_CFG`, unreadable files, or missing folder settings
 produce an error. Plugins accept `--config <PATH>` to override this lookup.
 Changing `EC_CFG` before starting a process requires no recompilation.
+The legacy `robot.robot_middleware_folder` key is accepted when
+`middleware.folder` is absent; the new key takes priority when both are present.
 
 When `EC_CFG` is set, `robot.robot_id_map_path` in that file selects the
 YAML containing `joint_map`. This map replaces the middleware's `robot.joint_map`

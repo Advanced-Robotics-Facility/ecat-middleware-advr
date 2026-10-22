@@ -21,9 +21,14 @@ and fill `request.ctrl_cmd`:
 
 | Operation | ctrl_cmd.type | Arguments |
 | --- | --- | --- |
-| Start | CTRL_CMD_START (11) | board_id, value = control mode, gains |
+| Start | CTRL_CMD_START (11) | board_id, value = control mode, optional gains |
 | Stop | CTRL_CMD_STOP (12) | board_id |
 | Set gains | CTRL_SET_GAINS (17) | board_id, gains including gains.type |
+
+For START, `gains.type = 0` means no explicit gains: the converter omits the
+protobuf Gains message and the master reads the existing drive gains for the
+requested mode. A nonzero `gains.type` explicitly supplies gains, including an
+intentional all-zero set. No separate SET_GAINS command is issued.
 
 Gains are the named fields of the existing REPL protocol; the service forwards
 them unchanged. Clients must supply the values expected by the drive.

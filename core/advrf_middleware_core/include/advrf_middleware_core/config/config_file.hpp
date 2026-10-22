@@ -93,13 +93,15 @@ inline std::filesystem::path robot_config_directory() {
     }
 }
 
-inline std::filesystem::path robot_config_reference(const std::string& key) {
+inline std::filesystem::path config_reference(const std::string& section_name, const std::string& key) {
     const auto directory = robot_config_directory();
     const auto file = ConfigFile::load(std::filesystem::canonical(std::getenv("EC_CFG")));
-    const auto robot = section(file.root, "robot");
-    auto folder = value<std::string>(robot, key, "", "robot");
+    const auto settings = section(file.root, section_name);
+    if (settings[key] && !settings[key].IsScalar())
+        throw ConfigError(file.path.string() + ": " + section_name + "." + key + ": expected a path string");
+    auto folder = value<std::string>(settings, key, "", section_name);
     if (folder.empty())
-        throw ConfigError(file.path.string() + ": robot." + key + ": required");
+        throw ConfigError(file.path.string() + ": " + section_name + "." + key + ": required");
     // ${PWD} in robot configurations denotes the directory containing ec_cfg.yaml.
     for (const auto* token : {"${PWD}", "$PWD"}) {
         std::size_t offset = 0;
@@ -111,8 +113,22 @@ inline std::filesystem::path robot_config_reference(const std::string& key) {
     return file.resolve(folder).lexically_normal();
 }
 
+inline std::filesystem::path robot_config_reference(const std::string& key) {
+    return config_reference("robot", key);
+}
+
 inline std::filesystem::path middleware_config_path() {
-    return robot_config_reference("robot_middleware_folder") / "config.yaml";
+    robot_config_directory(); // Validate EC_CFG before reading it.
+    const auto file = ConfigFile::load(std::filesystem::canonical(std::getenv("EC_CFG")));
+    const auto middleware = section(file.root, "middleware");
+    if (middleware["folder"])
+        return config_reference("middleware", "folder") / "config.yaml";
+    // Older robot configurations remain supported. An invalid new key never
+    // silently falls back to a legacy path.
+    const auto robot = section(file.root, "robot");
+    if (robot["robot_middleware_folder"])
+        return robot_config_reference("robot_middleware_folder") / "config.yaml";
+    throw ConfigError(file.path.string() + ": middleware.folder: required");
 }
 
 inline std::filesystem::path robot_id_map_path() {

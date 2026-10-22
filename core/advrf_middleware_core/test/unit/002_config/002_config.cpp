@@ -70,12 +70,24 @@ runtime: {publishers_hz: 500, subscribers_hz: 200, service_hz: 20}
             std::ofstream(ec_cfg) << "robot: {robot_middleware_folder: '" << folder << "'}\n";
             require(middleware_config_path() == dir / "middleware/config.yaml", "runtime middleware folder");
         }
+        for (const auto& folder : std::vector<std::string>{"${PWD}/middleware/", "$PWD/middleware/", "middleware/", (dir / "middleware").string()}) {
+            std::ofstream(ec_cfg) << "middleware: {folder: '" << folder << "'}\n"
+                                  << "robot: {robot_middleware_folder: '/wrong/legacy'}\n";
+            require(middleware_config_path() == dir / "middleware/config.yaml", "middleware.folder takes priority");
+        }
+        for (const auto& invalid : {"''", "[]", "{}", "null"}) {
+            std::ofstream(ec_cfg) << "middleware: {folder: " << invalid << "}\n";
+            expect_error([] { middleware_config_path(); }, "middleware.folder");
+        }
+        std::ofstream(ec_cfg) << "middleware: []\n";
+        expect_error([] { middleware_config_path(); }, "middleware");
+        std::ofstream(ec_cfg) << "middleware: {folder: '${PWD}/middleware/'}\n";
         const auto link = dir / "alias.yaml";
         std::filesystem::create_symlink(ec_cfg, link);
         setenv("EC_CFG", link.c_str(), 1);
         require(middleware_config_path() == dir / "middleware/config.yaml", "symlink target directory");
         std::ofstream(ec_cfg) << "robot: {}\n";
-        expect_error([] { middleware_config_path(); }, "robot.robot_middleware_folder");
+        expect_error([] { middleware_config_path(); }, "middleware.folder");
         const auto map_file = dir / "robot_id_map.yaml";
         std::ofstream(map_file) << "joint_map: {7: external_joint}\n";
         std::ofstream(ec_cfg) << "robot: {robot_id_map_path: '${PWD}/robot_id_map.yaml'}\n";
