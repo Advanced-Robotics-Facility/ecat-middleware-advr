@@ -3,8 +3,8 @@
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 
 #include <advrf_dds_common/config/dds_config.hpp>
-#include <advrf_interfaces/srv/ReplCmd.hpp>
-#include <advrf_interfaces/srv/ReplCmdPubSubTypes.hpp>
+#include <advrf_ros2_interfaces/srv/ReplCmd.hpp>
+#include <advrf_ros2_interfaces/srv/ReplCmdPubSubTypes.hpp>
 #include <advrf_middleware_core/adapters/adapter_service.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
 #include <advrf_middleware_core/config/robot_config.hpp>
@@ -14,10 +14,10 @@
 
 namespace advrf::fastdds_plugin {
 
-using RequestDDS  = advrf_interfaces::srv::dds_::ReplCmd_Request_;
-using ResponseDDS = advrf_interfaces::srv::dds_::ReplCmd_Response_;
-using RequestDDSPubSubType  = advrf_interfaces::srv::dds_::ReplCmd_Request_PubSubType;
-using ResponseDDSPubSubType = advrf_interfaces::srv::dds_::ReplCmd_Response_PubSubType;
+using RequestDDS  = advrf_ros2_interfaces::srv::dds_::ReplCmd_Request_;
+using ResponseDDS = advrf_ros2_interfaces::srv::dds_::ReplCmd_Response_;
+using RequestDDSPubSubType  = advrf_ros2_interfaces::srv::dds_::ReplCmd_Request_PubSubType;
+using ResponseDDSPubSubType = advrf_ros2_interfaces::srv::dds_::ReplCmd_Response_PubSubType;
 using RequestProtobuf  = iit::advrf::Repl_cmd;
 using ResponseProtobuf = iit::advrf::Cmd_reply;
 

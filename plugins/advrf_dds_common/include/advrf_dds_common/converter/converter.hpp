@@ -3,16 +3,16 @@
 #include <utility>
 #include <vector>
 
-#include <advrf_interfaces/msg/ForceTorque.hpp>
-#include <advrf_interfaces/msg/Gripper.hpp>
-#include <advrf_interfaces/msg/Imu.hpp>
-#include <advrf_interfaces/msg/Motor.hpp>
-#include <advrf_interfaces/msg/MotorTxPdo.hpp>
-#include <advrf_interfaces/msg/PowerBoard.hpp>
-#include <advrf_interfaces/msg/Pump.hpp>
-#include <advrf_interfaces/msg/ReplCmdContent.hpp>
-#include <advrf_interfaces/msg/Valve.hpp>
-#include <advrf_interfaces/srv/ReplCmd.hpp>
+#include <advrf_ros2_interfaces/msg/ForceTorque.hpp>
+#include <advrf_ros2_interfaces/msg/Gripper.hpp>
+#include <advrf_ros2_interfaces/msg/Imu.hpp>
+#include <advrf_ros2_interfaces/msg/Motor.hpp>
+#include <advrf_ros2_interfaces/msg/MotorTxPdo.hpp>
+#include <advrf_ros2_interfaces/msg/PowerBoard.hpp>
+#include <advrf_ros2_interfaces/msg/Pump.hpp>
+#include <advrf_ros2_interfaces/msg/ReplCmdContent.hpp>
+#include <advrf_ros2_interfaces/msg/Valve.hpp>
+#include <advrf_ros2_interfaces/srv/ReplCmd.hpp>
 #include <builtin_interfaces/msg/Time.hpp>
 #include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 #include <ecat_master_pb/protobuf/repl_cmd.pb.h>
@@ -37,77 +37,77 @@ namespace advrf::dds_common::convert::protobuf {
         iit::advrf::Header& pb);
 
     void from_dds(
-        const advrf_interfaces::msg::dds_::Gains_& msgdds,
+        const advrf_ros2_interfaces::msg::dds_::Gains_& msgdds,
         iit::advrf::Gains& pb);
 
     void from_dds(
-        const advrf_interfaces::msg::dds_::TrajectoryCmd_& msgdds,
+        const advrf_ros2_interfaces::msg::dds_::TrajectoryCmd_& msgdds,
         iit::advrf::Trajectory_cmd& pb);
 
     void from_dds(
-        const advrf_interfaces::msg::dds_::CtrlCmd_& msgdds,
+        const advrf_ros2_interfaces::msg::dds_::CtrlCmd_& msgdds,
         iit::advrf::Ctrl_cmd& pb);
 
     void from_dds(
-    const advrf_interfaces::msg::dds_::FlashCmd_& msgdds,
+    const advrf_ros2_interfaces::msg::dds_::FlashCmd_& msgdds,
         iit::advrf::Flash_cmd& pb);
 
     void from_dds(
-        const advrf_interfaces::msg::dds_::EcatMasterCmd_& msgdds,
+        const advrf_ros2_interfaces::msg::dds_::EcatMasterCmd_& msgdds,
         iit::advrf::Ecat_Master_cmd& pb);
 
     void from_dds(
-        const advrf_interfaces::msg::dds_::FoeMaster_& msgdds,
+        const advrf_ros2_interfaces::msg::dds_::FoeMaster_& msgdds,
         iit::advrf::FOE_Master& pb);
 
     void from_dds(
-        const advrf_interfaces::msg::dds_::TrjQueueCmd_& msgdds,
+        const advrf_ros2_interfaces::msg::dds_::TrjQueueCmd_& msgdds,
         iit::advrf::Trj_queue_cmd& pb);
 
     void from_dds(
-        const advrf_interfaces::msg::dds_::SlaveSdoCmd_& msgdds,
+        const advrf_ros2_interfaces::msg::dds_::SlaveSdoCmd_& msgdds,
         iit::advrf::Slave_SDO_cmd& pb);
 
     void from_dds(
-        const advrf_interfaces::msg::dds_::SlaveSdoInfo_& msgdds,
+        const advrf_ros2_interfaces::msg::dds_::SlaveSdoInfo_& msgdds,
         iit::advrf::Slave_SDO_info& pb);
 
     void from_dds(
-        const advrf_interfaces::msg::dds_::MotorsPdoCmd_& msgdds,
+        const advrf_ros2_interfaces::msg::dds_::MotorsPdoCmd_& msgdds,
         iit::advrf::Motors_PDO_cmd& pb);
 
     void from_dds(
-        const advrf_interfaces::msg::dds_::SlaveRegistryWrite_& msgdds,
+        const advrf_ros2_interfaces::msg::dds_::SlaveRegistryWrite_& msgdds,
         iit::advrf::Slave_registry_write& pb);
 
     void from_dds(
-        const advrf_interfaces::msg::dds_::PdoAuxCmd_& msgdds,
+        const advrf_ros2_interfaces::msg::dds_::PdoAuxCmd_& msgdds,
         iit::advrf::PDOs_aux_cmd& pb);
 
     void from_dds(
-        const advrf_interfaces::msg::dds_::ReplCmd_Content_& request,
+        const advrf_ros2_interfaces::msg::dds_::ReplCmd_Content_& request,
         iit::advrf::Repl_cmd& pb);
 
      void from_dds(
-        const advrf_interfaces::srv::dds_::ReplCmd_Request_& request,
+        const advrf_ros2_interfaces::srv::dds_::ReplCmd_Request_& request,
         iit::advrf::Repl_cmd& pb);
 
     void from_dds(
-        const advrf_interfaces::msg::dds_::ReplCmd_Content_Vector_& request,
+        const advrf_ros2_interfaces::msg::dds_::ReplCmd_Content_Vector_& request,
         iit::advrf::Repl_cmd_vector& pb);
 
     void from_dds(
-        const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
+        const advrf_ros2_interfaces::msg::dds_::MotorTxPdo_& msgdds,
         iit::advrf::Motor_xt_tx_pdo& pb);
 
     void from_dds(
-        const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
+        const advrf_ros2_interfaces::msg::dds_::MotorTxPdo_& msgdds,
         iit::advrf::Motor_tx_pdo& pb);
 
-    void from_dds(const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
+    void from_dds(const advrf_ros2_interfaces::msg::dds_::MotorTxPdo_& msgdds,
                 iit::advrf::Cia402_tx_pdo& pb);
 
-    void from_dds(const advrf_interfaces::msg::dds_::MotorTxPdo_& msgdds,
+    void from_dds(const advrf_ros2_interfaces::msg::dds_::MotorTxPdo_& msgdds,
                   iit::advrf::Ec_slave_pdo::Type type,
                   iit::advrf::Ec_slave_pdo& pb);
 
@@ -132,21 +132,21 @@ namespace advrf::dds_common::convert::dds {
      void from_protobuf(const PROTOBUF_TYPE&, DDS_TYPE) = delete;
      void from_protobuf(uint64_t timestamp_ns, builtin_interfaces::msg::dds_::Time_& msgdds);
      void from_protobuf(const iit::advrf::Ec_slave_pdo& pb, std_msgs::msg::dds_::Header_& dds_time);
-     void from_protobuf(const iit::advrf::Cmd_reply& pb, advrf_interfaces::srv::dds_::ReplCmd_Response_& dds_response);
-     void from_protobuf(const iit::advrf::ImuVN_rx_pdo& pb, advrf_interfaces::msg::dds_::Imu_& ddsmsg);
+     void from_protobuf(const iit::advrf::Cmd_reply& pb, advrf_ros2_interfaces::srv::dds_::ReplCmd_Response_& dds_response);
+     void from_protobuf(const iit::advrf::ImuVN_rx_pdo& pb, advrf_ros2_interfaces::msg::dds_::Imu_& ddsmsg);
      void from_protobuf(const iit::advrf::Cia402_rx_pdo& pb, sensor_msgs::msg::dds_::JointState_& ddsmsg);
-     void from_protobuf(const iit::advrf::Cia402_rx_pdo& pb, advrf_interfaces::msg::dds_::Motor_& ddsmsg);
+     void from_protobuf(const iit::advrf::Cia402_rx_pdo& pb, advrf_ros2_interfaces::msg::dds_::Motor_& ddsmsg);
      void from_protobuf(const iit::advrf::Motor_xt_rx_pdo& pb, sensor_msgs::msg::dds_::JointState_& ddsmsg);
-     void from_protobuf(const iit::advrf::Motor_xt_rx_pdo& pb, advrf_interfaces::msg::dds_::Motor_& ddsmsg);
+     void from_protobuf(const iit::advrf::Motor_xt_rx_pdo& pb, advrf_ros2_interfaces::msg::dds_::Motor_& ddsmsg);
      void from_protobuf(const iit::advrf::Motor_rx_pdo& pb, sensor_msgs::msg::dds_::JointState_& ddsmsg);
-     void from_protobuf(const iit::advrf::Motor_rx_pdo& pb, advrf_interfaces::msg::dds_::Motor_& ddsmsg);
+     void from_protobuf(const iit::advrf::Motor_rx_pdo& pb, advrf_ros2_interfaces::msg::dds_::Motor_& ddsmsg);
      void from_protobuf(const iit::advrf::HyqKnee_rx_pdo& pb, sensor_msgs::msg::dds_::JointState_& ddsmsg);
-     void from_protobuf(const iit::advrf::HyqKnee_rx_pdo& pb, advrf_interfaces::msg::dds_::Valve_& ddsmsg);
-     void from_protobuf(const iit::advrf::HyqHpu_rx_pdo& pb, advrf_interfaces::msg::dds_::Pump_& ddsmsg);
-     void from_protobuf(const iit::advrf::Gripper_rx_pdo& pb, advrf_interfaces::msg::dds_::Gripper_& ddsmsg);
+     void from_protobuf(const iit::advrf::HyqKnee_rx_pdo& pb, advrf_ros2_interfaces::msg::dds_::Valve_& ddsmsg);
+     void from_protobuf(const iit::advrf::HyqHpu_rx_pdo& pb, advrf_ros2_interfaces::msg::dds_::Pump_& ddsmsg);
+     void from_protobuf(const iit::advrf::Gripper_rx_pdo& pb, advrf_ros2_interfaces::msg::dds_::Gripper_& ddsmsg);
      void from_protobuf(const iit::advrf::Gripper_rx_pdo& pb, sensor_msgs::msg::dds_::JointState_ & ddsmsg);
-     void from_protobuf(const iit::advrf::PowF28M36_rx_pdo& pb, advrf_interfaces::msg::dds_::PowerBoard_ & ddsmsg);
-     void from_protobuf(const iit::advrf::FT6_rx_pdo& pb, advrf_interfaces::msg::dds_::ForceTorque_& ddsmsg);
+     void from_protobuf(const iit::advrf::PowF28M36_rx_pdo& pb, advrf_ros2_interfaces::msg::dds_::PowerBoard_ & ddsmsg);
+     void from_protobuf(const iit::advrf::FT6_rx_pdo& pb, advrf_ros2_interfaces::msg::dds_::ForceTorque_& ddsmsg);
 };
 
 namespace advrf::dds_common::convert::shm {

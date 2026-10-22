@@ -5,8 +5,8 @@
 #include <advrf_dds_common/config/dds_config.hpp>
 #include <advrf_dds_common/converter/converter.hpp>
 #include <advrf_dds_common/qos/reader_policy.hpp>
-#include <advrf_interfaces/msg/ReplCmdContent.hpp>
-#include <advrf_interfaces/msg/ReplCmdContentPubSubTypes.hpp>
+#include <advrf_ros2_interfaces/msg/ReplCmdContent.hpp>
+#include <advrf_ros2_interfaces/msg/ReplCmdContentPubSubTypes.hpp>
 #include <advrf_middleware_core/adapters/adapter_subscribers.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
 #include <advrf_middleware_core/config/robot_config.hpp>
@@ -17,8 +17,8 @@
 
 namespace advrf::fastdds_plugin {
 
-using Msg = advrf_interfaces::msg::dds_::ReplCmd_Content_Vector_;
-using MsgPubSubType = advrf_interfaces::msg::dds_::ReplCmd_Content_Vector_PubSubType;
+using Msg = advrf_ros2_interfaces::msg::dds_::ReplCmd_Content_Vector_;
+using MsgPubSubType = advrf_ros2_interfaces::msg::dds_::ReplCmd_Content_Vector_PubSubType;
 
 template <typename Msg, typename MsgPubSubType>
 class DDSPdoSubscriber

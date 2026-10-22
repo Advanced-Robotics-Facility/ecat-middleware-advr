@@ -1,15 +1,15 @@
 #include <filesystem>
 #include <dds/dds.hpp>
 
-#include <advrf_interfaces/srv/ReplCmd.hpp>
+#include <advrf_ros2_interfaces/srv/ReplCmd.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
 #include <advrf_middleware_core/utils/log.hpp>
 
 #include "advrf_cyclonedds_plugin/config/plugin_config.hpp"
 #include "advrf_cyclonedds_plugin/service/service_client.hpp"
 
-using RequestDDS = advrf_interfaces::srv::dds_::ReplCmd_Request_;
-using ResponseDDS = advrf_interfaces::srv::dds_::ReplCmd_Response_;
+using RequestDDS = advrf_ros2_interfaces::srv::dds_::ReplCmd_Request_;
+using ResponseDDS = advrf_ros2_interfaces::srv::dds_::ReplCmd_Response_;
 
 int main()
 {

@@ -107,23 +107,23 @@ private:
 };
 
 
-#include <advrf_interfaces/msg/ForceTorque.hpp>
-#include <advrf_interfaces/msg/Gripper.hpp>
-#include <advrf_interfaces/msg/Imu.hpp>
-#include <advrf_interfaces/msg/Motor.hpp>
-#include <advrf_interfaces/msg/PowerBoard.hpp>
-#include <advrf_interfaces/msg/Pump.hpp>
-#include <advrf_interfaces/msg/Valve.hpp>
+#include <advrf_ros2_interfaces/msg/ForceTorque.hpp>
+#include <advrf_ros2_interfaces/msg/Gripper.hpp>
+#include <advrf_ros2_interfaces/msg/Imu.hpp>
+#include <advrf_ros2_interfaces/msg/Motor.hpp>
+#include <advrf_ros2_interfaces/msg/PowerBoard.hpp>
+#include <advrf_ros2_interfaces/msg/Pump.hpp>
+#include <advrf_ros2_interfaces/msg/Valve.hpp>
 #include <sensor_msgs/msg/JointState.hpp>
 
-using ImuMsg = ::advrf_interfaces::msg::dds_::Imu_;
+using ImuMsg = ::advrf_ros2_interfaces::msg::dds_::Imu_;
 using JointStateMsg = ::sensor_msgs::msg::dds_::JointState_;
-using MotorMsg = ::advrf_interfaces::msg::dds_::Motor_;
-using PowerBoardMsg = ::advrf_interfaces::msg::dds_::PowerBoard_;
-using PumpMsg = ::advrf_interfaces::msg::dds_::Pump_;
-using ForceTorqueMsg = ::advrf_interfaces::msg::dds_::ForceTorque_;
-using ValveMsg = ::advrf_interfaces::msg::dds_::Valve_;
-using GripperMsg = ::advrf_interfaces::msg::dds_::Gripper_;
+using MotorMsg = ::advrf_ros2_interfaces::msg::dds_::Motor_;
+using PowerBoardMsg = ::advrf_ros2_interfaces::msg::dds_::PowerBoard_;
+using PumpMsg = ::advrf_ros2_interfaces::msg::dds_::Pump_;
+using ForceTorqueMsg = ::advrf_ros2_interfaces::msg::dds_::ForceTorque_;
+using ValveMsg = ::advrf_ros2_interfaces::msg::dds_::Valve_;
+using GripperMsg = ::advrf_ros2_interfaces::msg::dds_::Gripper_;
 
 /// Publishes converted IMU PDO data.
 class ImuPublisher : public DDSPdoPublisher<ImuMsg> {

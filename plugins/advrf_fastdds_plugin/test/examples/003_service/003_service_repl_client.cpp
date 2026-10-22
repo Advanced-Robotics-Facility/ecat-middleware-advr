@@ -5,18 +5,18 @@
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
 
-#include <advrf_interfaces/srv/ReplCmd.hpp>
-#include <advrf_interfaces/srv/ReplCmdPubSubTypes.hpp>
+#include <advrf_ros2_interfaces/srv/ReplCmd.hpp>
+#include <advrf_ros2_interfaces/srv/ReplCmdPubSubTypes.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
 #include <advrf_middleware_core/utils/log.hpp>
 
 #include "advrf_fastdds_plugin/config/plugin_config.hpp"
 #include "advrf_fastdds_plugin/service/service_client.hpp"
 
-using RequestDDS = advrf_interfaces::srv::dds_::ReplCmd_Request_;
-using RequestPubSubType = advrf_interfaces::srv::dds_::ReplCmd_Request_PubSubType;
-using ResponseDDS = advrf_interfaces::srv::dds_::ReplCmd_Response_;
-using ResponsePubSubType = advrf_interfaces::srv::dds_::ReplCmd_Response_PubSubType;
+using RequestDDS = advrf_ros2_interfaces::srv::dds_::ReplCmd_Request_;
+using RequestPubSubType = advrf_ros2_interfaces::srv::dds_::ReplCmd_Request_PubSubType;
+using ResponseDDS = advrf_ros2_interfaces::srv::dds_::ReplCmd_Response_;
+using ResponsePubSubType = advrf_ros2_interfaces::srv::dds_::ReplCmd_Response_PubSubType;
 
 int main()
 {

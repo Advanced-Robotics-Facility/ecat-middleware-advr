@@ -2,7 +2,7 @@
 #include <cmath>
 #include <iostream>
 
-#include <advrf_interfaces/msg/Imu.hpp>
+#include <advrf_ros2_interfaces/msg/Imu.hpp>
 #include <advrf_middleware_core/utils/clock_utils.hpp>
 
 #include "advrf_dds_common/converter/converter.hpp"
@@ -37,7 +37,7 @@ int main() {
     input.set_fault(0);
     input.set_rtt(50);
 
-    advrf_interfaces::msg::dds_::Imu_ output;
+    advrf_ros2_interfaces::msg::dds_::Imu_ output;
     advrf::dds_common::convert::dds::from_protobuf(input, output);
 
     assert_near(output.angular_velocity().x(), 1.0);

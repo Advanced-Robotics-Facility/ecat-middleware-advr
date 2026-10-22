@@ -5,7 +5,7 @@
 #include <cmath>
 #include <iostream>
 
-#include <advrf_interfaces/msg/MotorTxPdo.hpp>
+#include <advrf_ros2_interfaces/msg/MotorTxPdo.hpp>
 
 #include "advrf_dds_common/converter/converter.hpp"
 
@@ -17,7 +17,7 @@ void assert_near(double actual, double expected)
 
 int main() {
     
-    advrf_interfaces::msg::dds_::MotorTxPdo_ input;
+    advrf_ros2_interfaces::msg::dds_::MotorTxPdo_ input;
 
     input.pos_ref() = 1.0f;
     input.gain_0() = 0;

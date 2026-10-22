@@ -2,18 +2,18 @@
 #include <cstdint>
 #include <vector>
 
-#include <advrf_interfaces/msg/ForceTorqueTxPdo.hpp>
-#include <advrf_interfaces/msg/ForceTorqueTxPdoCdrAux.hpp>
-#include <advrf_interfaces/msg/GripperTxPdo.hpp>
-#include <advrf_interfaces/msg/GripperTxPdoCdrAux.hpp>
-#include <advrf_interfaces/msg/MotorTxPdo.hpp>
-#include <advrf_interfaces/msg/MotorTxPdoCdrAux.hpp>
-#include <advrf_interfaces/msg/PowerBoardTxPdo.hpp>
-#include <advrf_interfaces/msg/PowerBoardTxPdoCdrAux.hpp>
-#include <advrf_interfaces/msg/PumpTxPdo.hpp>
-#include <advrf_interfaces/msg/PumpTxPdoCdrAux.hpp>
-#include <advrf_interfaces/msg/ValveTxPdo.hpp>
-#include <advrf_interfaces/msg/ValveTxPdoCdrAux.hpp>
+#include <advrf_ros2_interfaces/msg/ForceTorqueTxPdo.hpp>
+#include <advrf_ros2_interfaces/msg/ForceTorqueTxPdoCdrAux.hpp>
+#include <advrf_ros2_interfaces/msg/GripperTxPdo.hpp>
+#include <advrf_ros2_interfaces/msg/GripperTxPdoCdrAux.hpp>
+#include <advrf_ros2_interfaces/msg/MotorTxPdo.hpp>
+#include <advrf_ros2_interfaces/msg/MotorTxPdoCdrAux.hpp>
+#include <advrf_ros2_interfaces/msg/PowerBoardTxPdo.hpp>
+#include <advrf_ros2_interfaces/msg/PowerBoardTxPdoCdrAux.hpp>
+#include <advrf_ros2_interfaces/msg/PumpTxPdo.hpp>
+#include <advrf_ros2_interfaces/msg/PumpTxPdoCdrAux.hpp>
+#include <advrf_ros2_interfaces/msg/ValveTxPdo.hpp>
+#include <advrf_ros2_interfaces/msg/ValveTxPdoCdrAux.hpp>
 
 #include "advrf_zenoh_plugin/serialization/cdr_utils.hpp"
 #include "advrf_zenoh_plugin/serialization/ros2cdr.hpp"
@@ -36,7 +36,7 @@ std::vector<std::uint8_t> serialize(const Message& message)
 
 int main()
 {
-    advrf_interfaces::msg::dds_::MotorTxPdoVector_ joints;
+    advrf_ros2_interfaces::msg::dds_::MotorTxPdoVector_ joints;
     auto& joint = joints.data().emplace_back();
     joint.ecat_id(42);
     joint.tor_ref(1.0F);
@@ -54,7 +54,7 @@ int main()
     assert(pdos.front().cia402_tx_pdo().target_pos() == 2.0F);
     assert(pdos.front().cia402_tx_pdo().gain_0() == 5.0F);
 
-    advrf_interfaces::msg::dds_::PumpTxPdo_ pump;
+    advrf_ros2_interfaces::msg::dds_::PumpTxPdo_ pump;
     pump.ecat_id(7);
     pump.pump_target(10.0F);
     pump.pressure_p_gain(11.0F);
@@ -70,7 +70,7 @@ int main()
     assert(pdos.front().hyqhpu_tx_pdo().solenoidout() == 12);
     assert(pdos.front().hyqhpu_tx_pdo().op_idx_aux() == 13);
 
-    advrf_interfaces::msg::dds_::ValveTxPdoVector_ valves;
+    advrf_ros2_interfaces::msg::dds_::ValveTxPdoVector_ valves;
     auto& valve = valves.data().emplace_back();
     valve.ecat_id(8);
     valve.position_ref(20.0F);
@@ -82,7 +82,7 @@ int main()
     assert(pdos.front().header().index() == 8);
     assert(pdos.front().hyqknee_tx_pdo().position_ref() == 20.0F);
 
-    advrf_interfaces::msg::dds_::GripperTxPdoVector_ grippers;
+    advrf_ros2_interfaces::msg::dds_::GripperTxPdoVector_ grippers;
     auto& gripper = grippers.data().emplace_back();
     gripper.ecat_id(9);
     gripper.target_pos(30.0F);
@@ -94,7 +94,7 @@ int main()
     assert(pdos.front().header().index() == 9);
     assert(pdos.front().gripper_tx_pdo().target_pos() == 30.0F);
 
-    advrf_interfaces::msg::dds_::PowerBoardTxPdo_ power_board;
+    advrf_ros2_interfaces::msg::dds_::PowerBoardTxPdo_ power_board;
     power_board.ecat_id(10);
     power_board.master_command(40);
 
@@ -105,7 +105,7 @@ int main()
     assert(pdos.front().header().index() == 10);
     assert(pdos.front().powf28m36_tx_pdo().master_command() == 40);
 
-    advrf_interfaces::msg::dds_::ForceTorqueTxPdo_ force_torque;
+    advrf_ros2_interfaces::msg::dds_::ForceTorqueTxPdo_ force_torque;
     force_torque.ecat_id(11);
     force_torque.op_idx_aux(50);
 

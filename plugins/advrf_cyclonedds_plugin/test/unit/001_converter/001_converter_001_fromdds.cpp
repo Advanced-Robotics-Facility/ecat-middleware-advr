@@ -2,8 +2,8 @@
 #include <iostream>
 
 #include <advrf_dds_common/converter/converter.hpp>
-#include <advrf_interfaces/msg/CtrlCmd.hpp>
-#include <advrf_interfaces/msg/Gains.hpp>
+#include <advrf_ros2_interfaces/msg/CtrlCmd.hpp>
+#include <advrf_ros2_interfaces/msg/Gains.hpp>
 #include <std_msgs/msg/Header.hpp>
 
 constexpr double EPS = 1e-6;
@@ -19,8 +19,8 @@ inline void assert_float_eq(T actual, U expected)
 int main()
 {
    
-    advrf_interfaces::msg::dds_::ReplCmd_Content_ request;
-    request.type() = advrf_interfaces::msg::dds_::ReplCmdType::CTRL_CMD;
+    advrf_ros2_interfaces::msg::dds_::ReplCmd_Content_ request;
+    request.type() = advrf_ros2_interfaces::msg::dds_::ReplCmdType::CTRL_CMD;
 
     // Header
     request.header().frame_id() = "base_link";
@@ -28,7 +28,7 @@ int main()
     request.header().stamp().nanosec() = 456;
 
     // TrajectoryCmd
-    request.trajectory_cmd().type() = advrf_interfaces::msg::dds_::SMOOTHER;
+    request.trajectory_cmd().type() = advrf_ros2_interfaces::msg::dds_::SMOOTHER;
     request.trajectory_cmd().name() = "traj_test";
     request.trajectory_cmd().board_id() = 7;
 
@@ -53,7 +53,7 @@ int main()
     request.trajectory_cmd().smooth_vel_par().magic() = 6.0;
 
     // CtrlCmd
-    request.ctrl_cmd().type() = advrf_interfaces::msg::dds_::CTRL_SET_POSITION;
+    request.ctrl_cmd().type() = advrf_ros2_interfaces::msg::dds_::CTRL_SET_POSITION;
     request.ctrl_cmd().board_id() = 12;
     request.ctrl_cmd().value() = 42.5f;
 
@@ -69,7 +69,7 @@ int main()
     request.flash_cmd().board_id() = 2;
 
     // EcatMasterCmd
-    request.ecat_master_cmd().type() = advrf_interfaces::msg::dds_::START_MASTER;
+    request.ecat_master_cmd().type() = advrf_ros2_interfaces::msg::dds_::START_MASTER;
 
     auto &arg = request.ecat_master_cmd().args().emplace_back();
     arg.name() = "iface";
@@ -83,7 +83,7 @@ int main()
     request.foe_master().board_id() = 4;
 
     // TrjQueueCmd
-    request.trj_queue_cmd().type() = advrf_interfaces::msg::dds_::PUSH_QUE;
+    request.trj_queue_cmd().type() = advrf_ros2_interfaces::msg::dds_::PUSH_QUE;
     request.trj_queue_cmd().trj_names().push_back("traj1");
     request.trj_queue_cmd().trj_names().push_back("traj2");
 
@@ -96,7 +96,7 @@ int main()
     wr.value() = "0x000F";
 
     // SlaveSdoInfo
-    request.slave_sdo_info().type() = advrf_interfaces::msg::dds_::SDO_NAME;
+    request.slave_sdo_info().type() = advrf_ros2_interfaces::msg::dds_::SDO_NAME;
     request.slave_sdo_info().board_id() = 5;
 
     // MotorsPdoCmd
@@ -120,11 +120,11 @@ int main()
 
     // PdoAuxCmd
     auto &aux = request.pdos_aux_cmd().aux_cmds().emplace_back();
-    aux.type() = advrf_interfaces::msg::dds_::LED_ON;
+    aux.type() = advrf_ros2_interfaces::msg::dds_::LED_ON;
     aux.board_id() = 99;
 
     // Create Request
-    advrf_interfaces::srv::dds_::ReplCmd_Request_ request_proto;
+    advrf_ros2_interfaces::srv::dds_::ReplCmd_Request_ request_proto;
     request_proto.request() = request;
 
     iit::advrf::Repl_cmd pb;

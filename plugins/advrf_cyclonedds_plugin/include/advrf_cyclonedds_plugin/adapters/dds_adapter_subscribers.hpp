@@ -9,7 +9,7 @@
 #include <advrf_dds_common/config/dds_config.hpp>
 #include <advrf_dds_common/converter/converter.hpp>
 #include <advrf_dds_common/qos/reader_policy.hpp>
-#include <advrf_interfaces/msg/ReplCmdContent.hpp>
+#include <advrf_ros2_interfaces/msg/ReplCmdContent.hpp>
 #include <advrf_middleware_core/adapters/adapter_subscribers.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
 #include <advrf_middleware_core/config/robot_config.hpp>

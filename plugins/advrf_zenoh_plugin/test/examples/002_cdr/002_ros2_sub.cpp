@@ -7,8 +7,8 @@
 #include <fastcdr/FastBuffer.h>
 #include <zenoh.hxx>
 
-#include <advrf_interfaces/msg/Imu.hpp>
-#include <advrf_interfaces/msg/ImuCdrAux.hpp>
+#include <advrf_ros2_interfaces/msg/Imu.hpp>
+#include <advrf_ros2_interfaces/msg/ImuCdrAux.hpp>
 
 namespace
 {
@@ -27,7 +27,7 @@ void decode_and_print_imu(const zenoh::Bytes& payload)
     eprosima::fastcdr::Cdr cdr(buffer);
     cdr.read_encapsulation();
 
-    advrf_interfaces::msg::dds_::Imu_ imu;
+    advrf_ros2_interfaces::msg::dds_::Imu_ imu;
     eprosima::fastcdr::deserialize(cdr, imu);
 
     std::cout << "IMU [" << imu.header().frame_id() << "] stamp="

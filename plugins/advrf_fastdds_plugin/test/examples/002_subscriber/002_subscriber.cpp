@@ -6,16 +6,16 @@
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
 
-#include <advrf_interfaces/msg/MotorTxPdo.hpp>
-#include <advrf_interfaces/msg/MotorTxPdoPubSubTypes.hpp>
+#include <advrf_ros2_interfaces/msg/MotorTxPdo.hpp>
+#include <advrf_ros2_interfaces/msg/MotorTxPdoPubSubTypes.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
 
 #include "advrf_fastdds_plugin/config/plugin_config.hpp"
 #include "advrf_fastdds_plugin/publisher/dds_publisher.hpp"
 
-using MotorVectorXtTxMsg = advrf_interfaces::msg::dds_::MotorTxPdoVector_;
-using MotorTxMsg = advrf_interfaces::msg::dds_::MotorTxPdo_;
-using MotorTxPubSubType = advrf_interfaces::msg::dds_::MotorTxPdoVector_PubSubType;
+using MotorVectorXtTxMsg = advrf_ros2_interfaces::msg::dds_::MotorTxPdoVector_;
+using MotorTxMsg = advrf_ros2_interfaces::msg::dds_::MotorTxPdo_;
+using MotorTxPubSubType = advrf_ros2_interfaces::msg::dds_::MotorTxPdoVector_PubSubType;
 
 static volatile std::sig_atomic_t running = 1;
 

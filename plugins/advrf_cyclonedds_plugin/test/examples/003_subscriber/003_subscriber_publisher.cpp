@@ -3,7 +3,7 @@
 #include <thread>
 #include <dds/dds.hpp>
 
-#include <advrf_interfaces/msg/MotorTxPdo.hpp>
+#include <advrf_ros2_interfaces/msg/MotorTxPdo.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
 
 #include "advrf_cyclonedds_plugin/config/plugin_config.hpp"
@@ -20,8 +20,8 @@ int main(int argc, char** argv)
     advrf::middleware::config::ConfigTopics topics({config_robot->ns, config_robot->robot_name});
     dds::domain::DomainParticipant participant(plugin_config.dds.domain_id);
 
-    using MotorMsg = advrf_interfaces::msg::dds_::MotorTxPdo_;
-    using MotorVectorMsg = advrf_interfaces::msg::dds_::MotorTxPdoVector_;
+    using MotorMsg = advrf_ros2_interfaces::msg::dds_::MotorTxPdo_;
+    using MotorVectorMsg = advrf_ros2_interfaces::msg::dds_::MotorTxPdoVector_;
 
     advrf::cyclonedds_plugin::DDSPublisher<MotorVectorMsg> publisher;
     publisher.init_dds(

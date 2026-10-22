@@ -4,8 +4,8 @@
 #include <fastcdr/Cdr.h>
 #include <fastcdr/FastBuffer.h>
 
-#include <advrf_interfaces/msg/Imu.hpp>
-#include <advrf_interfaces/msg/ImuCdrAux.hpp>
+#include <advrf_ros2_interfaces/msg/Imu.hpp>
+#include <advrf_ros2_interfaces/msg/ImuCdrAux.hpp>
 #include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 
 #include "advrf_zenoh_plugin/serialization/ros2cdr.hpp"
@@ -42,7 +42,7 @@ int main()
     eprosima::fastcdr::Cdr cdr(buffer);
     cdr.read_encapsulation();
 
-    advrf_interfaces::msg::dds_::Imu_ decoded;
+    advrf_ros2_interfaces::msg::dds_::Imu_ decoded;
     eprosima::fastcdr::deserialize(cdr, decoded);
 
     assert(decoded.header().stamp().sec() == 123);

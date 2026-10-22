@@ -1,5 +1,5 @@
-#include <advrf_interfaces/msg/MotorTxPdo.hpp>
-#include <advrf_interfaces/msg/MotorTxPdoPubSubTypes.hpp>
+#include <advrf_ros2_interfaces/msg/MotorTxPdo.hpp>
+#include <advrf_ros2_interfaces/msg/MotorTxPdoPubSubTypes.hpp>
 
 #include "advrf_fastdds_plugin/adapters/dds_adapter_subscribers.hpp"
 
@@ -14,11 +14,11 @@ bool DDSAdapterSubscribers::init(const advrf::middleware::config::ConfigTopics& 
 
     reader_policy_ = dds_config.command;
      register_subscriber<
-            advrf_interfaces::msg::dds_::MotorTxPdoVector_,
-            advrf_interfaces::msg::dds_::MotorTxPdoVector_PubSubType
+            advrf_ros2_interfaces::msg::dds_::MotorTxPdoVector_,
+            advrf_ros2_interfaces::msg::dds_::MotorTxPdoVector_PubSubType
         >(
             config_topics.tx.motorCmd(), participant, 
-            advrf::middleware::shm::ChannelTx::Motor,  [&](const advrf_interfaces::msg::dds_::MotorTxPdoVector_& msg) {
+            advrf::middleware::shm::ChannelTx::Motor,  [&](const advrf_ros2_interfaces::msg::dds_::MotorTxPdoVector_& msg) {
             std::vector<iit::advrf::Ec_slave_pdo> result;
             result.reserve(msg.data().size());
 

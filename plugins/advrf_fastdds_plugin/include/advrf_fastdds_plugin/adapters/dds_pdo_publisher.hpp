@@ -3,13 +3,13 @@
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 
 #include <advrf_dds_common/converter/converter.hpp>
-#include <advrf_interfaces/msg/ForceTorquePubSubTypes.hpp>
-#include <advrf_interfaces/msg/GripperPubSubTypes.hpp>
-#include <advrf_interfaces/msg/ImuPubSubTypes.hpp>
-#include <advrf_interfaces/msg/MotorPubSubTypes.hpp>
-#include <advrf_interfaces/msg/PowerBoardPubSubTypes.hpp>
-#include <advrf_interfaces/msg/PumpPubSubTypes.hpp>
-#include <advrf_interfaces/msg/ValvePubSubTypes.hpp>
+#include <advrf_ros2_interfaces/msg/ForceTorquePubSubTypes.hpp>
+#include <advrf_ros2_interfaces/msg/GripperPubSubTypes.hpp>
+#include <advrf_ros2_interfaces/msg/ImuPubSubTypes.hpp>
+#include <advrf_ros2_interfaces/msg/MotorPubSubTypes.hpp>
+#include <advrf_ros2_interfaces/msg/PowerBoardPubSubTypes.hpp>
+#include <advrf_ros2_interfaces/msg/PumpPubSubTypes.hpp>
+#include <advrf_ros2_interfaces/msg/ValvePubSubTypes.hpp>
 #include <advrf_middleware_core/adapters/adapter_publishers.hpp>
 #include <advrf_middleware_core/utils/log.hpp>
 #include <sensor_msgs/msg/JointStatePubSubTypes.hpp>
@@ -93,23 +93,23 @@ private:
     bool has_update_ = false;
 };
 
-using ImuMsg = ::advrf_interfaces::msg::dds_::Imu_;
+using ImuMsg = ::advrf_ros2_interfaces::msg::dds_::Imu_;
 using JointStateMsg = ::sensor_msgs::msg::dds_::JointState_;
-using MotorMsg = ::advrf_interfaces::msg::dds_::Motor_;
-using PowerBoardMsg = ::advrf_interfaces::msg::dds_::PowerBoard_;
-using PumpMsg = ::advrf_interfaces::msg::dds_::Pump_;
-using ForceTorqueMsg = ::advrf_interfaces::msg::dds_::ForceTorque_;
-using ValveMsg = ::advrf_interfaces::msg::dds_::Valve_;
-using GripperMsg = ::advrf_interfaces::msg::dds_::Gripper_;
+using MotorMsg = ::advrf_ros2_interfaces::msg::dds_::Motor_;
+using PowerBoardMsg = ::advrf_ros2_interfaces::msg::dds_::PowerBoard_;
+using PumpMsg = ::advrf_ros2_interfaces::msg::dds_::Pump_;
+using ForceTorqueMsg = ::advrf_ros2_interfaces::msg::dds_::ForceTorque_;
+using ValveMsg = ::advrf_ros2_interfaces::msg::dds_::Valve_;
+using GripperMsg = ::advrf_ros2_interfaces::msg::dds_::Gripper_;
 
-using ImuMsgPubSubType = ::advrf_interfaces::msg::dds_::Imu_PubSubType;
+using ImuMsgPubSubType = ::advrf_ros2_interfaces::msg::dds_::Imu_PubSubType;
 using JointStateMsgPubSubType = ::sensor_msgs::msg::dds_::JointState_PubSubType;
-using MotorMsgPubSubType = ::advrf_interfaces::msg::dds_::Motor_PubSubType;
-using PowerBoardMsgPubSubType = ::advrf_interfaces::msg::dds_::PowerBoard_PubSubType;
-using PumpMsgPubSubType = ::advrf_interfaces::msg::dds_::Pump_PubSubType;
-using ForceTorqueMsgPubSubType = ::advrf_interfaces::msg::dds_::ForceTorque_PubSubType;
-using ValveMsgPubSubType = ::advrf_interfaces::msg::dds_::Valve_PubSubType;
-using GripperMsgPubSubType = ::advrf_interfaces::msg::dds_::Gripper_PubSubType;
+using MotorMsgPubSubType = ::advrf_ros2_interfaces::msg::dds_::Motor_PubSubType;
+using PowerBoardMsgPubSubType = ::advrf_ros2_interfaces::msg::dds_::PowerBoard_PubSubType;
+using PumpMsgPubSubType = ::advrf_ros2_interfaces::msg::dds_::Pump_PubSubType;
+using ForceTorqueMsgPubSubType = ::advrf_ros2_interfaces::msg::dds_::ForceTorque_PubSubType;
+using ValveMsgPubSubType = ::advrf_ros2_interfaces::msg::dds_::Valve_PubSubType;
+using GripperMsgPubSubType = ::advrf_ros2_interfaces::msg::dds_::Gripper_PubSubType;
 
 class ImuPublisher : public DDSPdoPublisher<ImuMsg, ImuMsgPubSubType> {
 protected:

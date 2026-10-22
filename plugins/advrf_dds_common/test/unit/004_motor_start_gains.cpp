@@ -1,12 +1,12 @@
 #include <stdexcept>
-#include <advrf_interfaces/msg/CtrlCmd.hpp>
+#include <advrf_ros2_interfaces/msg/CtrlCmd.hpp>
 #include "advrf_dds_common/converter/converter.hpp"
 
 #define CHECK(condition) do { if (!(condition)) throw std::runtime_error(#condition); } while (false)
 
 int main()
 {
-    advrf_interfaces::msg::dds_::CtrlCmd_ input;
+    advrf_ros2_interfaces::msg::dds_::CtrlCmd_ input;
     input.type() = 11;
     input.board_id() = 1;
     input.value() = 59;

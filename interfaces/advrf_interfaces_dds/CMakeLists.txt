@@ -93,7 +93,7 @@ set(DDS_INTERFACE_PACKAGES
     geometry_msgs
     sensor_msgs
     rcl_interfaces
-    advrf_interfaces
+    advrf_ros2_interfaces
     rmw_dds_common
 )
 

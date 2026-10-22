@@ -51,7 +51,7 @@ install(
 #       - Run the publisher 
 #   b. ROS2 Side (rmw_cyclonedds_cpp)
 #       - Start zenoh-bridge-ros2dds executable
-#       - Run ros2 topic echo advrf/robot/imu advrf_interfaces/msg/Imu 
+#       - Run ros2 topic echo advrf/robot/imu advrf_ros2_interfaces/msg/Imu
 #
 # For commuication between different PCs
 # you need to change the endpoint in the publisher zenoh config
