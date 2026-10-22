@@ -167,7 +167,9 @@ inline uint64_t extract_timestamp_ns(const iit::advrf::Ec_slave_pdo& pdo)
     {
         const auto& s = pdo.header().stamp();
         const uint64_t mono_ns = static_cast<uint64_t>(s.sec())  * 1'000'000'000ULL + static_cast<uint64_t>(s.nsec());
-        return advrf::middleware::clock::monotonic_to_realtime(mono_ns);
+        if (mono_ns != 0) {
+            return advrf::middleware::clock::monotonic_to_realtime(mono_ns);
+        }
     }
     return advrf::middleware::clock::monotonic_to_realtime(advrf::middleware::clock::monotonic_now_ns());
 }

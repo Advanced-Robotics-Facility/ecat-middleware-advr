@@ -1,5 +1,7 @@
 #include "advrf_dds_common/converter/converter.hpp"
 
+#include <advrf_middleware_core/utils/pdo_utils.hpp>
+
 void advrf::dds_common::convert::protobuf::from_dds(const builtin_interfaces::msg::dds_::Time_& msgdds, iit::advrf::Time& pb)
 {
     pb.set_sec(msgdds.sec());
@@ -309,14 +311,9 @@ void advrf::dds_common::convert::dds::from_protobuf(uint64_t timestamp_ns, built
 void advrf::dds_common::convert::dds::from_protobuf(const iit::advrf::Ec_slave_pdo& pb, std_msgs::msg::dds_::Header_& dds_time)
     {
    dds_time.frame_id() = pb.has_header() ? pb.header().str_id() : "";
-   if (pb.has_header() && pb.header().has_stamp()) {
-       const auto& s = pb.header().stamp();
-       dds_time.stamp().sec() = s.sec();
-       dds_time.stamp().nanosec() = s.nsec();
-   } else {
-       dds_time.stamp().sec() = 0;
-       dds_time.stamp().nanosec() = 0;
-   }
+   from_protobuf(
+       advrf::middleware::pdo::extract_timestamp_ns(pb),
+       dds_time.stamp());
     }
 
 void advrf::dds_common::convert::dds::from_protobuf(const iit::advrf::Cmd_reply& pb, advrf_interfaces::srv::dds_::ReplCmd_Response_& dds_response)

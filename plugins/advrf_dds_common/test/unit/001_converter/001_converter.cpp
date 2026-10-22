@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include <advrf_interfaces/msg/Imu.hpp>
+#include <advrf_middleware_core/utils/clock_utils.hpp>
 
 #include "advrf_dds_common/converter/converter.hpp"
 
@@ -13,6 +14,7 @@ void assert_near(double actual, double expected)
 }
 
 int main() {
+    advrf::middleware::clock::init();
     
     iit::advrf::ImuVN_rx_pdo input;
 
@@ -56,6 +58,36 @@ int main() {
     assert(output.digital_in() == 4);
     assert(output.fault() == 0);
     assert(output.rtt() == 50);
+
+    iit::advrf::Ec_slave_pdo stamped_pdo;
+    stamped_pdo.mutable_header()->mutable_stamp()->set_sec(123);
+    stamped_pdo.mutable_header()->mutable_stamp()->set_nsec(456);
+
+    std_msgs::msg::dds_::Header_ stamped_header;
+    advrf::dds_common::convert::dds::from_protobuf(stamped_pdo, stamped_header);
+
+    const auto expected_stamp_ns =
+        advrf::middleware::clock::monotonic_to_realtime(123'000'000'456ULL);
+    assert(stamped_header.stamp().sec() ==
+           static_cast<int32_t>(expected_stamp_ns / 1'000'000'000ULL));
+    assert(stamped_header.stamp().nanosec() ==
+           static_cast<uint32_t>(expected_stamp_ns % 1'000'000'000ULL));
+
+    iit::advrf::Ec_slave_pdo zero_stamp_pdo;
+    zero_stamp_pdo.mutable_header()->mutable_stamp();
+    const auto before_fallback_ns = advrf::middleware::clock::monotonic_to_realtime(
+        advrf::middleware::clock::monotonic_now_ns());
+
+    std_msgs::msg::dds_::Header_ fallback_header;
+    advrf::dds_common::convert::dds::from_protobuf(zero_stamp_pdo, fallback_header);
+
+    const auto after_fallback_ns = advrf::middleware::clock::monotonic_to_realtime(
+        advrf::middleware::clock::monotonic_now_ns());
+    const auto fallback_stamp_ns =
+        static_cast<uint64_t>(fallback_header.stamp().sec()) * 1'000'000'000ULL +
+        fallback_header.stamp().nanosec();
+    assert(fallback_stamp_ns >= before_fallback_ns);
+    assert(fallback_stamp_ns <= after_fallback_ns);
 
     std::cout << "Imu convertion test passed! \n";
 
