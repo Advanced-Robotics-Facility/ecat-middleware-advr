@@ -87,7 +87,6 @@ install(
 
 # target_link_libraries(ecat_master_shm_mock
 #     PRIVATE
-#         advrf_config
 #         advrf_middleware_core
 #         ecat_master::ecat_core
 #         yaml-cpp::yaml-cpp

@@ -30,32 +30,6 @@ option(BUILD_TEST_EXAMPLES "Build examples" OFF)
 option(BUILD_TOOLS "Build tools" OFF)
 option(ROS2_SUPPORT "ROS2 Support" OFF)
 
-# Path containing robot configurations
-set(CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/config/advrf_config/configs")
-
-# Find all entries in the configs directory
-file(GLOB CONFIG_ENTRIES
-    LIST_DIRECTORIES true
-    "${CONFIG_DIR}/*"
-)
-
-set(AVAILABLE_CONFIGS "")
-
-foreach(ENTRY ${CONFIG_ENTRIES})
-    if(IS_DIRECTORY "${ENTRY}")
-        get_filename_component(CONFIG_NAME "${ENTRY}" NAME)
-        list(APPEND AVAILABLE_CONFIGS "${CONFIG_NAME}")
-    endif()
-endforeach()
-
-set(SELECT_CONFIG "ecat-pegasus-config"
-    CACHE STRING "Robot configuration"
-)
-
-set_property(CACHE SELECT_CONFIG PROPERTY STRINGS
-    ${AVAILABLE_CONFIGS}
-)
-
 set(STAGING_PREFIX "${CMAKE_BINARY_DIR}/stage")
 
 set(PACKAGE_PREFIX_PATH
@@ -83,7 +57,6 @@ function(add_package name relative_source)
             "-DCMAKE_PREFIX_PATH:STRING=${PACKAGE_PREFIX_PATH}"
             "-DADVRF_RUNTIME_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}"
             "-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}"
-            "-DSELECT_CONFIG:STRING=${SELECT_CONFIG}"
             "-DBUILD_MIDDLEWARE_FASTDDS:BOOL=${BUILD_MIDDLEWARE_FASTDDS}"
             "-DBUILD_MIDDLEWARE_CYCLONEDDS:BOOL=${BUILD_MIDDLEWARE_CYCLONEDDS}"
             "-DBUILD_MIDDLEWARE_ZENOH:BOOL=${BUILD_MIDDLEWARE_ZENOH}"
@@ -121,7 +94,6 @@ endfunction()
 
 ## Common base
 
-add_package(advrf_config config/advrf_config)
 add_package(advrf_middleware_core core/advrf_middleware_core)
 
 if(BUILD_TOOLS)
