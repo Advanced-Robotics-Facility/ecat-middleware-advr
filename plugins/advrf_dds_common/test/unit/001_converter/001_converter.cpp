@@ -13,9 +13,7 @@ void assert_near(double actual, double expected)
     assert(std::abs(actual - expected) < tolerance);
 }
 
-int main() {
-    advrf::middleware::clock::init();
-    
+int main() {    
     iit::advrf::ImuVN_rx_pdo input;
 
     input.set_x_rate(1.0F);

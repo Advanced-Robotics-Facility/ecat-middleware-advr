@@ -158,8 +158,6 @@ inline bool check_expected_type(const iit::advrf::Ec_slave_pdo& pdo, PdoExpected
  *
  * Uses the timestamp embedded in the PDO when available; otherwise uses the
  * current local monotonic time as a reception-time fallback.
- *
- * @pre advrf::middleware::clock::init() has been called.
  */
 inline uint64_t extract_timestamp_ns(const iit::advrf::Ec_slave_pdo& pdo)
 {

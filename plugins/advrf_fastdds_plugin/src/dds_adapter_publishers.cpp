@@ -3,8 +3,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include <advrf_middleware_core/utils/clock_utils.hpp>
-
 #include "advrf_fastdds_plugin/adapters/dds_adapter_publishers.hpp"
 #include "advrf_fastdds_plugin/adapters/dds_pdo_publisher.hpp"
 
@@ -42,7 +40,6 @@ bool DDSAdapterPublishers::init(
     eprosima::fastdds::dds::DomainParticipant* dp,
     const advrf::dds_common::DdsConfig& dds_config)
 {
-    advrf::middleware::clock::init();
     writer_policy_ = dds_config.state;
 
     
