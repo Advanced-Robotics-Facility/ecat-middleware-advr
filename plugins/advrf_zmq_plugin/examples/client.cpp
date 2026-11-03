@@ -1,7 +1,6 @@
-#include <zmq.hpp>
-
 #include <iostream>
 #include <string_view>
+#include <zmq.hpp>
 
 int main(int argc, char** argv) {
     

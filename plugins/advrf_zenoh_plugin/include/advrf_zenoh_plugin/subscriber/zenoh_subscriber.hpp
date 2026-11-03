@@ -8,7 +8,6 @@
 #include <mutex>
 #include <string>
 #include <utility>
-
 #include <zenoh.hxx>
 
 #include <advrf_middleware_core/utils/log.hpp>

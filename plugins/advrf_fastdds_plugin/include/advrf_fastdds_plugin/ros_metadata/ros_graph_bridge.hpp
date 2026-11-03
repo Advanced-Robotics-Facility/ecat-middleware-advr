@@ -4,7 +4,6 @@
 #include <mutex>
 #include <stdexcept>
 #include <string>
-
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/publisher/DataWriter.hpp>
 #include <fastdds/dds/publisher/Publisher.hpp>

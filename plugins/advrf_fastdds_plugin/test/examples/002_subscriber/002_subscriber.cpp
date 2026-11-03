@@ -1,22 +1,21 @@
 #include <chrono>
-#include <thread>
 #include <csignal>
 #include <filesystem>
-
+#include <thread>
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
 
+#include <advrf_ros2_interfaces/msg/MotorTxPdo.hpp>
+#include <advrf_ros2_interfaces/msg/MotorTxPdoPubSubTypes.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
-#include <advrf_middleware_core/config/robot_config.hpp>
-#include <advrf_interfaces/msg/MotorTxPdo.hpp>
-#include <advrf_interfaces/msg/MotorTxPdoPubSubTypes.hpp>
 
+#include "advrf_fastdds_plugin/config/plugin_config.hpp"
 #include "advrf_fastdds_plugin/publisher/dds_publisher.hpp"
 
-using MotorVectorXtTxMsg = advrf_interfaces::msg::dds_::MotorTxPdoVector_;
-using MotorTxMsg = advrf_interfaces::msg::dds_::MotorTxPdo_;
-using MotorTxPubSubType = advrf_interfaces::msg::dds_::MotorTxPdoVector_PubSubType;
+using MotorVectorXtTxMsg = advrf_ros2_interfaces::msg::dds_::MotorTxPdoVector_;
+using MotorTxMsg = advrf_ros2_interfaces::msg::dds_::MotorTxPdo_;
+using MotorTxPubSubType = advrf_ros2_interfaces::msg::dds_::MotorTxPdoVector_PubSubType;
 
 static volatile std::sig_atomic_t running = 1;
 
@@ -32,15 +31,13 @@ int main(int argc, char** argv)
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);
 
-    auto config_robot = advrf::middleware::config::load_robot_config(
-      ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
-      ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
-    
-    if (!config_robot) return 1;
-
+    auto plugin_config = advrf::fastdds_plugin::parse_plugin_config(
+        advrf::middleware::config::ConfigFile::load(advrf::middleware::config::middleware_config_path()));
+    advrf::fastdds_plugin::validate(plugin_config);
+    const auto* config_robot = &plugin_config.common.robot;
     advrf::middleware::config::ConfigTopics config_topics({config_robot->ns, config_robot->robot_name});
     auto* participant = eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(
-        config_robot->domain_id,
+        plugin_config.dds.domain_id,
         eprosima::fastdds::dds::PARTICIPANT_QOS_DEFAULT
     );
     

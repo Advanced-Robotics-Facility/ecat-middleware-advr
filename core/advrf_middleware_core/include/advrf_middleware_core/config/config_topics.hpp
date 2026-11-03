@@ -60,6 +60,7 @@ private:
 
         for (const auto& ns : namespace_)
         {
+            if (ns.empty()) continue;
             topic += '/';
             topic += ns;
         }
@@ -110,8 +111,8 @@ struct TopicsService : public TopicNamespace
 {
     using TopicNamespace::TopicNamespace;
 
-    std::string request() const { return rq("replCmd/request"); }
-    std::string reply()   const { return rr("replCmd/reply"); }
+    std::string request() const { return rq("replCmdRequest"); }
+    std::string reply()   const { return rr("replCmdReply"); }
 };
 
 /// Request and reply topics used to access middleware parameters.

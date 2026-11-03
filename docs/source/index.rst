@@ -11,4 +11,5 @@ API reference.
 
    getting_started
    architecture
+   configuration
    api/index

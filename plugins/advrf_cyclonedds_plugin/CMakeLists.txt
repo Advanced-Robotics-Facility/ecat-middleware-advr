@@ -5,7 +5,7 @@ project(advrf_cyclonedds_plugin
     LANGUAGES CXX
 )
 
-if(NOT BUILD_CYCLONEDDS)
+if(NOT BUILD_MIDDLEWARE_CYCLONEDDS)
     message(STATUS "CycloneDDS build disabled")
     return()
 endif()
@@ -14,7 +14,6 @@ find_package(advrf_cyclonedds_lib REQUIRED)
 find_package(advrf_dds_common REQUIRED)
 find_package(advrf_interfaces_dds REQUIRED)
 find_package(advrf_middleware_core REQUIRED)
-find_package(advrf_config CONFIG REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
 include(GNUInstallDirs)
@@ -96,8 +95,8 @@ install(
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
-option(BUILD_TESTING "Build unit tests" OFF)
-if(BUILD_TESTING)
+option(BUILD_TEST_UNIT "Build unit tests" OFF)
+if(BUILD_TEST_UNIT)
     enable_testing()
     add_subdirectory(test/unit)    
 endif()

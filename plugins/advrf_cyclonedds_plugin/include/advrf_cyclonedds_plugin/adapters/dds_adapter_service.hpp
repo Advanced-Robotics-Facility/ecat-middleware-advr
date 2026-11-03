@@ -1,17 +1,18 @@
 #pragma once
 
-#include <advrf_interfaces/srv/ReplCmd.hpp>
+#include <advrf_dds_common/config/dds_config.hpp>
+#include <advrf_ros2_interfaces/srv/ReplCmd.hpp>
 #include <advrf_middleware_core/adapters/adapter_service.hpp>
-#include <advrf_middleware_core/config/robot_config.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
+#include <advrf_middleware_core/config/robot_config.hpp>
 
-#include "advrf_cyclonedds_plugin/service/service_server.hpp"
 #include "advrf_cyclonedds_plugin/ros_metadata/ros_graph_bridge.hpp"
+#include "advrf_cyclonedds_plugin/service/service_server.hpp"
 
 namespace advrf::cyclonedds_plugin {
 
-using RequestDDS = advrf_interfaces::srv::dds_::ReplCmd_Request_;
-using ResponseDDS = advrf_interfaces::srv::dds_::ReplCmd_Response_;
+using RequestDDS = advrf_ros2_interfaces::srv::dds_::ReplCmd_Request_;
+using ResponseDDS = advrf_ros2_interfaces::srv::dds_::ReplCmd_Response_;
 using RequestProtobuf = iit::advrf::Repl_cmd;
 using ResponseProtobuf = iit::advrf::Cmd_reply;
 
@@ -62,7 +63,9 @@ public:
      */
     DDSAdapterService(const advrf::middleware::config::ConfigTopics& config_topics,
                      const advrf::middleware::config::RobotConfig& robot_config,
-                     dds::domain::DomainParticipant& participant);
+                     dds::domain::DomainParticipant& participant,
+        const advrf::dds_common::DdsConfig& dds_config = {}
+    );
     
     /// Process pending DDS service requests.
     void spin_once() override { server_.spin_once(); }
@@ -75,7 +78,8 @@ private:
     
     void init_ros_graph_bridge(
         const advrf::middleware::config::RobotConfig& robot_config,
-        dds::domain::DomainParticipant& dp
+        dds::domain::DomainParticipant& dp,
+        bool declare_to_ros
     );
 
     std::unique_ptr<CycloneDDSRosGraphBridge> ros_graph_bridge_;

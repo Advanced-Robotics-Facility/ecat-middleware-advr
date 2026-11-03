@@ -1,0 +1,6 @@
+
+add_executable(004_config_qos 004_config_qos/004_config_qos.cpp)
+target_link_libraries(004_config_qos PRIVATE advrf_fastdds_plugin)
+add_test(NAME 004_config_qos COMMAND $<TARGET_FILE:004_config_qos>)
+
+target_link_libraries(004_config_qos PRIVATE advrf_middleware_core_test_support)

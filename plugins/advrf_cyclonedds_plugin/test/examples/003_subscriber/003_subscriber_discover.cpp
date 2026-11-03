@@ -1,16 +1,19 @@
-#include <dds/dds.hpp>
 #include <filesystem>
+#include <dds/dds.hpp>
 
-#include "advrf_middleware_core/config/robot_config.hpp"
-#include "advrf_middleware_core/utils/log.hpp"
-#include "advrf_middleware_core/utils/ecat_discover.hpp" 
+#include <advrf_middleware_core/config/robot_config.hpp>
+#include <advrf_middleware_core/utils/ecat_discover.hpp>
+#include <advrf_middleware_core/utils/log.hpp>
+
+#include "advrf_cyclonedds_plugin/config/plugin_config.hpp"
 
 int main(int argc, char** argv)
 {
     advrf::log::Log::init();
-    auto config_robot = advrf::middleware::config::load_robot_config(
-        ADVRF_CONFIG_SHARE / "robot_id_map" / "robot_id_map.yaml",
-        ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_config.yaml");
+    auto plugin_config = advrf::cyclonedds_plugin::parse_plugin_config(
+        advrf::middleware::config::ConfigFile::load(advrf::middleware::config::middleware_config_path()));
+    advrf::cyclonedds_plugin::validate(plugin_config);
+    const auto* config_robot = &plugin_config.common.robot;
 
     advrf::middleware::ecat::EcatDiscover ecat_discover;
     if (!ecat_discover.start(SHM_NRT_RX_PDO)) {

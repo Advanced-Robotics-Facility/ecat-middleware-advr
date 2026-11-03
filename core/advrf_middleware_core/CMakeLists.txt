@@ -8,14 +8,16 @@ project(advrf_middleware_core
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-find_package(advrf_config CONFIG REQUIRED)
-find_package(advrf_interfaces_protobuf REQUIRED)
 find_package(ecat_master REQUIRED COMPONENTS ecat_core)
 find_package(spdlog REQUIRED)
 find_package(yaml-cpp REQUIRED)
+find_library(ADVRF_ZMQ_LIBRARY NAMES zmq REQUIRED)
+
+# find_package(ecat_master REQUIRED COMPONENTS ecat_master_pb)
 
 add_library(advrf_middleware_core SHARED
     src/core.cpp
+    src/adapter_service.cpp
 )
 
 target_compile_features(advrf_middleware_core
@@ -31,12 +33,26 @@ target_include_directories(advrf_middleware_core
 
 target_link_libraries(advrf_middleware_core
     PUBLIC
-        advrf_interfaces_protobuf
+        ecat_master::ecat_master_pb
         ecat_master::ecat_core
         spdlog::spdlog
         yaml-cpp::yaml-cpp
+    PRIVATE
+        ${ADVRF_ZMQ_LIBRARY}
         
 )
+
+# Shared test headers are available to separately built plugin test packages.
+add_library(advrf_middleware_core_test_support INTERFACE)
+target_link_libraries(advrf_middleware_core_test_support INTERFACE advrf_middleware_core)
+target_include_directories(advrf_middleware_core_test_support INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+install(TARGETS advrf_middleware_core_test_support
+    EXPORT advrf_middleware_coreTargets
+)
+install(DIRECTORY test/include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 install(
     TARGETS advrf_middleware_core
@@ -60,29 +76,26 @@ install(
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
-add_executable(ecat_master_shm_mock
-        src/producer.cpp
-)
+# add_executable(ecat_master_shm_mock
+#         src/producer.cpp
+# )
 
-target_compile_features(ecat_master_shm_mock
-    PRIVATE
-        cxx_std_17
-)
+# target_compile_features(ecat_master_shm_mock
+#     PRIVATE
+#         cxx_std_17
+# )
 
-target_link_libraries(ecat_master_shm_mock
-    PRIVATE
-        advrf_config
-        advrf_middleware_core
-        ecat_master::ecat_core
-        advrf_interfaces_protobuf
-        yaml-cpp::yaml-cpp
+# target_link_libraries(ecat_master_shm_mock
+#     PRIVATE
+#         advrf_middleware_core
+#         ecat_master::ecat_core
+#         yaml-cpp::yaml-cpp
 
-)
-
-install(
-    TARGETS ecat_master_shm_mock
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
+# )
+# install(
+#     TARGETS ecat_master_shm_mock
+#     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+# )
 
 configure_package_config_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/advrf_middleware_coreConfig.cmake.in

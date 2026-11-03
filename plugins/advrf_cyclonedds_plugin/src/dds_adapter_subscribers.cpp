@@ -1,5 +1,6 @@
+#include <advrf_ros2_interfaces/msg/MotorTxPdo.hpp>
+
 #include "advrf_cyclonedds_plugin/adapters/dds_adapter_subscribers.hpp"
-#include <advrf_interfaces/msg/MotorTxPdo.hpp>
 
 namespace advrf::cyclonedds_plugin {
 
@@ -8,16 +9,16 @@ bool DDSAdapterSubscribers::init(
     const advrf::middleware::config::RobotConfig& robot_config,
     const advrf::middleware::ecat::EcatDiscover::EcatMap& ecat_map,
     dds::domain::DomainParticipant &participant,
-    advrf::dds_common::ReaderPolicy reader_policy)
+    const advrf::dds_common::DdsConfig& dds_config)
 {
-    reader_policy_ = std::move(reader_policy);
+    reader_policy_ = dds_config.command;
     bool ok = true;
 
-    ok &= register_subscriber<advrf_interfaces::msg::dds_::MotorTxPdoVector_>(
+    ok &= register_subscriber<advrf_ros2_interfaces::msg::dds_::MotorTxPdoVector_>(
         config_topics.tx.motorCmd(),
         participant,
         advrf::middleware::shm::ChannelTx::Motor,
-        [&](const advrf_interfaces::msg::dds_::MotorTxPdoVector_& msg) {
+        [&](const advrf_ros2_interfaces::msg::dds_::MotorTxPdoVector_& msg) {
           std::vector<iit::advrf::Ec_slave_pdo> result;
           result.reserve(msg.data().size());
 
@@ -25,19 +26,23 @@ bool DDSAdapterSubscribers::init(
             auto& pdo = result.emplace_back();
             const auto type = resolve_type(ecat_map, element.ecat_id());
             advrf::dds_common::convert::protobuf::from_dds(element, type, pdo);
+            if (pdo.type() == iit::advrf::Ec_slave_pdo::_UNSPECIFIED) {
+                result.pop_back();
+            }
           }
 
           return result;
         });
 
-    init_ros_graph_bridge(robot_config, participant);
+    init_ros_graph_bridge(robot_config, participant, dds_config.declare_to_ros);
     return ok;
 }
 
 void DDSAdapterSubscribers::init_ros_graph_bridge(
     const advrf::middleware::config::RobotConfig &robot_config,
-    dds::domain::DomainParticipant &participant) {
-    if (!robot_config.declare_to_ros) {
+    dds::domain::DomainParticipant &participant,
+    bool declare_to_ros) {
+    if (!declare_to_ros) {
         return;
     }
 

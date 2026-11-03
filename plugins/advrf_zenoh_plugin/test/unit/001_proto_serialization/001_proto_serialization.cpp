@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <vector>
 
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
+#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 
 #include "advrf_zenoh_plugin/serialization/protobuf.hpp"
 

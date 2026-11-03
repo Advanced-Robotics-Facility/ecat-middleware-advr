@@ -2,21 +2,22 @@
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 
-#include <advrf_interfaces/srv/ReplCmd.hpp>
-#include <advrf_interfaces/srv/ReplCmdPubSubTypes.hpp>
+#include <advrf_dds_common/config/dds_config.hpp>
+#include <advrf_ros2_interfaces/srv/ReplCmd.hpp>
+#include <advrf_ros2_interfaces/srv/ReplCmdPubSubTypes.hpp>
 #include <advrf_middleware_core/adapters/adapter_service.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
 #include <advrf_middleware_core/config/robot_config.hpp>
 
-#include "advrf_fastdds_plugin/service/service_server.hpp"
 #include "advrf_fastdds_plugin/ros_metadata/ros_graph_bridge.hpp"
+#include "advrf_fastdds_plugin/service/service_server.hpp"
 
 namespace advrf::fastdds_plugin {
 
-using RequestDDS  = advrf_interfaces::srv::dds_::ReplCmd_Request_;
-using ResponseDDS = advrf_interfaces::srv::dds_::ReplCmd_Response_;
-using RequestDDSPubSubType  = advrf_interfaces::srv::dds_::ReplCmd_Request_PubSubType;
-using ResponseDDSPubSubType = advrf_interfaces::srv::dds_::ReplCmd_Response_PubSubType;
+using RequestDDS  = advrf_ros2_interfaces::srv::dds_::ReplCmd_Request_;
+using ResponseDDS = advrf_ros2_interfaces::srv::dds_::ReplCmd_Response_;
+using RequestDDSPubSubType  = advrf_ros2_interfaces::srv::dds_::ReplCmd_Request_PubSubType;
+using ResponseDDSPubSubType = advrf_ros2_interfaces::srv::dds_::ReplCmd_Response_PubSubType;
 using RequestProtobuf  = iit::advrf::Repl_cmd;
 using ResponseProtobuf = iit::advrf::Cmd_reply;
 
@@ -53,7 +54,9 @@ class DDSAdapterService:
 public:
     DDSAdapterService(const advrf::middleware::config::ConfigTopics& config_topics,
                       const advrf::middleware::config::RobotConfig& robot_config,
-                      eprosima::fastdds::dds::DomainParticipant* participant);
+                      eprosima::fastdds::dds::DomainParticipant* participant,
+        const advrf::dds_common::DdsConfig& dds_config = {}
+    );
     
     void spin_once() override { server_.spin_once(); }
 
@@ -65,7 +68,8 @@ private:
 
     void init_ros_graph_bridge(
         const advrf::middleware::config::RobotConfig& robot_config,
-        eprosima::fastdds::dds::DomainParticipant* dp
+        eprosima::fastdds::dds::DomainParticipant* dp,
+        bool declare_to_ros
     );
 
     std::unique_ptr<FastRosGraphBridge> ros_graph_bridge_;

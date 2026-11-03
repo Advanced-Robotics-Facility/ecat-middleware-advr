@@ -1,14 +1,14 @@
 #pragma once
 
-#include <dds/dds.hpp>
-
 #include <functional>
 #include <initializer_list>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <dds/dds.hpp>
 
+#include <advrf_dds_common/config/dds_config.hpp>
 #include <advrf_middleware_core/adapters/adapter_publishers.hpp>
 #include <advrf_middleware_core/config/config_topics.hpp>
 #include <advrf_middleware_core/config/robot_config.hpp>
@@ -34,7 +34,7 @@ public:
      * @brief Configure all DDS publishers and ROS-graph integration.
      *
      * @param config_topics Topic-name builders.
-     * @param robot_config Robot DDS and namespace configuration.
+     * @param robot_config Robot identity and namespace configuration.
      * @param ecat_map Metadata discovered from EtherCAT PDOs.
      * @param dp DDS domain participant used to create entities.
      * @return True if initialization succeeds.
@@ -43,7 +43,8 @@ public:
         const advrf::middleware::config::ConfigTopics& config_topics,
         const advrf::middleware::config::RobotConfig& robot_config,
         const advrf::middleware::ecat::EcatDiscover::EcatMap& ecat_map,
-        dds::domain::DomainParticipant& dp
+        dds::domain::DomainParticipant& dp,
+        const advrf::dds_common::DdsConfig& dds_config = {}
     );
 
 private:
@@ -64,7 +65,8 @@ private:
     {
         auto& publisher = register_publisher<Publisher>(channels, ids);
         publisher.set_names(names);
-        publisher.init(topic, dp);
+        if (!publisher.init(topic, dp, writer_policy_))
+            throw std::runtime_error("Failed to initialize DDS publisher: " + std::string(topic));
         ros_connectables_.emplace_back(publisher);
         return publisher;
     }
@@ -72,9 +74,11 @@ private:
     /// Initialize optional ROS 2 graph-discovery integration.
     void init_ros_graph_bridge(
         const advrf::middleware::config::RobotConfig& robot_config,
-        dds::domain::DomainParticipant& dp
+        dds::domain::DomainParticipant& dp,
+        bool declare_to_ros
     );
 
+    advrf::dds_common::EndpointPolicy writer_policy_;
     std::unique_ptr<CycloneDDSRosGraphBridge> ros_graph_bridge_;
     std::vector<std::reference_wrapper<IConnectRosGraphBridge>> ros_connectables_;
 };

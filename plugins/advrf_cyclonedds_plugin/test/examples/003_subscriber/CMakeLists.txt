@@ -12,7 +12,7 @@ target_link_libraries(003_subscriber_publisher
         advrf_cyclonedds_plugin
         advrf_interfaces_dds::cyclonedds
         advrf_middleware_core
-        advrf_config
+
 )
 
 install(
@@ -35,7 +35,7 @@ target_link_libraries(003_subscriber_discover
         advrf_cyclonedds_plugin
         advrf_interfaces_dds::cyclonedds
         advrf_middleware_core
-        advrf_config
+
 )
 
 install(

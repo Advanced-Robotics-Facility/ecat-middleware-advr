@@ -5,7 +5,7 @@ project(advrf_zenoh_plugin
     LANGUAGES CXX
 )
 
-if(NOT BUILD_ZENOH)
+if(NOT BUILD_MIDDLEWARE_ZENOH)
     message(STATUS "Zenoh build disabled")
     return()
 endif()
@@ -15,9 +15,8 @@ include(CMakePackageConfigHelpers)
 
 find_package(advrf_zenoh_lib REQUIRED)
 find_package(advrf_middleware_core REQUIRED)
-find_package(advrf_interfaces_protobuf REQUIRED)
 find_package(yaml-cpp REQUIRED)
-find_package(advrf_config CONFIG REQUIRED)
+find_package(ecat_master REQUIRED COMPONENTS ecat_core)
 
 option(ZENOH_ROS2_SUPPORT
     "Build ROS2 CDR interoperability support"
@@ -67,7 +66,8 @@ target_include_directories(advrf_zenoh_plugin
 target_link_libraries(advrf_zenoh_plugin
     PUBLIC
         advrf_middleware_core
-        advrf_interfaces_protobuf
+        ecat_master::ecat_core
+        ecat_master::ecat_master_pb
         zenohcxx::zenohc
 )
 
@@ -124,13 +124,13 @@ if(BUILD_PLUGIN)
     add_subdirectory(plugin)
 endif()
 
-option(BUILD_EXAMPLES "Build Zenoh examples" OFF)
-if(BUILD_EXAMPLES)
+option(BUILD_TEST_EXAMPLES "Build Zenoh examples" OFF)
+if(BUILD_TEST_EXAMPLES)
     add_subdirectory(test/examples)
 endif()
 
-option(BUILD_TESTING "Build Zenoh plugin tests" OFF)
-if(BUILD_TESTING)
+option(BUILD_TEST_UNIT "Build Zenoh plugin tests" OFF)
+if(BUILD_TEST_UNIT)
     enable_testing()
     add_subdirectory(test/unit)
 endif()

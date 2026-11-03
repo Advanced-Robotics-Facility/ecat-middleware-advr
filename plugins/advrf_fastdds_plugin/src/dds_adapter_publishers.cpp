@@ -1,18 +1,21 @@
-#include "advrf_fastdds_plugin/adapters/dds_adapter_publishers.hpp"
-#include "advrf_fastdds_plugin/adapters/dds_pdo_publisher.hpp"
-
-#include <vector>
+#include <cstdint>
 #include <string>
 #include <unordered_map>
-#include <cstdint>
+#include <vector>
+
+#include <advrf_middleware_core/utils/clock_utils.hpp>
+
+#include "advrf_fastdds_plugin/adapters/dds_adapter_publishers.hpp"
+#include "advrf_fastdds_plugin/adapters/dds_pdo_publisher.hpp"
 
 namespace advrf::fastdds_plugin {
 
 void DDSAdapterPublishers::init_ros_graph_bridge(
     const advrf::middleware::config::RobotConfig& robot_config,
-    eprosima::fastdds::dds::DomainParticipant* dp)
+    eprosima::fastdds::dds::DomainParticipant* dp,
+    bool declare_to_ros)
 {
-    if (!robot_config.declare_to_ros) {
+    if (!declare_to_ros) {
         return;
     }
 
@@ -36,8 +39,12 @@ bool DDSAdapterPublishers::init(
     const advrf::middleware::config::ConfigTopics& config_topics, 
     const advrf::middleware::config::RobotConfig& robot_config,
     const advrf::middleware::ecat::EcatDiscover::EcatMap& ecat_map,
-    eprosima::fastdds::dds::DomainParticipant* dp) 
+    eprosima::fastdds::dds::DomainParticipant* dp,
+    const advrf::dds_common::DdsConfig& dds_config)
 {
+    advrf::middleware::clock::init();
+    writer_policy_ = dds_config.state;
+
     
     const auto filter = [&](advrf::middleware::shm::ChannelRx channel) {
         std::vector<advrf::middleware::pdo::EcatId> ids;
@@ -221,7 +228,7 @@ bool DDSAdapterPublishers::init(
     }
 
 
-    init_ros_graph_bridge(robot_config, dp);
+    init_ros_graph_bridge(robot_config, dp, dds_config.declare_to_ros);
 
     return true;
 }

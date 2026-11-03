@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Curses REQUIRED)
 find_package(advrf_middleware_core REQUIRED)
-find_package(advrf_interfaces_protobuf REQUIRED)
 
 add_executable(shm_inspector
     src/main.cpp
@@ -21,7 +20,6 @@ target_include_directories(shm_inspector
 
 target_link_libraries(shm_inspector
     PRIVATE
-        advrf_interfaces_protobuf
         advrf_middleware_core
          ${CURSES_LIBRARIES}
 )

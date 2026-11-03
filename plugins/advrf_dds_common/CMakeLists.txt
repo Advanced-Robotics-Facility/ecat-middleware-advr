@@ -8,12 +8,14 @@ project(advrf_dds_common
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-option(BUILD_FASTDDS "Build FastDDS backend" OFF)
-option(BUILD_CYCLONEDDS "Build CycloneDDS backend" OFF)
-option(BUILD_ZENOH "Build the CDR-only backend used by Zenoh" OFF)
+option(BUILD_MIDDLEWARE_FASTDDS "Build FastDDS backend" OFF)
+option(BUILD_MIDDLEWARE_CYCLONEDDS "Build CycloneDDS backend" OFF)
+option(BUILD_MIDDLEWARE_ZENOH "Build the CDR-only backend used by Zenoh" OFF)
 
 find_package(advrf_interfaces_dds REQUIRED)
-find_package(advrf_interfaces_protobuf REQUIRED)
+find_package(advrf_middleware_core REQUIRED)
+find_package(ecat_master REQUIRED COMPONENTS ecat_core)
+
 
 set(ADVRF_DDS_COMMON_TARGETS "")
 
@@ -39,7 +41,9 @@ function(advrf_dds_common_add_backend backend)
     target_link_libraries("${target}"
         PUBLIC
             "${interface_target}"
-            advrf_interfaces_protobuf
+            advrf_middleware_core
+            ecat_master::ecat_core
+            ecat_master::ecat_master_pb
     )
 
     install(
@@ -57,15 +61,15 @@ function(advrf_dds_common_add_backend backend)
     )
 endfunction()
 
-if(BUILD_FASTDDS)
+if(BUILD_MIDDLEWARE_FASTDDS)
     advrf_dds_common_add_backend(fastdds)
 endif()
 
-if(BUILD_CYCLONEDDS)
+if(BUILD_MIDDLEWARE_CYCLONEDDS)
     advrf_dds_common_add_backend(cyclonedds)
 endif()
 
-if(BUILD_ZENOH)
+if(BUILD_MIDDLEWARE_ZENOH)
     advrf_dds_common_add_backend(cdr)
 endif()
 

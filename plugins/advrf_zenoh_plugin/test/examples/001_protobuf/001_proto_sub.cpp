@@ -3,10 +3,9 @@
 #include <iostream>
 #include <string>
 #include <thread>
-
 #include <zenoh.hxx>
 
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
+#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 
 namespace {
     volatile std::sig_atomic_t running = 1;

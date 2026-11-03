@@ -5,7 +5,7 @@ project(advrf_cyclonedds_lib
     LANGUAGES C CXX
 )
 
-if(NOT BUILD_CYCLONEDDS)
+if(NOT BUILD_MIDDLEWARE_CYCLONEDDS)
     message(STATUS "CycloneDDS build disabled")
     return()
 endif()

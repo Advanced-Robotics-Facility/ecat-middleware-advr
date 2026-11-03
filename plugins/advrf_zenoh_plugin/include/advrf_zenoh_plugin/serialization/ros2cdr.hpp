@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <vector>
 
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
+#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 
 ///// SERIALIZATION /////
 namespace advrf::zenoh_plugin::serialization

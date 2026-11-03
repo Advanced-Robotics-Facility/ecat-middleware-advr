@@ -10,6 +10,8 @@ target_compile_features(001_proto_pub
 target_link_libraries(001_proto_pub
     PRIVATE
         zenohcxx::zenohc
+        ecat_master::ecat_core
+        ecat_master::ecat_master_pb
 )
 
 install(
@@ -31,6 +33,8 @@ target_compile_features(001_proto_sub
 target_link_libraries(001_proto_sub
     PRIVATE
         zenohcxx::zenohc
+        ecat_master::ecat_core
+        ecat_master::ecat_master_pb
 )
 
 install(

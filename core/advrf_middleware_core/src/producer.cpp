@@ -1,17 +1,17 @@
-#include <iostream>
 #include <chrono>
-#include <thread>
 #include <cmath>
 #include <csignal>
-#include <string>
 #include <filesystem>
+#include <iostream>
+#include <string>
+#include <thread>
+
+#include <protobuf/ecat_pdo.pb.h>
+#include <protobuf/repl_cmd.pb.h>
+#include <shm_types.hpp>
+#include <shm_utils.hpp>
 
 #include "advrf_middleware_core/config/robot_config.hpp"
-
-#include <shm_utils.hpp>
-#include <shm_types.hpp>
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
-#include <advrf_interfaces_protobuf/repl_cmd.pb.h>
 
 namespace {
 volatile std::sig_atomic_t keep_running = 1;
@@ -225,6 +225,7 @@ iit::advrf::Ec_slave_pdo make_ft_pdo(double t, uint64_t sample_index, int force_
 }
 
 #include "advrf_middleware_core/utils/ecat_discover.hpp"
+
 void add_metadata_info(const std::string& type, advrf::middleware::ecat::EcatMetadata& metadata) {
     if (type == "motor") {
         metadata.type = iit::advrf::Ec_slave_pdo::RX_MOTOR;
@@ -265,7 +266,7 @@ int main(int argc, char** argv)
     std::signal(SIGINT, on_signal);
     std::signal(SIGTERM, on_signal);
 
-    auto config_dummy = build_ecat_map(ADVRF_CONFIG_SHARE / "robot_ecat" / "ecat_dummy_shm.yaml");
+    auto config_dummy = build_ecat_map(advrf::middleware::config::robot_config_directory() / "robot_ecat" / "ecat_dummy_shm.yaml");
 
     auto shm_rx = SharedMemory<SharedProtoPubBridge>::create_or_recover(SHM_NRT_RX_PDO);
     if (!shm_rx) {
@@ -276,11 +277,11 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    auto shm_srv = SharedMemory<SharedReplBridge>::create_or_recover(SHM_SERVICE);
+    auto shm_srv = SharedMemory<SharedReplBridge>::create_or_recover(SHM_SRV_NAME);
     if (!shm_srv) {
         std::cerr
             << "[Producer] Failed to create shared memory '"
-            << SHM_SERVICE
+            << SHM_SRV_NAME
             << "'. Another ECAT master/mock may already be running.\n";
         return 1;
     }
@@ -336,7 +337,7 @@ int main(int argc, char** argv)
         for (const auto& cmd : repl_cmds) {
       
             iit::advrf::Cmd_reply reply;
-            reply.mutable_request_id()->CopyFrom(cmd.request_id());
+            reply.mutable_header()->CopyFrom(cmd.header());
             reply.set_type(iit::advrf::Cmd_reply::ACK);
             reply.set_cmd_type(cmd.type());
             reply.set_msg("test ack received");

@@ -1,16 +1,17 @@
 #pragma once
-
-#include <string>
 #include <optional>
+#include <string>
 #include <dds/dds.hpp>
 
 #include <advrf_middleware_core/utils/log.hpp>
+
+#include "advrf_cyclonedds_plugin/config/qos.hpp"
 
 namespace advrf::cyclonedds_plugin {
 
 struct DDSPublisherOptions
 {
-    std::optional<std::string> user_data;
+    std::optional<std::string> user_data{std::string{"advrf=1;"}};
 };
 
 /**
@@ -41,9 +42,8 @@ class DDSPublisher {
          */
         bool init_dds(const std::string& topic_name, 
                       dds::domain::DomainParticipant& participant, 
-                      const DDSPublisherOptions& options = {
-                        .user_data = default_user_data_
-                      })
+                      const DDSPublisherOptions& options = {},
+                      const advrf::dds_common::EndpointPolicy& policy = {})
         {
             try {
                 topic_ = dds::topic::Topic<Msg>(
@@ -52,7 +52,7 @@ class DDSPublisher {
                 );
 
                 publisher_ = dds::pub::Publisher(participant);
-                auto qos = writer_qos();
+                auto qos = writer_qos(policy);
                 if (options.user_data) {
                     const auto& value = *options.user_data;
                     qos << dds::core::policy::UserData(
@@ -82,11 +82,9 @@ class DDSPublisher {
          *
          * Uses best-effort reliability and history depth one by default.
          */
-        dds::pub::qos::DataWriterQos writer_qos()
+        dds::pub::qos::DataWriterQos writer_qos(const advrf::dds_common::EndpointPolicy& policy = {})
         {
-            return dds::pub::qos::DataWriterQos()
-                << dds::core::policy::Reliability::BestEffort()
-                << dds::core::policy::History::KeepLast(1);
+            return apply_endpoint_policy(dds::pub::qos::DataWriterQos(), policy);
         }
 
         /// Publish one DDS message.
@@ -111,8 +109,6 @@ class DDSPublisher {
         dds::topic::Topic<Msg> topic_;
         dds::pub::DataWriter<Msg> writer_;
 
-    private:
-        inline static const std::string default_user_data_ = "advrf=1;";  
 };
 
 }

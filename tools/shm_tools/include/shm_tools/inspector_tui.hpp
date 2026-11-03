@@ -1,15 +1,15 @@
 #pragma once
 
-#include "shm_tools/inspector_types.hpp"
-
 #include <algorithm>
 #include <cstddef>
 #include <iomanip>
-#include <ncurses.h>
 #include <sstream>
 #include <string>
 #include <string_view>
 #include <vector>
+#include <ncurses.h>
+
+#include "shm_tools/inspector_types.hpp"
 
 namespace advrf::middleware::tools::shm {
 

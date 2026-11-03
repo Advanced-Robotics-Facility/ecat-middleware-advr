@@ -1,16 +1,16 @@
 #pragma once
-
 #include <string>
-
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/publisher/DataWriter.hpp>
 #include <fastdds/dds/publisher/DataWriterListener.hpp>
 #include <fastdds/dds/publisher/Publisher.hpp>
-#include <fastdds/dds/topic/TypeSupport.hpp>
 #include <fastdds/dds/publisher/qos/DataWriterQos.hpp>
+#include <fastdds/dds/topic/TypeSupport.hpp>
 
 #include <advrf_middleware_core/utils/log.hpp>
+
+#include "advrf_fastdds_plugin/config/qos.hpp"
 
 namespace advrf::fastdds_plugin {
 
@@ -33,7 +33,8 @@ public:
     }
 
     bool init_dds(const std::string& topic_name,
-                    eprosima::fastdds::dds::DomainParticipant* participant) {
+                    eprosima::fastdds::dds::DomainParticipant* participant,
+                    const advrf::dds_common::EndpointPolicy& policy = {}) {
         try {
             participant_ = participant;
 
@@ -58,7 +59,7 @@ public:
                 return false;
             }
 
-            eprosima::fastdds::dds::DataWriterQos qos = writer_qos();
+            eprosima::fastdds::dds::DataWriterQos qos = writer_qos(policy);
             writer_ = publisher_->create_datawriter(topic_, qos, nullptr);
             if (writer_ == nullptr) {
                 LOG_ERROR("DDS Pub Init Error: failed to create datawriter");
@@ -72,14 +73,8 @@ public:
         }
     }
 
-    eprosima::fastdds::dds::DataWriterQos writer_qos() {
-        auto qos = eprosima::fastdds::dds::DATAWRITER_QOS_DEFAULT;
-        qos.reliability().kind = eprosima::fastdds::dds::BEST_EFFORT_RELIABILITY_QOS;
-        qos.history().kind = eprosima::fastdds::dds::KEEP_LAST_HISTORY_QOS;
-        qos.history().depth = 1;
-        qos.resource_limits().max_samples = 1;
-        qos.resource_limits().allocated_samples = 1;
-        return qos;
+    eprosima::fastdds::dds::DataWriterQos writer_qos(const advrf::dds_common::EndpointPolicy& policy = {}) {
+        return apply_endpoint_policy(eprosima::fastdds::dds::DATAWRITER_QOS_DEFAULT, policy);
     }
 
     void publish(const Msg& msg) {
