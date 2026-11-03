@@ -402,7 +402,7 @@ if(BUILD_MIDDLEWARE_FASTDDS)
     # all required serialization and TypeObject symbols transitively.
     target_link_libraries(std_msgs_fastdds PUBLIC builtin_interfaces_fastdds)
     target_link_libraries(sensor_msgs_fastdds PUBLIC std_msgs_fastdds)
-    target_link_libraries(advrf_interfaces_fastdds
+    target_link_libraries(advrf_ros2_interfaces_fastdds
         PUBLIC
             builtin_interfaces_fastdds
             std_msgs_fastdds
@@ -427,7 +427,7 @@ if(BUILD_MIDDLEWARE_ZENOH)
             std_msgs_cdr
             geometry_msgs_cdr
     )
-    target_link_libraries(advrf_interfaces_cdr
+    target_link_libraries(advrf_ros2_interfaces_cdr
         PUBLIC
             builtin_interfaces_cdr
             std_msgs_cdr

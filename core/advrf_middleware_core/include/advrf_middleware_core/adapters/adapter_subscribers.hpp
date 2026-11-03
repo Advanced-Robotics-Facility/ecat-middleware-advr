@@ -51,7 +51,15 @@ protected:
       return false;
     }
 
-    return client_transport().push_tx_queue(*device, msg);
+    if (!is_ok() || !msg.has_header() || !msg.header().has_index() ||
+        msg.header().index() < 0)
+      return false;
+
+    // The master transport currently returns zero even on a successful push.
+    // Use its public queue and framing helper to preserve the actual result.
+    ShmProtoHelper helper;
+    helper.slot_push.slave_id = static_cast<uint32_t>(msg.header().index());
+    return helper.push(sub_queue<SharedProtoSubBridge>(*device), msg);
   }
 
 };

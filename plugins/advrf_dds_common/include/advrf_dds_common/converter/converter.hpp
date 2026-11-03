@@ -94,7 +94,7 @@ namespace advrf::dds_common::convert::protobuf {
 
     void from_dds(
         const advrf_ros2_interfaces::msg::dds_::ReplCmd_Content_Vector_& request,
-        iit::advrf::Repl_cmd_vector& pb);
+        std::vector<iit::advrf::Repl_cmd>& pb);
 
     void from_dds(
         const advrf_ros2_interfaces::msg::dds_::MotorTxPdo_& msgdds,

@@ -6,6 +6,21 @@
 
 int main()
 {
+    // Batch conversion stays local: the v3 protocol carries individual commands.
+    advrf_ros2_interfaces::msg::dds_::ReplCmd_Content_Vector_ batch;
+    batch.requests().resize(2);
+    batch.requests()[0].type(static_cast<int>(iit::advrf::CTRL_CMD));
+    batch.requests()[0].ctrl_cmd().board_id(42);
+    batch.requests()[1].type(static_cast<int>(iit::advrf::ECAT_MASTER_CMD));
+    std::vector<iit::advrf::Repl_cmd> commands(3);
+    advrf::dds_common::convert::protobuf::from_dds(batch, commands);
+    CHECK(commands.size() == 2);
+    CHECK(commands[0].type() == iit::advrf::CTRL_CMD && commands[0].ctrl_cmd().board_id() == 42);
+    CHECK(commands[1].type() == iit::advrf::ECAT_MASTER_CMD);
+    batch.requests().clear();
+    advrf::dds_common::convert::protobuf::from_dds(batch, commands);
+    CHECK(commands.empty());
+
     advrf_ros2_interfaces::msg::dds_::CtrlCmd_ input;
     input.type() = 11;
     input.board_id() = 1;

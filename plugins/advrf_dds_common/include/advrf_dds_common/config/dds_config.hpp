@@ -43,9 +43,9 @@ inline DdsConfig parse_dds_config(const YAML::Node& root) {
     cfg.declare_to_ros = value<bool>(node, "declare_to_ros", false, "dds");
     const auto service = section(node, "service", "dds");
     check_keys(service, {"transport", "command_uri", "timeout_ms"}, "dds.service");
-    const auto transport = value<std::string>(service, "transport", "shm", "dds.service");
+    const auto transport = value<std::string>(service, "transport", "zmq", "dds.service");
     using advrf::middleware::adapters::service::ServiceTransport;
-    if (transport == "shm") cfg.service.transport = ServiceTransport::Shm;
+    if (transport == "shm") throw ConfigError("dds.service.transport: shm is unsupported by the v3 master; use zmq");
     else if (transport == "zmq") cfg.service.transport = ServiceTransport::Zmq;
     else throw ConfigError("dds.service.transport: expected shm or zmq");
     cfg.service.command_uri = value<std::string>(service, "command_uri", cfg.service.command_uri, "dds.service");

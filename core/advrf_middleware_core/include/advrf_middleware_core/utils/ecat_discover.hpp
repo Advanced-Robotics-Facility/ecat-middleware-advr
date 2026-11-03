@@ -99,7 +99,8 @@ private:
 
       Pdo pdo;
 
-      client_transport().peek_rx_queue(*device, pdo, [&](const Pdo& received) {
+      ShmProtoHelper helper;
+      helper.peek_all(nrt_pub_shm<SharedProtoPubBridge>().bridge().payload.queue_for(*device), pdo, [&](const Pdo& received) {
         if (!received.has_header() || !received.header().has_index()) {
           LOG_ERROR("Received PDO without EtherCAT index during discovery");
           return;

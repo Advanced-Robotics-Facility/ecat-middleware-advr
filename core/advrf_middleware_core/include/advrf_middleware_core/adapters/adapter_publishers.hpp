@@ -208,8 +208,9 @@ private:
 
           iit::advrf::Ec_slave_pdo pdo;
 
-          client_transport().drain_rx_queue(
-              *device,
+          ShmProtoHelper helper;
+          helper.drain(
+              nrt_pub_shm<SharedProtoPubBridge>().bridge().payload.queue_for(*device),
               pdo,
               [&](const iit::advrf::Ec_slave_pdo& received) {
                   if (!received.has_header() ||

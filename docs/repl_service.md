@@ -3,7 +3,7 @@
 Commands use the existing service:
 
 ```
-DDS ReplCmd -> DDSAdapterService -> AdapterServiceServer -> SHM or ZMQ -> master
+DDS ReplCmd -> DDSAdapterService -> AdapterServiceServer -> ZMQ -> master
 ```
 
 Select the transport in the middleware YAML:
@@ -11,7 +11,7 @@ Select the transport in the middleware YAML:
 ```yaml
 dds:
   service:
-    transport: zmq  # zmq or shm; default: shm
+    transport: zmq  # default; v3 master supports REPL over ZMQ
     command_uri: tcp://127.0.0.1:5555
     timeout_ms: 1000
 ```
@@ -36,10 +36,15 @@ The request/reply topics remain `rq/<namespace>/<robot>/replCmdRequest` and
 `rr/<namespace>/<robot>/replCmdReply`.
 
 ZMQ uses `MASTER_CMD` for master/FOE commands and `ESC_CMD` for slave commands.
-SHM uses the existing master service queues. No command is retried automatically
+The v3 master does not process SHM service queues; selecting `shm` is rejected
+with a configuration error. PDO state and command traffic still uses SHM.
+No command is retried automatically
 and there is no transport fallback. A timeout can occur after the master executed
 the command; it must not be treated as proof that the motor stayed stopped.
 An ACK reports master acceptance, not a verified physical motor state.
 
 The core `003_adapter_service` test sends START/STOP and a master command through
-a local ZMQ mock and checks ACK/NACK, correlation, malformed replies and timeout.
+a local ZMQ mock and checks ACK/NACK, header preservation, malformed replies and timeout.
+Each transaction uses a fresh REQ socket so late replies cannot satisfy a later
+request. DDS request identifiers remain managed by the DDS service layer; the
+v3 Protobuf protocol has no `request_id` field.

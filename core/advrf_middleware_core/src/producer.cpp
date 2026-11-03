@@ -277,11 +277,11 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    auto shm_srv = SharedMemory<SharedReplBridge>::create_or_recover(SHM_SERVICE);
+    auto shm_srv = SharedMemory<SharedReplBridge>::create_or_recover(SHM_SRV_NAME);
     if (!shm_srv) {
         std::cerr
             << "[Producer] Failed to create shared memory '"
-            << SHM_SERVICE
+            << SHM_SRV_NAME
             << "'. Another ECAT master/mock may already be running.\n";
         return 1;
     }
@@ -337,7 +337,7 @@ int main(int argc, char** argv)
         for (const auto& cmd : repl_cmds) {
       
             iit::advrf::Cmd_reply reply;
-            reply.mutable_request_id()->CopyFrom(cmd.request_id());
+            reply.mutable_header()->CopyFrom(cmd.header());
             reply.set_type(iit::advrf::Cmd_reply::ACK);
             reply.set_cmd_type(cmd.type());
             reply.set_msg("test ack received");

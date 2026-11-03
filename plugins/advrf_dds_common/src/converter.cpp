@@ -210,11 +210,13 @@ void advrf::dds_common::convert::protobuf::from_dds(
 
 void advrf::dds_common::convert::protobuf::from_dds(
         const advrf_ros2_interfaces::msg::dds_::ReplCmd_Content_Vector_& request,
-        iit::advrf::Repl_cmd_vector& pb)
+        std::vector<iit::advrf::Repl_cmd>& pb)
     {
+        pb.clear();
+        pb.reserve(request.requests().size());
         for (const auto& content : request.requests()) {
-            auto* pb_content = pb.add_requests();
-            from_dds(content, *pb_content);
+            pb.emplace_back();
+            from_dds(content, pb.back());
         }
     }
 

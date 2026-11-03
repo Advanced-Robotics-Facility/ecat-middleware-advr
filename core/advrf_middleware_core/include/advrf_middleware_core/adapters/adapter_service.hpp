@@ -26,12 +26,12 @@ enum class ServiceTransport { Shm, Zmq };
 
 struct ServiceConfig
 {
-    ServiceTransport transport = ServiceTransport::Shm;
+    ServiceTransport transport = ServiceTransport::Zmq;
     std::string command_uri = "tcp://127.0.0.1:5555";
     uint32_t timeout_ms = 1000;
 };
 
-/// Synchronous REPL service with an explicitly selected SHM or ZeroMQ transport.
+/// Synchronous REPL service over ZeroMQ. SHM is unsupported by the v3 master.
 /// A missing reply does not imply that the command was not executed.
 class AdapterServiceServer : public advrf::middleware::adapters::AdapterBase
 {
@@ -44,36 +44,7 @@ public:
         std::scoped_lock lock{request_mutex_};
         if (!ready())
             return {false, false, "REPL service is not started"};
-        if (config_.transport == ServiceTransport::Zmq)
-            return execute_zmq(request);
-
-        // All adapters share the same SHM request/reply queues.
-        std::scoped_lock shm_lock{shm_request_mutex_};
-        auto forwarded = request;
-        forwarded.mutable_request_id()->set_guid(static_cast<uint32_t>(::getpid()));
-        forwarded.mutable_request_id()->set_seq(++shm_sequence_);
-        if (!client_transport().push_request(forwarded))
-            return {false, false, "SHM request queue full"};
-        const auto deadline = std::chrono::steady_clock::now() +
-                              std::chrono::milliseconds(config_.timeout_ms);
-        while (std::chrono::steady_clock::now() < deadline)
-        {
-            if (!ready())
-                return {false, true, "SHM disconnected; command outcome unknown; no automatic retry"};
-            iit::advrf::Cmd_reply reply;
-            if (client_transport().try_pop_reply(reply) &&
-                reply.request_id().guid() == forwarded.request_id().guid() &&
-                reply.request_id().seq() == forwarded.request_id().seq() &&
-                reply.cmd_type() == request.type() &&
-                (reply.type() == iit::advrf::Cmd_reply::ACK ||
-                 reply.type() == iit::advrf::Cmd_reply::NACK))
-            {
-                *reply.mutable_request_id() = request.request_id();
-                return {reply.type() == iit::advrf::Cmd_reply::ACK, false, reply.msg(), reply};
-            }
-            std::this_thread::sleep_for(std::chrono::microseconds(200));
-        }
-        return {false, true, "SHM reply timeout; command outcome unknown; no automatic retry"};
+        return execute_zmq(request);
     }
 
     iit::advrf::Cmd_reply process_request(const iit::advrf::Repl_cmd& request)
@@ -91,8 +62,7 @@ public:
     bool start() override
     {
         std::scoped_lock lock{request_mutex_};
-        started_ = config_.transport == ServiceTransport::Zmq ||
-                   client_transport().initialize_service();
+        started_ = config_.transport == ServiceTransport::Zmq;
         return started_;
     }
     bool is_ok() const override
@@ -109,8 +79,7 @@ public:
 private:
     bool ready() const
     {
-        return started_ && (config_.transport == ServiceTransport::Zmq ||
-                            client_transport().service_is_ok());
+        return started_ && config_.transport == ServiceTransport::Zmq;
     }
     static iit::advrf::Cmd_reply make_nack(const iit::advrf::Repl_cmd& request,
                                           const std::string& message)
@@ -119,13 +88,12 @@ private:
         reply.set_type(iit::advrf::Cmd_reply::NACK);
         reply.set_cmd_type(request.type());
         reply.set_msg(message);
-        *reply.mutable_request_id() = request.request_id();
+        if (request.has_header())
+            *reply.mutable_header() = request.header();
         return reply;
     }
     ServiceConfig config_;
     ServiceResult execute_zmq(const iit::advrf::Repl_cmd& request) const;
-    inline static std::mutex shm_request_mutex_;
-    inline static uint32_t shm_sequence_ = 0;
     mutable std::mutex request_mutex_;
     bool started_ = false;
 };

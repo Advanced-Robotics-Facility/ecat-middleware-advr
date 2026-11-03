@@ -10,6 +10,11 @@ using namespace advrf::middleware::adapters::service;
 
 int main()
 {
+    CHECK(ServiceConfig{}.transport == ServiceTransport::Zmq);
+    bool unsupported = false;
+    try { AdapterServiceServer shm({ServiceTransport::Shm}); }
+    catch (const std::invalid_argument&) { unsupported = true; }
+    CHECK(unsupported);
     std::promise<std::string> endpoint;
     auto server = std::async(std::launch::async, [&] {
         try {
@@ -60,8 +65,8 @@ int main()
     AdapterServiceServer adapter({ServiceTransport::Zmq, endpoint.get_future().get(), 100});
     iit::advrf::Repl_cmd request;
     request.set_type(iit::advrf::CTRL_CMD);
-    request.mutable_request_id()->set_guid(456);
-    request.mutable_request_id()->set_seq(123);
+    request.mutable_header()->set_str_id("client-456");
+    request.mutable_header()->set_index(123);
     auto* ctrl = request.mutable_ctrl_cmd();
     ctrl->set_board_id(42);
     ctrl->set_type(iit::advrf::Ctrl_cmd::CTRL_CMD_START);
@@ -73,7 +78,7 @@ int main()
     CHECK(adapter.is_ok());
     auto reply = adapter.process_request(request);
     CHECK(reply.type() == iit::advrf::Cmd_reply::ACK);
-    CHECK(reply.request_id().guid() == 456 && reply.request_id().seq() == 123);
+    CHECK(reply.header().str_id() == "client-456" && reply.header().index() == 123);
     ctrl->set_type(iit::advrf::Ctrl_cmd::CTRL_CMD_STOP);
     CHECK(adapter.process_request(request).type() == iit::advrf::Cmd_reply::ACK);
     ctrl->set_type(iit::advrf::Ctrl_cmd::CTRL_CMD_START);
