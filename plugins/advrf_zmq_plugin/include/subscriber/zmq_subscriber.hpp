@@ -76,7 +76,7 @@ public:
 
                 const std::string string_id = std::to_string(slave_id);
 
-                DeviceInfo dev_info = {slave_id,string_id,DeviceType::MOTOR};
+                DeviceInfo dev_info = {slave_id,string_id};
 
                 const int ret = transport.push_tx_queue(
                     dev_info,

@@ -20,7 +20,7 @@ public:
     {
         _socket.set(
             zmq::sockopt::sndhwm,
-            10
+            static_cast<int>(SHARED_PUB_BRIDGE_SIZE_QUEUE)
         );
 
         _socket.set(
