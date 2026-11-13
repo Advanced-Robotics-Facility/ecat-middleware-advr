@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <vector>
-
 #include <fastcdr/Cdr.h>
 #include <fastcdr/FastBuffer.h>
 #include <fastcdr/exceptions/Exception.h>

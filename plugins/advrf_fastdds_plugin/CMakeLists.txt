@@ -15,7 +15,6 @@ find_package(advrf_dds_common REQUIRED)
 find_package(advrf_interfaces_dds REQUIRED)
 find_package(advrf_middleware_core REQUIRED)
 find_package(yaml-cpp REQUIRED)
-find_package(advrf_config CONFIG REQUIRED)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -97,7 +96,7 @@ install(
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
-option(BUILD_TEST_EXAMPLESS "Build testing examples" ON)
+option(BUILD_TEST_EXAMPLES "Build testing examples" ON)
 option(BUILD_TEST_UNIT "Build unit tests" ON)
 
 if(BUILD_TEST_UNIT)
@@ -105,7 +104,7 @@ if(BUILD_TEST_UNIT)
     add_subdirectory(test/unit)    
 endif()
 
-if(BUILD_TEST_EXAMPLESS)
+if(BUILD_TEST_EXAMPLES)
     add_subdirectory(test/examples)    
 endif()
 

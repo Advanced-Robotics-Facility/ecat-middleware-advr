@@ -1,10 +1,10 @@
 #pragma once
 
-#include "shm_tools/bridge_inspector.hpp"
-
-#include <advrf_interfaces_protobuf/ecat_pdo.pb.h>
-#include <advrf_interfaces_protobuf/repl_cmd.pb.h>
+#include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
+#include <protobuf/repl_cmd.pb.h>
 #include <shm_types.hpp>
+
+#include "shm_tools/bridge_inspector.hpp"
 
 namespace advrf::middleware::tools::shm {
 
@@ -16,25 +16,25 @@ public:
 protected:
   void declare() override {
     register_queue<iit::advrf::Ec_slave_pdo>(
-        "imu", bridge_->payload.queue_for(DeviceTypeRx::IMU));
+        "imu", bridge_->payload.rx_queue);
 
     register_queue<iit::advrf::Ec_slave_pdo>(
-        "motor", bridge_->payload.queue_for(DeviceTypeRx::MOTOR));
+        "motor", bridge_->payload.rx_queue);
 
     register_queue<iit::advrf::Ec_slave_pdo>(
-        "gripper", bridge_->payload.queue_for(DeviceTypeRx::GRIPPER));
+        "gripper", bridge_->payload.rx_queue);
 
     register_queue<iit::advrf::Ec_slave_pdo>(
-        "force_torque", bridge_->payload.queue_for(DeviceTypeRx::FORCE_TORQUE));
+        "force_torque", bridge_->payload.rx_queue);
 
     register_queue<iit::advrf::Ec_slave_pdo>(
-        "power_board", bridge_->payload.queue_for(DeviceTypeRx::POWER_BOARD));
+        "power_board", bridge_->payload.rx_queue);
 
     register_queue<iit::advrf::Ec_slave_pdo>(
-        "pump", bridge_->payload.queue_for(DeviceTypeRx::PUMP));
+        "pump", bridge_->payload.rx_queue);
 
     register_queue<iit::advrf::Ec_slave_pdo>(
-        "valve", bridge_->payload.queue_for(DeviceTypeRx::VALVE));
+        "valve", bridge_->payload.rx_queue));
   }
 };
 
@@ -46,22 +46,17 @@ public:
 protected:
   void declare() override {
     register_queue<iit::advrf::Ec_slave_pdo>(
-        "motor", bridge_->payload.queue_for(DeviceTypeTx::MOTOR));
+        "motor", bridge_->payload.tx_queue));
 
     register_queue<iit::advrf::Ec_slave_pdo>(
-        "pump", bridge_->payload.queue_for(DeviceTypeTx::PUMP));
+        "pump", bridge_->payload.tx_queue);
 
     register_queue<iit::advrf::Ec_slave_pdo>(
-        "valve", bridge_->payload.queue_for(DeviceTypeTx::VALVE));
+        "valve", bridge_->payload.tx_queue);
 
     register_queue<iit::advrf::Ec_slave_pdo>(
-        "gripper", bridge_->payload.queue_for(DeviceTypeTx::GRIPPER));
+        "gripper", bridge_->payload.tx_queue);
 
-    register_queue<iit::advrf::Ec_slave_pdo>(
-        "power_board", bridge_->payload.queue_for(DeviceTypeTx::POWERBOARD));
-
-    register_queue<iit::advrf::Ec_slave_pdo>(
-        "force_torque", bridge_->payload.queue_for(DeviceTypeTx::FORCETORQUE));
   }
 };
 

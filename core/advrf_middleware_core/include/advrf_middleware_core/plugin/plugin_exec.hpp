@@ -2,11 +2,11 @@
 
 #include <atomic>
 #include <chrono>
+#include <csignal>
 #include <memory>
-#include <vector>
 #include <string>
 #include <thread>
-#include <csignal>
+#include <vector>
 
 #include "advrf_middleware_core/adapters/adapter_base.hpp"
 #include "advrf_middleware_core/utils/log.hpp"

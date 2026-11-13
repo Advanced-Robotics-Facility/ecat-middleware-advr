@@ -12,7 +12,7 @@ target_link_libraries(002_service_repl_client
         advrf_cyclonedds_plugin
         advrf_interfaces_dds::cyclonedds
         advrf_middleware_core
-        advrf_config
+
 )
 
 
@@ -37,7 +37,7 @@ target_link_libraries(002_service_repl_server
         advrf_cyclonedds_plugin
         advrf_interfaces_dds::cyclonedds
         advrf_middleware_core
-        advrf_config
+
         yaml-cpp::yaml-cpp
 )
 

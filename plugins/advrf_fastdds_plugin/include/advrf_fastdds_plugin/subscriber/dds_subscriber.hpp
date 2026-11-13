@@ -1,18 +1,18 @@
 #pragma once
-
-#include <string>
 #include <functional>
-
+#include <string>
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/subscriber/DataReader.hpp>
 #include <fastdds/dds/subscriber/DataReaderListener.hpp>
 #include <fastdds/dds/subscriber/Subscriber.hpp>
-#include <fastdds/dds/topic/TypeSupport.hpp>
 #include <fastdds/dds/subscriber/qos/DataReaderQos.hpp>
+#include <fastdds/dds/topic/TypeSupport.hpp>
 
 #include <advrf_dds_common/qos/reader_policy.hpp>
 #include <advrf_middleware_core/utils/log.hpp>
+
+#include "advrf_fastdds_plugin/config/qos.hpp"
 
 namespace advrf::fastdds_plugin {
 
@@ -93,14 +93,7 @@ public:
     }
 
     eprosima::fastdds::dds::DataReaderQos reader_qos(const advrf::dds_common::ReaderPolicy& policy) const {
-        auto qos = eprosima::fastdds::dds::DATAREADER_QOS_DEFAULT;
-        qos.reliability().kind =
-            policy.reliability == advrf::dds_common::Reliability::Reliable
-                ? eprosima::fastdds::dds::RELIABLE_RELIABILITY_QOS
-                : eprosima::fastdds::dds::BEST_EFFORT_RELIABILITY_QOS;
-        qos.history().kind = eprosima::fastdds::dds::KEEP_LAST_HISTORY_QOS;
-        qos.history().depth = static_cast<int32_t>(policy.history_depth);
-        return qos;
+        return apply_endpoint_policy(eprosima::fastdds::dds::DATAREADER_QOS_DEFAULT, policy);
     }
 
     void set_callback(Callback cb){

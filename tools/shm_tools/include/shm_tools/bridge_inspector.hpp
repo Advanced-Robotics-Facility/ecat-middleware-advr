@@ -1,7 +1,5 @@
 #pragma once
 
-#include "shm_tools/inspector_types.hpp"
-
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
@@ -13,11 +11,12 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-
 #include <google/protobuf/message.h>
 
 #include <shm_types.hpp>
 #include <shm_utils.hpp>
+
+#include "shm_tools/inspector_types.hpp"
 
 namespace advrf::middleware::tools::shm {
 
@@ -76,16 +75,17 @@ protected:
 
          [name, &queue](MessageMap &messages, bool history) {
            if (history) {
-            std::vector<Proto> protos; 
-            ShmProtoHelper::peek_all(queue, protos);
-            for (auto &msg : protos) {
-                messages[name].push_back(std::make_unique<Proto>(std::move(msg)));
-            }
+            ShmProtoHelper helper;
+            Proto msg;
+            helper.peek_all(queue, msg, [&](const Proto& received) {
+              messages[name].push_back(std::make_unique<Proto>(received));
+            });
             return;
            }
 
            auto msg = std::make_unique<Proto>();
-           if (ShmProtoHelper::peek_latest(queue, *msg)) {
+           ShmProtoHelper helper;
+           if (helper.peek_latest(queue, *msg)) {
              messages[name].push_back(std::move(msg));
            }
          },

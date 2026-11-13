@@ -12,7 +12,7 @@ target_link_libraries(001_publisher_from_shm
         advrf_cyclonedds_plugin
         advrf_interfaces_dds::cyclonedds
         advrf_middleware_core
-        advrf_config
+
         yaml-cpp::yaml-cpp
 )
 

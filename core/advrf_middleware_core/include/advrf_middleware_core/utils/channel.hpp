@@ -1,11 +1,10 @@
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <map>
-#include <array>
 #include <optional>
 
-// from ecat_master
 #include <shm_types.hpp>
 
 namespace advrf::middleware::shm {
@@ -38,63 +37,8 @@ enum class ChannelTx : std::size_t
     Pump,
     Valve,
     Gripper,
-    PowerBoard,
-    ForceTorque,
     Count
 };
-
-/// Mapping from middleware receive channels to EtherCAT shared-memory devices.
-const std::map<ChannelRx, DeviceTypeRx> k_map_channelrx_to_devicerx = {
-    {ChannelRx::Imu, DeviceTypeRx::IMU},
-    {ChannelRx::Motor, DeviceTypeRx::MOTOR},
-    {ChannelRx::Gripper, DeviceTypeRx::GRIPPER},
-    {ChannelRx::Pump, DeviceTypeRx::PUMP},
-    {ChannelRx::PowerBoard, DeviceTypeRx::POWER_BOARD},
-    {ChannelRx::ForceTorque, DeviceTypeRx::FORCE_TORQUE},
-    {ChannelRx::Valve, DeviceTypeRx::VALVE}
-};
-
-/// Mapping from middleware transmit channels to EtherCAT shared-memory devices.
-const std::map<ChannelTx, DeviceTypeTx> k_map_channeltx_to_devicetx = {
-    {ChannelTx::Motor, DeviceTypeTx::MOTOR},
-    {ChannelTx::Gripper, DeviceTypeTx::GRIPPER},
-    {ChannelTx::Pump, DeviceTypeTx::PUMP},
-    {ChannelTx::Valve, DeviceTypeTx::VALVE},
-    {ChannelTx::PowerBoard, DeviceTypeTx::POWERBOARD},
-    {ChannelTx::ForceTorque, DeviceTypeTx::FORCETORQUE},
-};
-
-/**
- * @brief Return the shared-memory device associated with a receive channel.
- *
- * @return The device, or @c std::nullopt for an invalid/unmapped channel.
- */
-inline std::optional<DeviceTypeRx>
-device_for(ChannelRx channel)
-{
-    const auto it = k_map_channelrx_to_devicerx.find(channel);
-
-    if (it == k_map_channelrx_to_devicerx.end())
-        return std::nullopt;
-
-    return it->second;
-}
-
-/**
- * @brief Return the shared-memory device associated with a transmit channel.
- *
- * @return The device, or @c std::nullopt for an invalid/unmapped channel.
- */
-inline std::optional<DeviceTypeTx>
-device_for(ChannelTx channel)
-{
-    const auto it = k_map_channeltx_to_devicetx.find(channel);
-
-    if (it == k_map_channeltx_to_devicetx.end())
-        return std::nullopt;
-
-    return it->second;
-}
 
 /// Number of valid receive channels.
 static constexpr std::size_t CHANNEL_COUNT = static_cast<std::size_t>(ChannelRx::Count);

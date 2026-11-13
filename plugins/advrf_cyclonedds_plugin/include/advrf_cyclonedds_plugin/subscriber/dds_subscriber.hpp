@@ -1,13 +1,14 @@
 #pragma once
-
-#include <string>
-#include <dds/dds.hpp>
-#include <optional>
 #include <functional>
+#include <optional>
+#include <string>
 #include <utility>
+#include <dds/dds.hpp>
 
 #include <advrf_dds_common/qos/reader_policy.hpp>
 #include <advrf_middleware_core/utils/log.hpp>
+
+#include "advrf_cyclonedds_plugin/config/qos.hpp"
 
 namespace advrf::cyclonedds_plugin {
 
@@ -92,16 +93,7 @@ public:
      * Configures history depth and reliable or best-effort delivery by default.
      */
     dds::sub::qos::DataReaderQos reader_qos(const advrf::dds_common::ReaderPolicy& policy) const {
-        auto qos = dds::sub::qos::DataReaderQos()
-            << dds::core::policy::History::KeepLast(policy.history_depth);
-
-        if (policy.reliability == advrf::dds_common::Reliability::Reliable) {
-            qos << dds::core::policy::Reliability::Reliable();
-        } else {
-            qos << dds::core::policy::Reliability::BestEffort();
-        }
-        
-        return qos;
+        return apply_endpoint_policy(dds::sub::qos::DataReaderQos(), policy);
     }
 
     /// Set the callback invoked for each valid received sample.

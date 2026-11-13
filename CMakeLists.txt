@@ -27,6 +27,8 @@ option(BUILD_MIDDLEWARE_ZENOH "Build the Zenoh backend" OFF)
 option(BUILD_MIDDLEWARE_ZMQ "Build the ZMQ backend" ON)
 option(BUILD_TEST_UNIT "Build tests" OFF)
 option(BUILD_TEST_EXAMPLES "Build examples" OFF)
+option(BUILD_TOOLS "Build tools" OFF)
+option(ROS2_SUPPORT "ROS2 Support" OFF)
 
 find_package(Git REQUIRED)
 
@@ -102,12 +104,12 @@ function(add_package name relative_source)
             "-DCMAKE_PREFIX_PATH:STRING=${PACKAGE_PREFIX_PATH}"
             "-DADVRF_RUNTIME_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}"
             "-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}"
-            "-DSELECT_CONFIG:STRING=${SELECT_CONFIG}"
             "-DBUILD_MIDDLEWARE_FASTDDS:BOOL=${BUILD_MIDDLEWARE_FASTDDS}"
             "-DBUILD_MIDDLEWARE_CYCLONEDDS:BOOL=${BUILD_MIDDLEWARE_CYCLONEDDS}"
             "-DBUILD_MIDDLEWARE_ZENOH:BOOL=${BUILD_MIDDLEWARE_ZENOH}"
             "-DBUILD_TEST_UNIT:BOOL=${BUILD_TEST_UNIT}"
             "-DBUILD_TEST_EXAMPLES:BOOL=${BUILD_TEST_EXAMPLES}"
+            "-DZENOH_ROS2_SUPPORT:BOOL=${ROS2_SUPPORT}"
 
         BUILD_ALWAYS TRUE
 
@@ -139,11 +141,12 @@ endfunction()
 
 ## Common base
 
-#add_package(advrf_config config/advrf_config)
-#add_package(advrf_interfaces_protobuf interfaces/advrf_interfaces_protobuf)
-#add_package(advrf_middleware_core core/advrf_middleware_core)
-#add_package(shm_tools tools/shm_tools)
- 
+add_package(advrf_middleware_core core/advrf_middleware_core)
+
+if(BUILD_TOOLS)
+    add_package(shm_tools tools/shm_tools)
+endif()
+
 ## Library compilations
 
 if(BUILD_MIDDLEWARE_FASTDDS)

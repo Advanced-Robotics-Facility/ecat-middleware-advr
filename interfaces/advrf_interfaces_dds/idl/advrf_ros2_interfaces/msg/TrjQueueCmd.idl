@@ -1,0 +1,22 @@
+#pragma once
+
+module advrf_ros2_interfaces {
+  module msg {
+    module dds_ {
+
+      const uint8 PUSH_QUE = 1;
+      const uint8 EMPTY_QUE = 2;
+
+      /** @brief Command that modifies the trajectory queue. */
+      @final
+      struct TrjQueueCmd_
+      {        
+        /// Queue operation: @c PUSH_QUE or @c EMPTY_QUE.
+        uint8 type;
+        /// Names of trajectories to enqueue.
+        sequence<string> trj_names;
+      };
+
+    };
+  };
+};

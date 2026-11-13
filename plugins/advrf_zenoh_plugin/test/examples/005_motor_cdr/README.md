@@ -1,6 +1,6 @@
 # ROS 2 to middleware: motor command over Zenoh CDR
 
-This example shows a ROS 2 `advrf_interfaces/msg/MotorTxPdoVector` command as
+This example shows a ROS 2 `advrf_ros2_interfaces/msg/MotorTxPdoVector` command as
 the Zenoh plugin converts it into an `Ec_slave_pdo`. The viewer uses the same
 `Ros2CdrDeserializer` as the plugin and may run beside it: Zenoh delivers the
 sample to both subscribers.
@@ -20,12 +20,12 @@ source install/setup.bash
 ## Run
 
 The ROS 2 terminal must also source the interface workspace that provides
-`advrf_interfaces/msg/MotorTxPdoVector`. This repository generates compatible
+`advrf_ros2_interfaces/msg/MotorTxPdoVector`. This repository generates compatible
 CDR C++ types for the plugin, but does not register that package with the ROS 2
 CLI. Verify the publisher environment before continuing:
 
 ```bash
-ros2 interface show advrf_interfaces/msg/MotorTxPdoVector
+ros2 interface show advrf_ros2_interfaces/msg/MotorTxPdoVector
 ```
 
 Use four terminals, each with the appropriate workspace sourced.
@@ -61,7 +61,7 @@ Use four terminals, each with the appropriate workspace sourced.
    ```bash
    ros2 topic pub --once \
      /rt/advrf/pegasus/tx/motors \
-     advrf_interfaces/msg/MotorTxPdoVector \
+     advrf_ros2_interfaces/msg/MotorTxPdoVector \
      "{data: [{ecat_id: 3, pos_ref: 1.25, vel_ref: 0.0, tor_ref: 0.0, cur_ref: 0.0, gain_0: 10.0, gain_1: 2.0, gain_2: 0.0, gain_3: 0.0, gain_4: 0.0, fault_ack: 0, ts: 42, op_idx_aux: 0, aux: 0.0}]}"
    ```
 

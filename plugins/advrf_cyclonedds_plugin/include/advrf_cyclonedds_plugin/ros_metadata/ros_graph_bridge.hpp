@@ -6,12 +6,11 @@
 #include <string>
 #include <utility>
 #include <vector>
-
 #include <dds/dds.h>
 #include <dds/dds.hpp>
 
-#include <rmw_dds_common/msg/ParticipantEntitiesInfo.hpp>
 #include <advrf_dds_common/ros_metadata/ros_graph_state.hpp>
+#include <rmw_dds_common/msg/ParticipantEntitiesInfo.hpp>
 
 namespace advrf::cyclonedds_plugin {
 
