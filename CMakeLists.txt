@@ -28,6 +28,27 @@ option(BUILD_MIDDLEWARE_ZMQ "Build the ZMQ backend" ON)
 option(BUILD_TEST_UNIT "Build tests" OFF)
 option(BUILD_TEST_EXAMPLES "Build examples" OFF)
 
+find_package(Git REQUIRED)
+
+function(ensure_submodule path)
+  set(submodule_dir "${CMAKE_SOURCE_DIR}/${path}")
+  
+  if(NOT EXISTS "${submodule_dir}/.git")
+    message(STATUS "Downloading submodule: ${path}")
+
+    execute_process(
+     COMMAND "${GIT_EXECUTABLE}" -C "${CMAKE_SOURCE_DIR}" submodule update --init --recursive -- "${path}"
+     RESULT_VARIABLE result
+     OUTPUT_VARIABLE git_out
+     ERROR_VARIABLE git_err
+    )
+
+    if(NOT result EQUAL 0)
+      message(FATAL_ERROR "Submodule update failed:\n${git_err}\n${git_out}")
+    endif()
+  endif()
+endfunction()
+
 # Path containing robot configurations
 set(CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/config/advrf_config/configs")
 
@@ -153,17 +174,21 @@ endif()
 ## Plugin compilations
 
 if(BUILD_MIDDLEWARE_FASTDDS)
+    ensure_submodule("plugins/advrf_fastdds_lib/lib")
     add_package(advrf_fastdds_plugin plugins/advrf_fastdds_plugin)
 endif()
 
 if(BUILD_MIDDLEWARE_CYCLONEDDS)
+    ensure_submodule("plugins/advrf_cyclonedds_lib/lib")
     add_package(advrf_cyclonedds_plugin plugins/advrf_cyclonedds_plugin)
 endif()
 
 if(BUILD_MIDDLEWARE_ZENOH)
+     ensure_submodule("plugins/advrf_zenoh_lib/lib")
     add_package(advrf_zenoh_plugin plugins/advrf_zenoh_plugin)
 endif()
 
 if(BUILD_MIDDLEWARE_ZMQ)
+    ensure_submodule("plugins/advrf_zmq_lib/lib")
     add_package(advrf_zmq_plugin plugins/advrf_zmq_plugin)
 endif()
