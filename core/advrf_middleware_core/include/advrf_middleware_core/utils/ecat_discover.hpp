@@ -1,4 +1,5 @@
 #pragma once
+#include <thread>
 #include <ecat_master_pb/protobuf/ecat_pdo.pb.h>
 #include <shm_types.hpp>
 #include <shm_utils.hpp>
@@ -88,18 +89,10 @@ private:
 
   void discover_once(const std::set<uint32_t> &ecat_ids, EcatMap &ecat_map) {
     for (const auto channel : advrf::middleware::shm::CHANNELS_ARRAY) {
-      const auto device = advrf::middleware::shm::device_for(channel);
-
-      if (!device) {
-        LOG_ERROR("Failed to get device for channel {}",
-                  static_cast<int>(channel));
-        continue;
-      }
-
       Pdo pdo;
 
       ShmProtoHelper helper;
-      helper.peek_all(nrt_pub_shm<SharedProtoPubBridge>().bridge().payload.queue_for(*device), pdo, [&](const Pdo& received) {
+      helper.peek_all(nrt_pub_shm<SharedProtoPubBridge>().bridge().payload.rx_queue, pdo, [&](const Pdo& received) {
         if (!received.has_header() || !received.header().has_index()) {
           LOG_ERROR("Received PDO without EtherCAT index during discovery");
           return;
@@ -125,7 +118,6 @@ private:
                                 .name = name,
                                 .type = received.type(),
                                 .channel = channel,
-                                .device = *device,
                             });
       });
     }
