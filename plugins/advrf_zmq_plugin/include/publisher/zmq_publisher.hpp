@@ -1,70 +1,43 @@
 #pragma once
 
-#include <pb_utils.h>
-#include <shm_utils.hpp>
+#include <advrf_middleware_core/adapters/adapter_publishers.hpp>
+#include <advrf_middleware_core/config/config_topics.hpp>
+#include <advrf_middleware_core/config/robot_config.hpp>
+#include <advrf_middleware_core/utils/ecat_discover.hpp>
 
 #include <zmq.hpp>
 
 #include <atomic>
 #include <string>
-#include <thread>
 
 namespace advrf::zmq_plugin
 {
-class ZmqPublisher {
+class ZmqPublisher : 
+       public advrf::middleware::adapters::message::AdapterPublishers::IPublisher{
 public:
-    ZmqPublisher(
-        zmq::context_t& context,
-        std::string endpoint)
-        : _socket(context, zmq::socket_type::pub)
-    {
-        _socket.set(
+    ZmqPublisher() = default;
+
+    void initialize(zmq::context_t& context, const std::string& endpoint){
+
+        _socket = std::make_unique<zmq::socket_t>(context, zmq::socket_type::pub);
+
+        _socket->set(
             zmq::sockopt::sndhwm,
-            static_cast<int>(SHARED_PUB_BRIDGE_SIZE_QUEUE)
-        );
+            static_cast<int>(SHARED_PUB_BRIDGE_SIZE_QUEUE));
 
-        _socket.set(
-            zmq::sockopt::linger,
-            0
-        );
-
-        _socket.bind(endpoint);
-    }
-
-    void run()
-    {
-        auto& transport = client_transport();
-
-        using Clock = std::chrono::steady_clock;
-
-        constexpr auto period = std::chrono::milliseconds(2);
-        auto next_wakeup = Clock::now();
-
-        while (_running.load(std::memory_order_acquire)) {
-            transport.drain_rx_queues(
-                [&](const auto& slot) {
-                    publish(slot);
-                }
-            );
-
-            next_wakeup += period;
-            std::this_thread::sleep_until(next_wakeup);
-
-            const auto now = Clock::now();
-    
-            if (now > next_wakeup + period) {
-                next_wakeup = now;
-            }
-
-        }
-    }
-
-    void stop()
-    {
-        _running.store(false,std::memory_order_release);
+        _socket->set(zmq::sockopt::linger, 0);
+        _socket->bind(endpoint);
     }
 
 private:
+
+    void begin_cycle() {};
+    void consume(const advrf::middleware::pdo::Pdo &pdo) {
+        std::cout << pdo.ByteSizeLong()<< std::endl;
+    };
+    void end_cycle(bool valid) {};
+
+
     template<typename Slot>
     void publish(const Slot& slot)
     {
@@ -86,7 +59,7 @@ private:
             payload_size
         );
 
-        const auto topic_result = _socket.send(
+        const auto topic_result = _socket->send(
             topic_frame,
             zmq::send_flags::sndmore |
                 zmq::send_flags::dontwait
@@ -97,7 +70,7 @@ private:
             return;
         }
 
-        const auto payload_result = _socket.send(
+        const auto payload_result = _socket->send(
             payload_frame,
             zmq::send_flags::dontwait
         );
@@ -107,8 +80,27 @@ private:
         }
     }
 
-    zmq::socket_t _socket;
-    std::atomic<bool> _running{true};
+    std::unique_ptr<zmq::socket_t> _socket;
     std::uint64_t _dropped_messages{0};
 };
+
+class ZmqPublisherManager : 
+       public advrf::middleware::adapters::message::AdapterPublishers::AdapterPublishers {
+public:
+    void setup(zmq::context_t& context,const std::string& endpoint)
+    {
+        
+        using namespace advrf::middleware::shm;
+        std::vector<ChannelRx> channels;
+        channels.reserve(static_cast<std::size_t>(ChannelRx::Count));
+
+        for (std::size_t i = 0; i < static_cast<std::size_t>(ChannelRx::Count); ++i) {
+            channels.push_back(static_cast<ChannelRx>(i));
+        }
+        
+        auto& publisher = register_publisher<ZmqPublisher>(std::move(channels));
+        publisher.initialize(context,endpoint);
+    }
+};
+
 }
