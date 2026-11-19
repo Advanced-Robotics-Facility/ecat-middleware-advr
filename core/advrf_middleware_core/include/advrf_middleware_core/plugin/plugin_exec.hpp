@@ -67,18 +67,28 @@ public:
             LOG_ERROR("Adapter '{}' failed to start.", name_);
             return false;
         }
+        
 
         thread_ = std::thread([this, &running]
         {
-            LOG_INFO("Adapter '{}' started ({} Hz).",
-                     name_,
-                     1'000'000 / period_.count());
-
+            const bool periodic = period_.count() > 0;
             auto next = std::chrono::steady_clock::now();
             auto next_health = next + std::chrono::seconds(1);
+
+            if (periodic) {
+                LOG_INFO("Adapter '{}' started in periodic mode ({} Hz).",
+                        name_,
+                        1'000'000 / period_.count());
+            } else {
+                LOG_INFO("Adapter '{}' started in non-periodic mode.", name_);
+            }
+
             while (running)
             {
-                next += period_;
+                if (periodic) {
+                    next += period_;
+                }
+
                 if (std::chrono::steady_clock::now() >= next_health)
                 {
                     if (!adapter_->is_ok())
@@ -89,8 +99,12 @@ public:
                     }
                     next_health += std::chrono::seconds(1);
                 }
+
                 adapter_->spin_once();
-                std::this_thread::sleep_until(next);
+
+                if (periodic) {
+                    std::this_thread::sleep_until(next);
+                }
             }
         });
 
