@@ -35,14 +35,16 @@ int main(int argc, char** argv)
         publisher_mng->setup(context, "tcp://*:9001");
         publisher_mng->start();
 
-        //ZmqSubscriber {context,"tcp://*:9002"};
+        auto subscriber = std::make_shared<ZmqSubscriber>(context,"tcp://*:9002");
+        subscriber->start();
 
         advrf::middleware::plugin::PluginExec exec;
         exec.register_adapter(advrf::middleware::plugin::Process{
             "zmq_adapter_publishers", publisher_mng, std::chrono::microseconds{3000}});
-        //exec.register_adapter({"zmq_adapter_subscribers", subscriber, period_from_rate(runtime.rate_subscribers)});
-        //LOG_INFO("publishers: {} Hz; subscribers: {} Hz; service: {} Hz",
-        //          runtime.rate_publishers, runtime.rate_subscribers, runtime.rate_service);
+
+        exec.register_adapter(advrf::middleware::plugin::Process{
+            "zmq_adapter_subscribers", subscriber, std::chrono::microseconds{0}});
+
         exec.start();
 
     } catch (const std::exception& error) {
