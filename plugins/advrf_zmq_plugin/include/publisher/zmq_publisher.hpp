@@ -32,37 +32,27 @@ public:
 private:
 
     void begin_cycle() {};
-    void consume(const advrf::middleware::pdo::Pdo &pdo) {
-        std::cout << pdo.ByteSizeLong()<< std::endl;
-    };
+    void consume(const advrf::middleware::pdo::Pdo &pdo) {};
     void end_cycle(bool valid) {};
-
-
-    template<typename Slot>
-    void publish(const Slot& slot)
+    void consume_raw(const uint32_t& id,const uint8_t* buf,const uint32_t& size) override
     {
-        const std::string topic = std::to_string(slot.slave_id);
-        const std::size_t capacity = std::size(slot.buf);
-        const std::size_t payload_size = static_cast<std::size_t>(slot.size);
-
-        if (payload_size > capacity) {
+        //std::cout << id << "  " << size << std::endl;
+        if (size > PROTO_MAX_BYTES || (size > 0 && buf == nullptr)) {
             return;
         }
 
-        zmq::message_t topic_frame(
-            topic.data(),
-            topic.size()
-        );
+        const std::string topic = std::to_string(id);
+        const std::size_t payload_size = size;
 
-        zmq::message_t payload_frame(
-            std::data(slot.buf),
-            payload_size
-        );
+        zmq::message_t topic_frame(topic.data(),topic.size());
+
+        zmq::message_t payload_frame(buf, payload_size);
+
 
         const auto topic_result = _socket->send(
             topic_frame,
-            zmq::send_flags::sndmore |
-                zmq::send_flags::dontwait
+            zmq::send_flags::sndmore | 
+            zmq::send_flags::dontwait
         );
 
         if (!topic_result) {
@@ -89,7 +79,6 @@ class ZmqPublisherManager :
 public:
     void setup(zmq::context_t& context,const std::string& endpoint)
     {
-        
         using namespace advrf::middleware::shm;
         std::vector<ChannelRx> channels;
         channels.reserve(static_cast<std::size_t>(ChannelRx::Count));
@@ -97,7 +86,9 @@ public:
         for (std::size_t i = 0; i < static_cast<std::size_t>(ChannelRx::Count); ++i) {
             channels.push_back(static_cast<ChannelRx>(i));
         }
-        
+
+        advrf::middleware::adapters::message::AdapterPublishers::raw_pdo_ = true;
+
         auto& publisher = register_publisher<ZmqPublisher>(std::move(channels));
         publisher.initialize(context,endpoint);
     }

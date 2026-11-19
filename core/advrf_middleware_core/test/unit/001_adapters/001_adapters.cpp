@@ -57,7 +57,7 @@ void clear_cache(
 {
     auto& cache = adapter.mutable_channel_cache(channel);
 
-    for (auto& entry : cache.entries) {
+    for (auto& [id,entry] : cache.entries) {
         entry.valid = false;
         entry.updated_this_cycle = false;
     }

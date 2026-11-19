@@ -40,13 +40,15 @@ public:
     bool updated_this_cycle = false;
     advrf::middleware::pdo::EcatId ecat_id = 0;
     advrf::middleware::pdo::Pdo pdo;
+    uint8_t  buf_pdo[PROTO_MAX_BYTES]{};
+    uint32_t buf_pdo_size = 0;
   };
 
   /**
    * @brief Cache of received PDOs for one received channel.
    */
   struct ChannelCache {
-    std::array<PdoCache, MaxEcatIds> entries;
+    std::map<advrf::middleware::pdo::EcatId,PdoCache> entries;
     std::vector<advrf::middleware::pdo::EcatId> active_ids; ///< IDs currently in the cache.
   };
 
@@ -65,6 +67,7 @@ public:
 
     virtual void begin_cycle() = 0;
     virtual void consume(const advrf::middleware::pdo::Pdo &pdo) = 0;
+    virtual void consume_raw(const uint32_t& id,const uint8_t* buf,const uint32_t& size) {};
     virtual void end_cycle(bool valid) = 0;
 
     void set_names(std::unordered_map<uint32_t, std::string> m) {
@@ -175,6 +178,8 @@ protected:
 
   void dispatch_cached_data() { dispatch(); }
 
+  bool raw_pdo_=false;
+
 private:
 
   std::vector<std::unique_ptr<IPublisher>> publishers_;
@@ -196,46 +201,44 @@ private:
   /// Drain PDOs from shared memory and update the per-channel cache.
   void fill_cache()
   {
+      const auto dispatch_to_slave = [&](const auto& slot)  {
+
+        auto channel = advrf::middleware::shm::get_channel(slot.type);
+        auto& cache  = channel_cache(channel);
+        auto& entry = cache.entries[slot.slave_id];
+
+        if (!entry.valid)
+            cache.active_ids.push_back(slot.slave_id);
+
+        if(raw_pdo_){
+          std::copy(std::begin(slot.buf), std::end(slot.buf), std::begin(entry.buf_pdo ));
+          entry.buf_pdo_size = slot.size;
+        }else{
+          iit::advrf::Ec_slave_pdo received;
+          client_transport().extract_rx_pdo(received);
+
+          if (!received.has_header() ||
+              !received.header().has_index()) {
+            LOG_ERROR("Received PDO without EtherCAT index");
+            return;
+          }
+          
+          entry.pdo = received;
+        }
+
+        entry.valid = true;
+        entry.updated_this_cycle = true;
+        entry.ecat_id = slot.slave_id;    
+  
+      };
+
       for (auto channel : advrf::middleware::shm::CHANNELS_ARRAY) {
-          auto& cache = channel_cache(channel);
-
-          for (auto id : cache.active_ids)
-              cache.entries[id].updated_this_cycle = false;
-
-          iit::advrf::Ec_slave_pdo pdo;
-
-          ShmProtoHelper helper;
-          helper.drain(
-              nrt_pub_shm<SharedProtoPubBridge>().bridge().payload.rx_queue,
-              pdo,
-              [&](const iit::advrf::Ec_slave_pdo& received) {
-                  if (!received.has_header() ||
-                      !received.header().has_index()) {
-                      LOG_ERROR("Received PDO without EtherCAT index");
-                      return;
-                  }
-
-                  const auto id =
-                      static_cast<std::uint32_t>(
-                          received.header().index());
-
-                  if (id >= MaxEcatIds) {
-                      LOG_ERROR("ECAT ID {} exceeds maximum supported ID {}",
-                                id, MaxEcatIds - 1);
-                      return;
-                  }
-
-                  auto& entry = cache.entries[id];
-
-                  if (!entry.valid)
-                      cache.active_ids.push_back(id);
-
-                  entry.valid = true;
-                  entry.updated_this_cycle = true;
-                  entry.ecat_id = id;
-                  entry.pdo = received;
-              });
+        auto& cache  = channel_cache(channel);
+        for (auto id : cache.active_ids)
+            cache.entries[id].updated_this_cycle = false;
       }
+
+      client_transport().drain_rx_queues(dispatch_to_slave);
   }
 
   /// Deliver cached PDOs to each registered publisher.
@@ -261,7 +264,7 @@ private:
   static void dispatch_cache(const ChannelCache &cache,
                              Subscription &subscription) {
     for (advrf::middleware::pdo::EcatId id : cache.active_ids) { 
-      const auto &entry = cache.entries[id];
+      const auto &entry = cache.entries.at(id);
 
       if (!entry.updated_this_cycle)
         continue;
@@ -274,6 +277,7 @@ private:
 
       subscription.ids_seen.set(id);
       subscription.publisher->consume(entry.pdo);
+      subscription.publisher->consume_raw(entry.ecat_id,entry.buf_pdo,entry.buf_pdo_size);
     }
   }
 };

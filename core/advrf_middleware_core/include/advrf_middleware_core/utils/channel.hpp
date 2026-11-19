@@ -6,6 +6,7 @@
 #include <optional>
 
 #include <shm_types.hpp>
+#include <esc_type.h>
 
 namespace advrf::middleware::shm {
 
@@ -48,5 +49,25 @@ inline static constexpr std::array<ChannelRx, CHANNEL_COUNT> CHANNELS_ARRAY{
       ChannelRx::Imu,  ChannelRx::Motor,      ChannelRx::Gripper,
       ChannelRx::Pump, ChannelRx::PowerBoard, ChannelRx::ForceTorque,
       ChannelRx::Valve};
+      
+inline ChannelRx get_channel(uint32_t esc_type)
+{
+    const auto it = iit::ecat::esc_type_map.find(esc_type);
+    if (it == iit::ecat::esc_type_map.end()) {
+        throw std::invalid_argument("Unknown ESC type");
+    }
+
+    const std::string& name = it->second;
+
+    if (name.find("Motor") != std::string::npos)    return ChannelRx::Motor;
+    if (name.find("Imu") != std::string::npos)      return ChannelRx::Imu;
+    if (name.find("Gripper") != std::string::npos)  return ChannelRx::Gripper;
+    if (name.find("Hpu") != std::string::npos)      return ChannelRx::Pump;
+    if (name.find("Pow") != std::string::npos)      return ChannelRx::PowerBoard;
+    if (name.find("Ft") != std::string::npos)       return ChannelRx::ForceTorque;
+    if (name.find("Valve") != std::string::npos)    return ChannelRx::Valve;
+
+    throw std::invalid_argument("ESC type has no receive channel: " + name);
+}
 
 }
