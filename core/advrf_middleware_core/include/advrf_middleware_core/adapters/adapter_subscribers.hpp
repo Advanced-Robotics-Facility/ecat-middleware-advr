@@ -44,22 +44,23 @@ protected:
    * @return True if a matching shared-memory device exists and accepts the
    *         message; otherwise false.
    */
-  template <typename Proto> bool push(advrf::middleware::shm::ChannelTx channel, const Proto &msg) {
-    auto device = advrf::middleware::shm::device_for(channel);
-    if (!device) {
-      LOG_ERROR("No SHM device mapped for ChannelTx {}", static_cast<int>(channel));
-      return false;
-    }
-
+  template <typename Proto> bool push(advrf::middleware::shm::ChannelTx channel,Proto msg) {
     if (!is_ok() || !msg.has_header() || !msg.header().has_index() ||
         msg.header().index() < 0)
       return false;
+    
+    DeviceInfo dev_info{};
+    dev_info.id = static_cast<uint32_t>(msg.header().index());
 
-    // The master transport currently returns zero even on a successful push.
-    // Use its public queue and framing helper to preserve the actual result.
-    ShmProtoHelper helper;
-    helper.slot_push.slave_id = static_cast<uint32_t>(msg.header().index());
-    return helper.push(sub_queue<SharedProtoSubBridge>(*device), msg);
+    return client_transport().push_tx_queue(dev_info, msg) > 0;
+  }
+
+
+  bool push(const uint32_t& id,const void* data,std::size_t size){
+    const std::string string_id = std::to_string(id);
+    DeviceInfo dev_info = {id,string_id};
+
+    return client_transport().push_tx_queue(dev_info,data,size) > 0;
   }
 
 };

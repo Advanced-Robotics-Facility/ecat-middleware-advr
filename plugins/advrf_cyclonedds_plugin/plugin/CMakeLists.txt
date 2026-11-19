@@ -13,7 +13,6 @@ target_link_libraries(cyclonedds_plugin
         advrf_middleware_core
 
         advrf_interfaces_dds::cyclonedds
-        yaml-cpp::yaml-cpp
 )
 
 
